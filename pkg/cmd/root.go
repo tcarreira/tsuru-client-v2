@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tsuru/tsuru-client/pkg/cmd/app"
 )
 
 var cfgFile string
@@ -42,15 +43,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
+	// Flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
+	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// Add subcommands
+	rootCmd.AddCommand(app.AppCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
