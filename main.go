@@ -5,7 +5,7 @@ license that can be found in the LICENSE file.
 */
 package main
 
-import "github.com/tsuru/tsuru-client/cmd"
+import "github.com/tsuru/tsuru-client/pkg/cmd"
 
 func main() {
 	cmd.Execute()
