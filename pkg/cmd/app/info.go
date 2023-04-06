@@ -6,9 +6,11 @@ license that can be found in the LICENSE file.
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/spf13/cobra"
+	"github.com/tsuru/tsuru-client/internal/api"
 )
 
 var appInfoCmd = &cobra.Command{
@@ -27,13 +29,28 @@ $ tsuru app info -a myapp
 		if len(args) > 0 && cmd.Flag("app").Value.String() != "" {
 			return fmt.Errorf("either pass an app name as an argument or use the --app flag, not both")
 		}
+		cmd.SilenceUsage = true
 
 		appName := cmd.Flag("app").Value.String()
 		if appName == "" {
 			appName = args[0]
 		}
 
+		app, httpResponse, err := api.Client().AppApi.AppGet(cmd.Context(), appName)
+		if err != nil {
+			return err
+		}
+		if httpResponse.StatusCode == 404 {
+			return fmt.Errorf("app %q not found", appName)
+		}
+
+		appByte, err := json.MarshalIndent(app, "", "  ")
+		if err != nil {
+			return err
+		}
+
 		fmt.Println("printing app info for: " + appName)
+		fmt.Println(string(appByte))
 		return nil
 	},
 }

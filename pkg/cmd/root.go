@@ -9,13 +9,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
+	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/pkg/cmd/app"
 )
 
-var cfgFile string
+var (
+	Version string = "dev"
+
+	cfgFile    string
+	configPath string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -41,6 +49,11 @@ func Execute() {
 }
 
 func init() {
+	// Find home directory.
+	home, err := os.UserHomeDir()
+	cobra.CheckErr(err)
+	configPath = filepath.Join(home, ".tsuru")
+
 	cobra.OnInitialize(initConfig)
 
 	// Flags
@@ -57,20 +70,31 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
-		home, err := os.UserHomeDir()
-		cobra.CheckErr(err)
 
 		// Search config in home directory with name ".tsuru-client" (without extension).
-		viper.AddConfigPath(filepath.Join(home, ".tsuru"))
+		viper.AddConfigPath(configPath)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".tsuru-client")
 	}
 
+	viper.SetEnvPrefix("tsuru")
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed()) // TODO: handle this better
 	}
+
+	setupTsuruClientSingleton()
+}
+
+func setupTsuruClientSingleton() {
+	cfg := tsuru.NewConfiguration()
+	cfg.UserAgent = "tsuru-client:" + Version
+	cfg.BasePath = viper.GetString("target")
+	if viper.GetString("token") != "" {
+		cfg.AddDefaultHeader("Authorization", "bearer "+viper.GetString("token"))
+	}
+	api.SetupTsuruClient(cfg)
 }
