@@ -8,8 +8,13 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
+	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
+	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
 )
 
@@ -23,36 +28,61 @@ You need to be a member of a team that has access to the app to be able to see i
 $ tsuru app info -a myapp
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
-			return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
-		}
-		if len(args) > 0 && cmd.Flag("app").Value.String() != "" {
-			return fmt.Errorf("either pass an app name as an argument or use the --app flag, not both")
-		}
-		cmd.SilenceUsage = true
+		return printAppInfo(cmd, args, os.Stdout)
+	},
+}
 
-		appName := cmd.Flag("app").Value.String()
-		if appName == "" {
-			appName = args[0]
-		}
+func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
+	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
+		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
+	}
+	if len(args) > 0 && cmd.Flag("app").Value.String() != "" {
+		return fmt.Errorf("either pass an app name as an argument or use the --app flag, not both")
+	}
+	cmd.SilenceUsage = true
 
-		app, httpResponse, err := api.Client().AppApi.AppGet(cmd.Context(), appName)
-		if err != nil {
-			return err
-		}
-		if httpResponse.StatusCode == 404 {
-			return fmt.Errorf("app %q not found", appName)
-		}
+	appName := cmd.Flag("app").Value.String()
+	if appName == "" {
+		appName = args[0]
+	}
 
+	app, httpResponse, err := api.Client().AppApi.AppGet(cmd.Context(), appName)
+	if err != nil {
+		return err
+	}
+	if httpResponse.StatusCode == 404 {
+		return fmt.Errorf("app %q not found", appName)
+	}
+
+	if cmd.Flag("json").Value.String() == "true" {
 		appByte, err := json.MarshalIndent(app, "", "  ")
 		if err != nil {
 			return err
 		}
+		fmt.Fprintln(out, string(appByte))
+	} else {
+		w := tabwriter.NewWriter(out, 3, 3, 2, ' ', 0)
+		defer w.Flush()
 
-		fmt.Println("printing app info for: " + appName)
-		fmt.Println(string(appByte))
-		return nil
-	},
+		printAppMetadata(w, app)
+	}
+
+	return nil
+}
+
+func printAppMetadata(w io.Writer, app tsuru.App) {
+	fmt.Fprintf(w, "Application:\t%s\n", app.Name)
+	fmt.Fprintf(w, "Description:\t%s\n", app.Description)
+	fmt.Fprintf(w, "Tags:\t%s\n", strings.Join(app.Tags, ", "))
+	fmt.Fprintf(w, "Platform:\t%s\n", app.Platform)
+	fmt.Fprintf(w, "Provisioner:\t%s\n", app.Provisioner)
+	fmt.Fprintf(w, "Teams:\t%s (owner)%s\n", app.TeamOwner, strings.Join(append([]string{""}, app.Teams...), ", "))
+	fmt.Fprintf(w, "External Addresses:\t%s\n", "TODO (not-implemented!)")
+	fmt.Fprintf(w, "Created by:\t%s\n", app.Owner)
+	fmt.Fprintf(w, "Deploys:\t%d\n", app.Deploys)
+	fmt.Fprintf(w, "Cluster:\t%s\n", app.Cluster)
+	fmt.Fprintf(w, "Pool:\t%s\n", app.Pool)
+	fmt.Fprintf(w, "Quota:\t%s\n", "TODO (not-implemented!)")
 }
 
 func init() {
