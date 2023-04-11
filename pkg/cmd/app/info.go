@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/parser"
 )
 
 var appInfoCmd = &cobra.Command{
@@ -65,6 +66,10 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		defer w.Flush()
 
 		printAppMetadata(w, app)
+		fmt.Fprintf(w, "\n\n")
+		printAppUnits(w, app)
+		printAppServiceInstances(w, app)
+
 	}
 
 	return nil
@@ -75,6 +80,7 @@ func printAppMetadata(w io.Writer, app tsuru.App) {
 	fmt.Fprintf(w, "Description:\t%s\n", app.Description)
 	fmt.Fprintf(w, "Tags:\t%s\n", strings.Join(app.Tags, ", "))
 	fmt.Fprintf(w, "Platform:\t%s\n", app.Platform)
+	fmt.Fprintf(w, "Plan:\t%s (CPU: %s, Memory: %s)\n", app.Plan.Name, parser.CPUMilliToPercent(app.Plan.Cpumilli), parser.MemoryToHuman(app.Plan.Memory))
 	fmt.Fprintf(w, "Provisioner:\t%s\n", app.Provisioner)
 	fmt.Fprintf(w, "Teams:\t%s (owner)%s\n", app.TeamOwner, strings.Join(append([]string{""}, app.Teams...), ", "))
 	fmt.Fprintf(w, "External Addresses:\t%s\n", "TODO (not-implemented!)")
@@ -84,6 +90,34 @@ func printAppMetadata(w io.Writer, app tsuru.App) {
 	fmt.Fprintf(w, "Pool:\t%s\n", app.Pool)
 	fmt.Fprintf(w, "Quota:\t%s\n", "TODO (not-implemented!)")
 }
+
+func printAppUnits(w io.Writer, app tsuru.App) {
+	unitsMapping := map[string]map[int32][]tsuru.Unit{}
+	for _, unit := range app.Units {
+		if unitsMapping[unit.Processname] == nil {
+			unitsMapping[unit.Processname] = map[int32][]tsuru.Unit{}
+		}
+		unitsMapping[unit.Processname][unit.Version] = append(unitsMapping[unit.Processname][unit.Version], unit)
+	}
+
+	first := true
+	for process, versions := range unitsMapping {
+		for version, units := range versions {
+			if !first {
+				fmt.Fprintf(w, "\t\t\t\t\t\t\n")
+			}
+			first = false
+
+			fmt.Fprintf(w, "\t\t\t\t\t\t\rUnits [Process: %s] [version %d]: %d\n", process, version, len(units)) // \t\t\r to ignore column-format on this line
+			fmt.Fprintf(w, "NAME\tHOST\tSTATUS\tRESTARTS\tAGE\tCPU\tMEMORY\t\n")
+			for _, unit := range units {
+				fmt.Fprintf(w, "%s\t%s\t%v\t%d\t%s\t%s\t%s\t\n", unit.Name, unit.Ip, *unit.Routable, *unit.Restarts, parser.DurationFromTimeWithoutSeconds(unit.CreatedAt, "-"), "-", "-")
+			}
+		}
+	}
+}
+
+func printAppServiceInstances(w io.Writer, app tsuru.App) {}
 
 func init() {
 	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app")

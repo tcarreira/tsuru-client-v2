@@ -59,6 +59,7 @@ func init() {
 	// Flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
+	rootCmd.PersistentFlags().StringP("target", "t", "http://localhost", "Tsuru server endpoint")
 
 	// Add subcommands
 	rootCmd.AddCommand(app.AppCmd())
@@ -79,6 +80,7 @@ func initConfig() {
 
 	viper.SetEnvPrefix("tsuru")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	viper.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
