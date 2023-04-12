@@ -9,8 +9,10 @@ import (
 )
 
 func TestDurationFromTimeWithoutSeconds(t *testing.T) {
+	oldTimeSince := timeSince
 	now, _ := time.Parse(time.RFC3339, "2020-01-01T00:00:00Z")
-	timeSince = now.Sub // mocking time.Since via global variable
+	timeSince = now.Sub                         // mocking time.Since via global variable
+	defer func() { timeSince = oldTimeSince }() // restore time.Since
 
 	for _, test := range []struct {
 		timeStr  string
@@ -23,6 +25,26 @@ func TestDurationFromTimeWithoutSeconds(t *testing.T) {
 	} {
 		got := DurationFromTimeWithoutSeconds(test.timeStr, "default")
 		assert.Equal(t, test.expected, got)
+	}
+}
+func TestDurationFromTimeWithoutSeconds_OnError(t *testing.T) {
+	for _, test := range []struct {
+		timeStr    string
+		defaultVal string
+	}{
+		{"2019", "not time.RFC3339_1"},
+		{"2019-12-31", "not time.RFC3339_2"},
+		{"2019-12-30T23:51:00", "not time.RFC3339_3"},
+		{"invalid-string", "any string"},
+		{"2019-13-30T23:51:00Z", "wrong month"},
+		{"2019-02-29T23:51:00Z", "wrong day"},
+		{"2019-12-30T24:51:00Z", "wrong hour"},
+		{"2019-12-30T23:71:00Z", "wrong minute"},
+		{"2019-12-30T23:51:90Z", "wrong second"},
+		{"2019-12-30T23:51:00L", "wrong tz"},
+	} {
+		got := DurationFromTimeWithoutSeconds(test.timeStr, test.defaultVal)
+		assert.Equal(t, test.defaultVal, got)
 	}
 }
 
