@@ -34,18 +34,24 @@ func FormatAs(s string) OutputType {
 }
 
 func PrintJSON(out io.Writer, data any) error {
+	if data == nil {
+		return nil
+	}
 	dataByte, err := json.Marshal(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("error converting to json: %w", err)
 	}
 	fmt.Fprintln(out, string(dataByte))
 	return nil
 }
 
 func PrintPrettyJSON(out io.Writer, data any) error {
+	if data == nil {
+		return nil
+	}
 	dataByte, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("error converting to json: %w", err)
 	}
 	fmt.Fprintln(out, string(dataByte))
 	return nil
