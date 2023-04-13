@@ -3,7 +3,6 @@ package parser
 import (
 	"testing"
 	"time"
-	_ "unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
