@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -11,15 +12,18 @@ import (
 type OutputType string
 
 const (
-	JSON  OutputType = "json"
-	YAML  OutputType = "yaml"
-	Table OutputType = "table"
+	JSON       OutputType = "json"
+	PrettyJSON OutputType = "pretty-json"
+	YAML       OutputType = "yaml"
+	Table      OutputType = "table"
 )
 
 func FormatAs(s string) OutputType {
-	switch s {
+	switch strings.ToLower(s) {
 	case "json":
 		return JSON
+	case "pretty-json":
+		return PrettyJSON
 	case "yaml":
 		return YAML
 	case "table":
@@ -30,6 +34,15 @@ func FormatAs(s string) OutputType {
 }
 
 func PrintJSON(out io.Writer, data any) error {
+	dataByte, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(out, string(dataByte))
+	return nil
+}
+
+func PrintPrettyJSON(out io.Writer, data any) error {
 	dataByte, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err
