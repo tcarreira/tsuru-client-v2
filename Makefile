@@ -1,6 +1,7 @@
 GOCMD		?= go
 GOTEST	?= $(GOCMD) test
 GOVET		?= $(GOCMD) vet
+GOFMT		?= gofmt
 BINARY	?= tsuru
 VERSION	?= $(shell git describe --tags --dirty --match='v*' 2> /dev/null || echo dev)
 FILES		?= $(shell find . -type f -name '*.go')
@@ -32,6 +33,9 @@ clean-all: ## Remove build related file and installed binary
 	rm -fr ./coverage
 	rm -f "$(shell go env GOPATH)/bin/$(BINARY)"
 
+fmt: ## Format your code with gofmt
+	$(GOFMT) -w .
+
 ## Test:
 test: ## Run the tests of the project (fastest)
 	$(GOVET) ./...
@@ -54,10 +58,15 @@ coverage: test-coverage  ## Run test-coverage and open coverage in your browser
 	$(GOCMD) tool cover -html=coverage/coverage.out
 
 ## Lint:
-lint: lint-go  ## Run all available linters
+lint: lint-go ## Run all available linters
 
 lint-go: ## Use golintci-lint on your project
-	echo $(GOCMD) vet ./...
+ifneq (, $(shell $(GOFMT) -l . ))
+	@echo "This files are not gofmt compliant:"
+	@$(GOFMT) -l .
+	@echo "Please run 'make fmt' to format your code"
+	@exit 1
+endif
 ifeq (, $(shell which staticcheck))
 	go install honnef.co/go/tools/cmd/staticcheck@latest
 endif
