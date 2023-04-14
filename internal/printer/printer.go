@@ -57,13 +57,23 @@ func PrintPrettyJSON(out io.Writer, data any) error {
 	return nil
 }
 
-func PrintYAML(out io.Writer, data any) error {
+func PrintYAML(out io.Writer, data any) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			// yaml.v3 panics a lot: https://github.com/go-yaml/yaml/issues/954
+			err = fmt.Errorf("error converting to yaml (panic): %v", r)
+		}
+	}()
+
+	if data == nil {
+		return nil
+	}
 	dataByte, err := yaml.Marshal(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("error converting to yaml: %w", err)
 	}
-	fmt.Fprintln(out, string(dataByte))
-	return nil
+	_, err = out.Write(dataByte)
+	return err
 }
 
 func PrintTable(out io.Writer, data any) (err error) {
