@@ -17,6 +17,7 @@ import (
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/parser"
+	"github.com/tsuru/tsuru-client/internal/printer"
 )
 
 var appInfoCmd = &cobra.Command{
@@ -62,13 +63,14 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		}
 		fmt.Fprintln(out, string(appByte))
 	} else {
-		w := tabwriter.NewWriter(out, 3, 3, 2, ' ', 0)
+		w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
 		defer w.Flush()
 
-		printAppMetadata(w, app)
-		fmt.Fprintf(w, "\n\n")
-		printAppUnits(w, app)
-		printAppServiceInstances(w, app)
+		printer.PrintInfo(w, "table", app)
+		// printAppMetadata(w, app)
+		// fmt.Fprintf(w, "\n\n")
+		// printAppUnits(w, app)
+		// printAppServiceInstances(w, app)
 
 	}
 
