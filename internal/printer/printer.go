@@ -142,31 +142,37 @@ func printTableAny(out io.Writer, data any) (err error) {
 	dt := reflect.TypeOf(data)
 	for i := 0; i < dt.NumField(); i++ {
 		field := dt.Field(i)
-		switch tData := reflect.ValueOf(data).Field(i).Interface().(type) {
-		case nil:
-		case []byte:
-			simpleInfo[field.Name] = string(tData)
-		case string:
-			if tData != "" {
-				simpleInfo[field.Name] = tData
-			}
-		case int, int16, int32, int64, int8, uint, uint16, uint32, uint64, uint8, float32, float64, complex64, complex128, bool:
-			simpleInfo[field.Name] = tData
-		case []string:
-			simpleInfo[field.Name] = strings.Join(tData, ", ")
-		case map[any]any:
-			complexInfo[field.Name] = tData // XXX: fix this
-		case []any:
-			complexInfo[field.Name] = []any{}
-			for _, v := range tData {
-				complexInfo[field.Name] = append(complexInfo[field.Name].([]any), v)
-			}
-		default:
-			complexInfo[field.Name] = tData
-		}
 
-		// inter := reflect.ValueOf(data).Field(i).Interface()
-		// _, err = fmt.Fprintf(out, "%s (%T):\t%v\n", field.Name, inter, inter)
+		v := reflect.ValueOf(data).Field(i)
+		switch v.Kind() {
+		case reflect.Bool:
+			simpleInfo[field.Name] = v.Bool()
+		case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64:
+			simpleInfo[field.Name] = v.Int()
+		case reflect.Uint, reflect.Uint8, reflect.Uint32, reflect.Uint64:
+			simpleInfo[field.Name] = v.Uint()
+		case reflect.Float32, reflect.Float64:
+			simpleInfo[field.Name] = v.Float()
+		case reflect.String:
+			simpleInfo[field.Name] = v.String()
+		case reflect.Slice:
+			if tData, ok := v.Interface().([]string); ok {
+				simpleInfo[field.Name] = strings.Join(tData, ", ")
+			} else {
+				if v.Len() == 0 {
+					continue
+				}
+				complexInfo[field.Name] = v.Interface()
+			}
+		case reflect.Map:
+			if v.Len() == 0 {
+				continue
+			}
+			fmt.Printf("map: %v\n", v.Interface())
+		case reflect.Chan:
+		default:
+			complexInfo[field.Name] = v.Interface()
+		}
 	}
 
 	// print simple info
