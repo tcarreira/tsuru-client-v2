@@ -176,7 +176,6 @@ func printTableAny(out io.Writer, data any) (err error) {
 	}
 
 	// print simple info
-	fmt.Fprintf(out, "============= simpleInfo: ==============\n")
 	for _, k := range sortedKeys(simpleInfo) {
 		_, err = fmt.Fprintf(out, "%s:\t%v\n", k, simpleInfo[k])
 		if err != nil {
@@ -185,15 +184,62 @@ func printTableAny(out io.Writer, data any) (err error) {
 	}
 
 	// print complex info
-	// XXX: sort keys
-	fmt.Fprintf(out, "\n============= complexInfo: ==============\n")
 	for _, k := range sortedKeys(complexInfo) {
-		_, err = fmt.Fprintf(out, "\n%s:\n\t%v\n", k, complexInfo[k])
-		if err != nil {
+		fmt.Fprintf(out, "\n%s (%T):\n", k, complexInfo[k])
+		if err = printSubTable(out, complexInfo[k]); err != nil {
 			return err
 		}
 	}
 	return err
+}
+
+func printSubTable(out io.Writer, data any) (err error) {
+	keys := []string{}
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Slice:
+		switch reflect.TypeOf(data).Elem().Kind() {
+		case reflect.String:
+			_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(data.([]string), "\n\t"))
+			return err
+		case reflect.Map:
+			for _, v := range data.([]map[string]any) {
+				for k := range v {
+					keys = append(keys, k)
+				}
+			}
+		case reflect.Struct:
+			return printSubTableOfStructs(out, data)
+		default:
+			return fmt.Errorf("unknown type: %T", data)
+
+		}
+	}
+
+	sort.Strings(keys)
+	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(keys, "\t"))
+	for _, k := range keys {
+		_, err = fmt.Fprintf(out, "\t%s:\t%v\n", k, data.(map[any]any)[k])
+	}
+
+	return
+}
+
+func printSubTableOfStructs(out io.Writer, data any) (err error) {
+	keys := []string{}
+	for _, vf := range reflect.VisibleFields(reflect.TypeOf(data).Elem()) {
+		keys = append(keys, vf.Name)
+	}
+
+	sort.Strings(keys)
+	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(keys, "\t"))
+	for i := 0; i < reflect.ValueOf(data).Len(); i++ {
+		item := reflect.ValueOf(data).Index(i).Interface()
+		for _, k := range keys {
+			fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
+		}
+		fmt.Fprintln(out, "")
+	}
+	return
 }
 
 func sortedKeys(d map[string]any) []string {
