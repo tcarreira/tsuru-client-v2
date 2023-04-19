@@ -83,16 +83,46 @@ func PrintTable(out io.Writer, data any) (err error) {
 
 	switch tData := data.(type) {
 	case []byte:
-		out.Write(tData)
+		_, err = out.Write(tData)
 	case string:
-		fmt.Fprintln(out, tData)
+		_, err = fmt.Fprintln(out, tData)
+	case int, int16, int32, int64, int8, uint, uint16, uint32, uint64, uint8, float32, float64, complex64, complex128, bool:
+		_, err = fmt.Fprintln(out, tData)
+	case []string:
+		_, err = fmt.Println(strings.Join(tData, "\n"))
 	case io.Reader:
 		_, err = io.Copy(out, tData)
-	case map[string]any:
+	case map[any]any:
 		for k, v := range tData {
-			fmt.Fprintf(out, "%s: %v", k, v)
+			fmt.Fprintf(out, "%v: -----------\n", k)
+			err = listAsTable(out, v)
+			if err != nil {
+				return err
+			}
 		}
+		fmt.Fprintln(out, "")
+	case []any:
+		for _, v := range tData {
+			err = listAsTable(out, v)
+			if err != nil {
+				return err
+			}
+		}
+	case *any:
+		err = PrintTable(out, *tData)
+	case any:
+		err = printTableAny(out, tData)
+	default:
+		err = fmt.Errorf("unknown type: %T", tData)
 	}
 
 	return err
+}
+
+func printTableAny(out io.Writer, data any) (err error) {
+	return err
+}
+
+func listAsTable(out io.Writer, data any) (err error) {
+	return fmt.Errorf("not implemented")
 }
