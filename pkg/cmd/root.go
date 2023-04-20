@@ -71,7 +71,6 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-
 		// Search config in home directory with name ".tsuru-client" (without extension).
 		viper.AddConfigPath(configPath)
 		viper.SetConfigType("yaml")
