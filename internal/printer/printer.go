@@ -16,17 +16,17 @@ type OutputType string
 
 const (
 	// every OutputType should be mapped inside PrintInfo()
-	JSON       OutputType = "json"
-	PrettyJSON OutputType = "pretty-json"
-	YAML       OutputType = "yaml"
-	Table      OutputType = "table"
+	JSON       OutputType = "JSON"
+	PrettyJSON OutputType = "PrettyJSON"
+	YAML       OutputType = "YAML"
+	Table      OutputType = "Table"
 )
 
 func FormatAs(s string) OutputType {
 	switch strings.ToLower(s) {
 	case "json":
 		return JSON
-	case "pretty-json":
+	case "pretty-json", "prettyjson":
 		return PrettyJSON
 	case "yaml":
 		return YAML
