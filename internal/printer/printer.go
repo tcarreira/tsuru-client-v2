@@ -15,6 +15,7 @@ import (
 type OutputType string
 
 const (
+	// every OutputType should be mapped inside PrintInfo()
 	JSON       OutputType = "json"
 	PrettyJSON OutputType = "pretty-json"
 	YAML       OutputType = "yaml"
