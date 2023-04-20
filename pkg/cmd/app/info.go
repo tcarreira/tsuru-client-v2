@@ -11,7 +11,9 @@ import (
 	"os"
 	"text/tabwriter"
 
+	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
+	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
 )
@@ -28,6 +30,7 @@ $ tsuru app info -a myapp
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return printAppInfo(cmd, args, os.Stdout)
 	},
+	ValidArgsFunction: completeAppNames,
 }
 
 func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
@@ -58,6 +61,21 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
 	return printer.PrintInfo(w, printer.FormatAs(format), app)
+}
+
+func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	apps, _, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+		Simplified: optional.NewBool(true),
+		Name:       optional.NewString(toComplete),
+	})
+	if err != nil {
+		return nil, cobra.ShellCompDirectiveNoFileComp
+	}
+	var names []string
+	for _, app := range apps {
+		names = append(names, app.Name)
+	}
+	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
 func init() {
