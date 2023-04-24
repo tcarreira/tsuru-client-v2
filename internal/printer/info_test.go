@@ -76,39 +76,3 @@ func TestPrintInfo_Switch(t *testing.T) {
 	err = PrintInfo(io.Discard, "invalid", "")
 	assert.NoError(t, err)
 }
-
-// func TestPrintInfo(t *testing.T) {
-// 	fset := token.NewFileSet() // positions are relative to fset
-// 	fpackage, err := parser.ParseDir(fset, ".", nil, 0)
-// 	assert.NoError(t, err)
-// 	f, ok := fpackage["printer"]
-// 	assert.True(t, ok)
-
-// 	allDecl := []ast.Decl{}
-// 	for _, ff := range f.Files {
-// 		allDecl = append(allDecl, ff.Decls...)
-// 	}
-
-// 	OutputTypeEnum := []string{}
-// 	for _, d := range allDecl {
-// 		switch d := d.(type) {
-// 		case *ast.GenDecl:
-// 			for _, s := range d.Specs {
-// 				switch s := s.(type) {
-// 				case *ast.ValueSpec:
-// 					switch dt := s.Type.(type) {
-// 					case *ast.Ident:
-// 						if dt.Name == "OutputType" {
-// 							for _, v := range s.Names {
-// 								OutputTypeEnum = append(OutputTypeEnum, v.Name)
-// 							}
-// 						}
-// 					}
-// 				}
-// 			}
-// 		}
-// 	}
-
-// 	t.Log(OutputTypeEnum)
-// 	t.Error("fim")
-// }
