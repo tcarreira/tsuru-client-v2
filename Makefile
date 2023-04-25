@@ -1,3 +1,7 @@
+# Copyright © 2023 tsuru-client authors
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
 GOCMD		?= go
 GOTEST	?= $(GOCMD) test
 GOVET		?= $(GOCMD) vet
@@ -36,6 +40,12 @@ clean-all: ## Remove build related file and installed binary
 fmt: ## Format your code with gofmt
 	$(GOFMT) -w .
 
+addlicense: ## Add licence header to all files
+ifeq (, $(shell which addlicense))
+	go install github.com/google/addlicense@latest
+endif
+	addlicense -f LICENSE-HEADER .
+
 ## Test:
 test: ## Run the tests of the project (fastest)
 	$(GOVET) ./...
@@ -58,7 +68,7 @@ coverage: test-coverage  ## Run test-coverage and open coverage in your browser
 	$(GOCMD) tool cover -html=coverage/coverage.out
 
 ## Lint:
-lint: lint-go ## Run all available linters
+lint: lint-license-header lint-go ## Run all available linters
 
 lint-go: ## Use golintci-lint on your project
 ifneq (, $(shell $(GOFMT) -l . ))
@@ -71,6 +81,14 @@ ifeq (, $(shell which staticcheck))
 	go install honnef.co/go/tools/cmd/staticcheck@latest
 endif
 	staticcheck ./...
+
+lint-license-header: ## Check if all files have the license header
+ifeq (, $(shell which addlicense))
+	go install github.com/google/addlicense@latest
+endif
+	@echo "addlicense -check -f LICENSE-HEADER ."
+	@addlicense -check -f LICENSE-HEADER . \
+		|| (echo "Some files are missing the license header, please run 'make addlicense' to add it" && exit 1)
 
 ## Help:
 help: ## Show this help.
