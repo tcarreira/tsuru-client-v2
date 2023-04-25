@@ -87,15 +87,22 @@ func initConfig() {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed()) // TODO: handle this better
 	}
 
-	setupTsuruClientSingleton()
+	SetupTsuruClientSingleton()
 }
 
-func setupTsuruClientSingleton() {
+func SetupTsuruClientSingleton() {
 	cfg := tsuru.NewConfiguration()
 	cfg.UserAgent = "tsuru-client:" + Version
-	cfg.BasePath = viper.GetString("target")
-	if viper.GetString("token") != "" {
-		cfg.AddDefaultHeader("Authorization", "bearer "+viper.GetString("token"))
+
+	target, err := GetTarget()
+	cobra.CheckErr(err)
+	cfg.BasePath = target
+
+	token, err := GetToken()
+	cobra.CheckErr(err)
+	if token != "" {
+		cfg.AddDefaultHeader("Authorization", "bearer "+token)
 	}
+
 	api.SetupTsuruClient(cfg)
 }
