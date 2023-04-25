@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"text/tabwriter"
 
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
@@ -59,8 +58,7 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
-	return printer.PrintInfo(w, printer.FormatAs(format), app)
+	return printer.PrintInfo(out, printer.FormatAs(format), app)
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

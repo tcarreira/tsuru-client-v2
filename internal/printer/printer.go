@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"gopkg.in/yaml.v3"
@@ -81,41 +82,44 @@ func PrintYAML(out io.Writer, data any) (err error) {
 }
 
 func PrintTable(out io.Writer, data any) (err error) {
+	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
+	defer w.Flush()
+
 	if data == nil {
 		return nil
 	}
 
 	switch tData := data.(type) {
 	case []byte:
-		_, err = out.Write(tData)
+		_, err = w.Write(tData)
 	case string:
-		_, err = fmt.Fprintln(out, tData)
+		_, err = fmt.Fprintln(w, tData)
 	case int, int16, int32, int64, int8, uint, uint16, uint32, uint64, uint8, float32, float64, complex64, complex128, bool:
-		_, err = fmt.Fprintln(out, tData)
+		_, err = fmt.Fprintln(w, tData)
 	case []string:
 		_, err = fmt.Println(strings.Join(tData, "\n"))
 	case io.Reader:
-		_, err = io.Copy(out, tData)
+		_, err = io.Copy(w, tData)
 	case map[any]any:
 		for k, v := range tData {
-			fmt.Fprintf(out, "%v: -----------\n", k)
-			err = listAsTable(out, v)
+			fmt.Fprintf(w, "%v: -----------\n", k)
+			err = listAsTable(w, v)
 			if err != nil {
 				return err
 			}
 		}
-		fmt.Fprintln(out, "")
+		fmt.Fprintln(w, "")
 	case []any:
 		for _, v := range tData {
-			err = listAsTable(out, v)
+			err = listAsTable(w, v)
 			if err != nil {
 				return err
 			}
 		}
 	case *any:
-		err = PrintTable(out, *tData)
+		err = PrintTable(w, *tData)
 	case any:
-		err = printTableAny(out, tData)
+		err = printTableAny(w, tData)
 	default:
 		err = fmt.Errorf("unknown type: %T", tData)
 	}
@@ -127,7 +131,7 @@ func printTableAny(out io.Writer, data any) (err error) {
 	handledOnSwitch := true
 	switch tData := data.(type) {
 	case tsuru.App:
-		_, err = fmt.Fprintf(out, "Handled!!!! %v\n\n", tData.Name) // XXX: fix this
+		_, err = fmt.Fprintf(io.Discard, "Handled!!!! %v\n\n", tData.Name) // XXX: fix this
 		handledOnSwitch = false
 	default:
 		handledOnSwitch = false
@@ -145,7 +149,8 @@ func printTableAny(out io.Writer, data any) (err error) {
 		field := dt.Field(i)
 
 		v := reflect.ValueOf(data).Field(i)
-		switch v.Kind() {
+		kind := v.Kind()
+		switch kind {
 		case reflect.Bool:
 			simpleInfo[field.Name] = v.Bool()
 		case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64:
@@ -231,7 +236,7 @@ func printSubTableOfStructs(out io.Writer, data any) (err error) {
 		keys = append(keys, vf.Name)
 	}
 
-	sort.Strings(keys)
+	sort.Strings(keys) // XXX: sort with defaults first?
 	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(keys, "\t"))
 	for i := 0; i < reflect.ValueOf(data).Len(); i++ {
 		item := reflect.ValueOf(data).Index(i).Interface()
