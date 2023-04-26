@@ -66,7 +66,7 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintInfo(out, printer.FormatAs(format), app)
+	return printer.PrintInfo(out, printer.FormatAs(format), app, nil)
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
@@ -121,7 +121,7 @@ func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintList(out, printer.FormatAs(format), apps)
+	return printer.PrintList(out, printer.FormatAs(format), apps, nil)
 }
 
 func init() {

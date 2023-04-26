@@ -6,7 +6,7 @@ package printer
 
 import "io"
 
-func PrintList(out io.Writer, format OutputType, data any) (err error) {
+func PrintList(out io.Writer, format OutputType, data any, opts *TableViewOptions) (err error) {
 	switch format {
 	case JSON:
 		return PrintJSON(out, data)
@@ -15,8 +15,8 @@ func PrintList(out io.Writer, format OutputType, data any) (err error) {
 	case YAML:
 		return PrintYAML(out, data)
 	case Table:
-		return PrintSubTable(out, data)
+		return PrintSubTable(out, data, opts)
 	default:
-		return PrintSubTable(out, data)
+		return PrintSubTable(out, data, opts)
 	}
 }
