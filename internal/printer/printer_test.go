@@ -7,6 +7,9 @@ package printer
 import (
 	"bytes"
 	"errors"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -202,4 +205,34 @@ override:
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "error converting to yaml")
 	}
+}
+
+func getConstTypeEnumsFromFile(t *testing.T, filename, typeName string) []string {
+	fset := token.NewFileSet() // positions are relative to fset
+	f, err := parser.ParseFile(fset, filename, nil, 0)
+	assert.NoError(t, err)
+
+	typeEnums := []string{}
+	ast.Inspect(f, func(n ast.Node) bool {
+		switch x := n.(type) {
+		case *ast.GenDecl:
+			if x.Tok == token.CONST {
+				for _, s := range x.Specs {
+					switch s := s.(type) {
+					case *ast.ValueSpec:
+						switch dt := s.Type.(type) {
+						case *ast.Ident:
+							if dt.Name == typeName {
+								for _, v := range s.Names {
+									typeEnums = append(typeEnums, v.Name)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		return true
+	})
+	return typeEnums
 }

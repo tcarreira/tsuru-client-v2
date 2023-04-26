@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPrintInfo_Switch(t *testing.T) {
+func TestPrintList_Switch(t *testing.T) {
 	outputTypeEnums := getConstTypeEnumsFromFile(t, "printer.go", reflect.TypeOf(OutputType("")).Name())
 
 	fset := token.NewFileSet() // positions are relative to fset
-	f, err := parser.ParseFile(fset, "info.go", nil, 0)
+	f, err := parser.ParseFile(fset, "list.go", nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
