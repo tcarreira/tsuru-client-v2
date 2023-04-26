@@ -84,10 +84,61 @@ func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]s
 	return names, cobra.ShellCompDirectiveNoFileComp
 }
 
+var appListCmd = &cobra.Command{
+	Use:   "list [flags]",
+	Short: "list apps",
+	Long: `Lists all apps that you have access to. App access is controlled by teams.
+If your team has access to an app, then you have access to it.
+Flags can be used to filter the list of applications.`,
+	Example: `$ tsuru app list
+$ tsuru app list -n my
+$ tsuru app list --status error
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return printAppList(cmd, args, os.Stdout)
+	},
+}
+
+func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
+	cmd.SilenceUsage = true
+
+	apps, _, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+		Simplified: optional.NewBool(true),
+		Name:       optional.NewString(cmd.Flag("name").Value.String()),
+		// TeamOwner:  optional.NewString(cmd.Flag("team").Value.String()),
+		Status:   optional.NewString(cmd.Flag("status").Value.String()),
+		Locked:   optional.NewBool(cmd.Flag("locked").Value.String() == "true"),
+		Owner:    optional.NewString(cmd.Flag("user").Value.String()),
+		Platform: optional.NewString(cmd.Flag("platform").Value.String()),
+		Pool:     optional.NewString(cmd.Flag("pool").Value.String()),
+		// Tag:        optional.NewString(cmd.Flag("tag").Value.String()), //XXX: fix this
+	})
+	if err != nil {
+		return err
+	}
+
+	format := "table"
+	if cmd.Flag("json").Value.String() == "true" {
+		format = "json"
+	}
+	return printer.PrintList(out, printer.FormatAs(format), apps)
+}
+
 func init() {
 	appCmd.PersistentFlags().StringP("app", "a", "", "The name of the app")
 	appCmd.PersistentFlags().MarkDeprecated("app", "please use the argument instead")
 	appCmd.PersistentFlags().MarkHidden("app")
 
+	appListCmd.Flags().StringP("name", "n", "", "Filter applications by name")
+	appListCmd.Flags().StringP("pool", "o", "", "Filter applications by pool")
+	appListCmd.Flags().StringP("platform", "p", "", "Filter applications by platform")
+	appListCmd.LocalFlags().StringP("team", "t", "", "Filter applications by team owner")
+	appListCmd.Flags().StringP("user", "u", "", "Filter applications by owner")
+	appListCmd.Flags().StringP("status", "s", "", "Filter applications by unit status. Accepts multiple values separated by commas. Possible values can be: building, created, starting, error, started, stopped, asleep")
+	appListCmd.Flags().StringSliceP("tag", "g", []string{}, "Filter applications by tag. Can be used multiple times")
+	appListCmd.Flags().BoolP("locked", "l", false, "Filter applications by lock status")
+	appListCmd.Flags().BoolP("names-only", "q", false, "Display only applications name")
+
 	appCmd.AddCommand(appInfoCmd)
+	appCmd.AddCommand(appListCmd)
 }
