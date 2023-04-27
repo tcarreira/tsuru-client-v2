@@ -11,13 +11,18 @@ import (
 	"sort"
 	"strings"
 	"text/tabwriter"
+	"text/template"
 
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
+	iTemplate "github.com/tsuru/tsuru-client/internal/template"
 )
 
 type CustomFieldFunc func(any) string
 
 type TableViewOptions struct {
+	// TextTemplate is a template to use to print the data.
+	// If defined, it will be used regardless of any other option.
+	TextTemplate string
 	// ShowFields is a list of fields to exclusively show in the table.
 	ShowFields []string
 	// HideFields is a list of fields to hide in the table.
@@ -65,7 +70,15 @@ func (o *TableViewOptions) visibleFieldsFromSlice(ss []string) []string {
 func PrintTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
 	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
 	defer w.Flush()
-	return printTable(w, data, opts)
+	if opts == nil || opts.TextTemplate == "" {
+		return printTable(w, data, opts)
+	}
+
+	tmpl, err := template.New("").Funcs(iTemplate.DefaultTemplateFuncs()).Parse(opts.TextTemplate)
+	if err != nil {
+		return err
+	}
+	return tmpl.Execute(w, data)
 }
 
 // PrintTableList prints the data to out in a single table format (slice fields may be ignored).
@@ -261,7 +274,7 @@ func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (e
 			if fn, ok := opts.CustomFieldFunc[k]; ok {
 				fmt.Fprintf(out, "\t%s", fn(item))
 			} else {
-			fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
+				fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
 			}
 		}
 		fmt.Fprintln(out, "")

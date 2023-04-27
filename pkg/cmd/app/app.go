@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
@@ -20,6 +21,30 @@ var appCmd = &cobra.Command{
 	Use:   "app",
 	Short: "app is a runnable application running on Tsuru",
 }
+
+var appInfoTemplate = `Name:	{{ .Name }}
+Cluster:	{{ .Cluster }}
+Cname:	{{ .Cname }}
+Deploys:	{{ .Deploys }}
+Description:	{{ .Description }}
+Ip:	{{ .Ip }}
+Owner:	{{ .Owner }}
+Platform:	{{ .Platform }}
+Pool:	{{ .Pool }}
+Provisioner:	{{ .Provisioner }}
+Router:	{{ .Router }}
+Tags:	{{ .Tags }}
+TeamOwner:	{{ .TeamOwner }}
+Teams:	{{ .Teams }}
+
+{{ if .Units -}}
+Units:
+	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
+{{- range .Units }}
+	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	0	0
+{{- end }}
+{{ end }}
+`
 
 func AppCmd() *cobra.Command {
 	return appCmd
@@ -62,11 +87,18 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		return fmt.Errorf("app %q not found", appName)
 	}
 
+	sort.Slice(app.Units, func(i, j int) bool {
+		return app.Units[i].Processname < app.Units[j].Processname ||
+			app.Units[i].Version < app.Units[j].Version ||
+			app.Units[i].CreatedAt < app.Units[j].CreatedAt
+	})
+
 	format := "table"
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
 	return printer.PrintInfo(out, printer.FormatAs(format), app, &printer.TableViewOptions{
+		TextTemplate: appInfoTemplate,
 		HiddenFields: []string{"Address", "Appname", "Id", "Ready", "Restarts", "Routable", "Type"},
 	})
 }
