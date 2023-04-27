@@ -45,6 +45,16 @@ func (o *TableViewOptions) visibleFieldsFromMap(m map[string]any) []string {
 	}
 	return sortedKeysExcept(m, o.HiddenFields)
 }
+func (o *TableViewOptions) visibleFieldsFromSlice(ss []string) []string {
+	ret := make([]string, 0, len(ss))
+	for _, s := range ss {
+		if o.isFieldVisible(s) {
+			ret = append(ret, s)
+		}
+	}
+	sort.Strings(ret)
+	return ret
+}
 
 // PrintTable prints the data to out in a table format.
 // If data is a slice, it will print each element in a sub-table.
@@ -218,6 +228,7 @@ func printTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err e
 	for _, vf := range reflect.VisibleFields(reflect.TypeOf(data)) {
 		keys = append(keys, vf.Name)
 	}
+	keys = opts.visibleFieldsFromSlice(keys)
 
 	sort.Strings(keys) // XXX: sort with defaults first?
 	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
@@ -232,8 +243,8 @@ func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (e
 	for _, vf := range reflect.VisibleFields(reflect.TypeOf(data).Elem()) {
 		keys = append(keys, vf.Name)
 	}
+	keys = opts.visibleFieldsFromSlice(keys)
 
-	sort.Strings(keys) // XXX: sort with defaults first?
 	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
 	for i := 0; i < reflect.ValueOf(data).Len(); i++ {
 		item := reflect.ValueOf(data).Index(i).Interface()
