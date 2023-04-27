@@ -105,7 +105,7 @@ func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 	cmd.SilenceUsage = true
 
 	apps, _, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
-		Simplified: optional.NewBool(true),
+		Simplified: optional.NewBool(false),
 		Name:       optional.NewString(cmd.Flag("name").Value.String()),
 		// TeamOwner:  optional.NewString(cmd.Flag("team").Value.String()),
 		Status:   optional.NewString(cmd.Flag("status").Value.String()),
@@ -123,7 +123,9 @@ func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintList(out, printer.FormatAs(format), apps, nil)
+	return printer.PrintList(out, printer.FormatAs(format), apps, &printer.TableViewOptions{
+		ShowFields: []string{"Name", "Pool", "TeamOwner"},
+	})
 }
 
 func init() {
