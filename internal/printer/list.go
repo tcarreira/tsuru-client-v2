@@ -15,8 +15,8 @@ func PrintList(out io.Writer, format OutputType, data any, opts *TableViewOption
 	case YAML:
 		return PrintYAML(out, data)
 	case Table:
-		return PrintSubTable(out, data, opts)
+		return PrintTableList(out, data, opts)
 	default:
-		return PrintSubTable(out, data, opts)
+		return PrintTableList(out, data, opts)
 	}
 }

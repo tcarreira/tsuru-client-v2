@@ -64,8 +64,8 @@ func PrintTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
 	return printTable(w, data, opts)
 }
 
-// PrintSubTable prints the data to out in a single table format (slice fields may be ignored).
-func PrintSubTable(out io.Writer, data any, opts *TableViewOptions) error {
+// PrintTableList prints the data to out in a single table format (slice fields may be ignored).
+func PrintTableList(out io.Writer, data any, opts *TableViewOptions) error {
 	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
 	defer w.Flush()
 	return printTableList(w, data, opts)
@@ -251,6 +251,7 @@ func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (e
 		for _, k := range keys {
 			fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
 		}
+		fmt.Fprintln(out, "")
 	}
 	return
 }
