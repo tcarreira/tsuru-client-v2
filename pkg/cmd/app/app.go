@@ -66,7 +66,9 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintInfo(out, printer.FormatAs(format), app, nil)
+	return printer.PrintInfo(out, printer.FormatAs(format), app, &printer.TableViewOptions{
+		HiddenFields: []string{"Address", "Appname", "Id", "Ready", "Restarts", "Routable", "Type"},
+	})
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
