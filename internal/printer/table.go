@@ -58,7 +58,7 @@ func PrintTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
 func PrintSubTable(out io.Writer, data any, opts *TableViewOptions) error {
 	w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
 	defer w.Flush()
-	return printSubTable(w, data, opts)
+	return printTableList(w, data, opts)
 }
 
 func printTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
@@ -80,7 +80,7 @@ func printTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
 	case map[string]any:
 		for _, k := range opts.visibleFieldsFromMap(tData) {
 			fmt.Fprintf(out, "%v: -----------\n", k)
-			err = printSubTable(out, tData[k], opts)
+			err = printTableList(out, tData[k], opts)
 			if err != nil {
 				return err // TODO: return a multi-error
 			}
@@ -88,7 +88,7 @@ func printTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
 		fmt.Fprintln(out, "")
 	case []any:
 		for _, v := range tData {
-			err = printSubTable(out, v, opts)
+			err = printTableList(out, v, opts)
 			if err != nil {
 				return err
 			}
@@ -171,14 +171,14 @@ func printTableAny(out io.Writer, data any, opts *TableViewOptions) (err error) 
 	// print complex info
 	for _, k := range sortedKeys(complexInfo) {
 		fmt.Fprintf(out, "\n%s (%T):\n", k, complexInfo[k])
-		if err = printSubTable(out, complexInfo[k], opts); err != nil {
+		if err = printTableList(out, complexInfo[k], opts); err != nil {
 			return err
 		}
 	}
 	return err
 }
 
-func printSubTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
+func printTableList(out io.Writer, data any, opts *TableViewOptions) (err error) {
 	switch reflect.TypeOf(data).Kind() {
 	case reflect.Slice:
 		switch reflect.TypeOf(data).Elem().Kind() {
@@ -188,10 +188,18 @@ func printSubTable(out io.Writer, data any, opts *TableViewOptions) (err error) 
 		case reflect.Map:
 			return fmt.Errorf("not implemented: printSubTable(%T)", data)
 		case reflect.Struct:
-			return printSubTableOfStructs(out, data, opts)
+			err = printTableListOfStructs(out, data, opts)
+			fmt.Fprintln(out, "")
+			return err
 		default:
 			return fmt.Errorf("slice with unknown type: %T", data)
 		}
+	case reflect.Map:
+		return fmt.Errorf("not implemented: printSubTable(%T)", data)
+	case reflect.Struct:
+		err = printTableOfStructs(out, data, opts)
+		fmt.Fprintln(out, "")
+		return err
 	default:
 		return fmt.Errorf("unknown type: %T", data)
 	}
@@ -205,7 +213,21 @@ func UpperCase(ss []string) []string {
 	return ret
 }
 
-func printSubTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) {
+func printTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) {
+	keys := []string{}
+	for _, vf := range reflect.VisibleFields(reflect.TypeOf(data)) {
+		keys = append(keys, vf.Name)
+	}
+
+	sort.Strings(keys) // XXX: sort with defaults first?
+	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
+	for _, k := range keys {
+		fmt.Fprintf(out, "\t%v", reflect.ValueOf(data).FieldByName(k).Interface())
+	}
+	return
+}
+
+func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) {
 	keys := []string{}
 	for _, vf := range reflect.VisibleFields(reflect.TypeOf(data).Elem()) {
 		keys = append(keys, vf.Name)
@@ -218,7 +240,6 @@ func printSubTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (er
 		for _, k := range keys {
 			fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
 		}
-		fmt.Fprintln(out, "")
 	}
 	return
 }
