@@ -124,7 +124,13 @@ func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 		format = "json"
 	}
 	return printer.PrintList(out, printer.FormatAs(format), apps, &printer.TableViewOptions{
-		ShowFields: []string{"Name", "Pool", "TeamOwner"},
+		ShowFields: []string{"Name", "Pool", "TeamOwner", "Units"},
+		CustomFieldFunc: map[string]printer.CustomFieldFunc{
+			"Units": func(data any) string {
+				item := data.(tsuru.MiniApp)
+				return fmt.Sprintf("%d units", len(item.Units))
+			},
+		},
 	})
 }
 

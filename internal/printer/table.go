@@ -15,12 +15,16 @@ import (
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
 
+type CustomFieldFunc func(any) string
+
 type TableViewOptions struct {
 	// ShowFields is a list of fields to exclusively show in the table.
 	ShowFields []string
 	// HideFields is a list of fields to hide in the table.
 	// If ShowFields is not empty, this list will be ignored.
 	HiddenFields []string
+	// CustomFieldFunc is a map of field name to a function that returns a string to show in the table.
+	CustomFieldFunc map[string]CustomFieldFunc
 }
 
 func (o *TableViewOptions) isFieldVisible(field string) bool {
@@ -233,7 +237,12 @@ func printTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err e
 	sort.Strings(keys) // XXX: sort with defaults first?
 	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
 	for _, k := range keys {
-		fmt.Fprintf(out, "\t%v", reflect.ValueOf(data).FieldByName(k).Interface())
+		item := reflect.ValueOf(data).FieldByName(k).Interface()
+		if fn, ok := opts.CustomFieldFunc[k]; ok {
+			fmt.Fprintf(out, "\t%s", fn(item))
+		} else {
+			fmt.Fprintf(out, "\t%v", item)
+		}
 	}
 	return
 }
@@ -249,7 +258,11 @@ func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (e
 	for i := 0; i < reflect.ValueOf(data).Len(); i++ {
 		item := reflect.ValueOf(data).Index(i).Interface()
 		for _, k := range keys {
+			if fn, ok := opts.CustomFieldFunc[k]; ok {
+				fmt.Fprintf(out, "\t%s", fn(item))
+			} else {
 			fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
+			}
 		}
 		fmt.Fprintln(out, "")
 	}
