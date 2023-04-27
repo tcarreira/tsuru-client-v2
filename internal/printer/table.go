@@ -122,13 +122,12 @@ func printTableAny(out io.Writer, data any, opts *TableViewOptions) (err error) 
 
 	// No custom printer found, try to print as best as we can
 	dt := reflect.TypeOf(data)
-	for i := 0; i < dt.NumField(); i++ {
-		field := dt.Field(i)
-		if !field.IsExported() || !opts.isFieldVisible(field.Name) {
+	for _, field := range reflect.VisibleFields(dt) {
+		if !opts.isFieldVisible(field.Name) {
 			continue
 		}
 
-		v := reflect.ValueOf(data).Field(i)
+		v := reflect.ValueOf(data).FieldByName(field.Name)
 		kind := v.Kind()
 		switch kind {
 		case reflect.Bool:
@@ -180,7 +179,6 @@ func printTableAny(out io.Writer, data any, opts *TableViewOptions) (err error) 
 }
 
 func printSubTable(out io.Writer, data any, opts *TableViewOptions) (err error) {
-	keys := []string{}
 	switch reflect.TypeOf(data).Kind() {
 	case reflect.Slice:
 		switch reflect.TypeOf(data).Elem().Kind() {
@@ -192,17 +190,19 @@ func printSubTable(out io.Writer, data any, opts *TableViewOptions) (err error) 
 		case reflect.Struct:
 			return printSubTableOfStructs(out, data, opts)
 		default:
-			return fmt.Errorf("unknown type: %T", data)
+			return fmt.Errorf("slice with unknown type: %T", data)
 		}
+	default:
+		return fmt.Errorf("unknown type: %T", data)
 	}
+}
 
-	sort.Strings(keys)
-	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(keys, "\t"))
-	for _, k := range keys {
-		_, err = fmt.Fprintf(out, "\t%s:\t%v\n", k, data.(map[any]any)[k])
+func UpperCase(ss []string) []string {
+	ret := make([]string, len(ss))
+	for i, s := range ss {
+		ret[i] = strings.ToUpper(s)
 	}
-
-	return
+	return ret
 }
 
 func printSubTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) {
@@ -212,7 +212,7 @@ func printSubTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (er
 	}
 
 	sort.Strings(keys) // XXX: sort with defaults first?
-	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(keys, "\t"))
+	_, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
 	for i := 0; i < reflect.ValueOf(data).Len(); i++ {
 		item := reflect.ValueOf(data).Index(i).Interface()
 		for _, k := range keys {
