@@ -24,7 +24,7 @@ var appCmd = &cobra.Command{
 
 var appInfoTemplate = `Name:	{{ .Name }}
 Cluster:	{{ .Cluster }}
-Cname:	{{ .Cname }}
+Cname:	{{ .Cname | Join }}
 Deploys:	{{ .Deploys }}
 Description:	{{ .Description }}
 Ip:	{{ .Ip }}
@@ -33,17 +33,26 @@ Platform:	{{ .Platform }}
 Pool:	{{ .Pool }}
 Provisioner:	{{ .Provisioner }}
 Router:	{{ .Router }}
-Tags:	{{ .Tags }}
+Tags:	{{ .Tags | Join }}
 TeamOwner:	{{ .TeamOwner }}
-Teams:	{{ .Teams }}
+Teams:	{{ .Teams | Join }}
 
-{{ if .Units -}}
+{{- if .Units }}
+
 Units:
 	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
 {{- range .Units }}
-	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	0	0
+	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	0	0{{ end }}
+{{- end -}}
+
+{{- if .Router }}
+
+Units:
+	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
+{{- range .Units }}
+	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	-	-
 {{- end }}
-{{ end }}
+{{- end }}
 `
 
 func AppCmd() *cobra.Command {

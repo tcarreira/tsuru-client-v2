@@ -1,6 +1,7 @@
 package template
 
 import (
+	"strings"
 	"text/template"
 
 	"github.com/tsuru/tsuru-client/internal/parser"
@@ -9,6 +10,7 @@ import (
 func DefaultTemplateFuncs() template.FuncMap {
 	ret := make(template.FuncMap)
 	ret["Age"] = SimpleAge
+	ret["Join"] = Join
 	return ret
 }
 
@@ -16,4 +18,8 @@ func DefaultTemplateFuncs() template.FuncMap {
 // and returns the duration since then in a human readable format (no seconds).
 func SimpleAge(timeStr string) string {
 	return parser.DurationFromTimeWithoutSeconds(timeStr, "")
+}
+
+func Join(args []string) string {
+	return strings.Join(args, ", ")
 }
