@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"sort"
 	"time"
@@ -27,10 +28,9 @@ var appCmd = &cobra.Command{
 
 var appInfoTemplate = `Name:	{{ .Name }}
 Cluster:	{{ .Cluster }}
-Cname:	{{ .Cname | Join }}
+Cname:	{{ .CName | Join }}
 Deploys:	{{ .Deploys }}
 Description:	{{ .Description }}
-Ip:	{{ .Ip }}
 Owner:	{{ .Owner }}
 Platform:	{{ .Platform }}
 Pool:	{{ .Pool }}
@@ -45,16 +45,7 @@ Teams:	{{ .Teams | Join }}
 Units:
 	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
 {{- range .Units }}
-	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	0	0{{ end }}
-{{- end -}}
-
-{{- if .Router }}
-
-Units:
-	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
-{{- range .Units }}
-	{{ .Processname }}	{{ .Version }}	{{ .Name }}	{{ .Ip }}	{{ .Status }}	{{ .Restarts }}	{{ .CreatedAt | Age }}	-	-
-{{- end }}
+	{{ .ProcessName }}	{{ .Version }}	{{ .ID }}	{{ .IP }}	{{ .Status }}	{{ .Restarts }}	{{ .Age }}	-	-{{ end }}
 {{- end }}
 `
 
@@ -244,6 +235,9 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	for i, unit := range a.Units {
 		mapIDToAppIdx[unit.ID] = i
 		a.Units[i].Age = parser.DurationFromTimeWithoutSeconds(unit.CreatedAt, "-")
+		if unit.Ready {
+			a.Units[i].Status = "ready"
+		}
 	}
 	for _, unitMetrics := range a.UnitsMetrics {
 		if idx, ok := mapIDToAppIdx[unitMetrics.ID]; ok {
@@ -258,8 +252,8 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		format = "json"
 	}
 	return printer.PrintInfo(out, printer.FormatAs(format), a, &printer.TableViewOptions{
-		// TextTemplate: appInfoTemplate,
-		HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics"},
+		TextTemplate: appInfoTemplate,
+		HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics", "Ready"},
 	})
 }
 
@@ -296,18 +290,21 @@ $ tsuru app list --status error
 func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 	cmd.SilenceUsage = true
 
-	apps, _, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+	apps, httpResponse, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(false),
 		Name:       optional.NewString(cmd.Flag("name").Value.String()),
-		// TeamOwner:  optional.NewString(cmd.Flag("team").Value.String()),
-		Status:   optional.NewString(cmd.Flag("status").Value.String()),
-		Locked:   optional.NewBool(cmd.Flag("locked").Value.String() == "true"),
-		Owner:    optional.NewString(cmd.Flag("user").Value.String()),
-		Platform: optional.NewString(cmd.Flag("platform").Value.String()),
-		Pool:     optional.NewString(cmd.Flag("pool").Value.String()),
+		TeamOwner:  optional.NewString(cmd.LocalFlags().Lookup("team").Value.String()),
+		Status:     optional.NewString(cmd.Flag("status").Value.String()),
+		Locked:     optional.NewBool(cmd.Flag("locked").Value.String() == "true"),
+		Owner:      optional.NewString(cmd.Flag("user").Value.String()),
+		Platform:   optional.NewString(cmd.Flag("platform").Value.String()),
+		Pool:       optional.NewString(cmd.Flag("pool").Value.String()),
 		// Tag:        optional.NewString(cmd.Flag("tag").Value.String()), //XXX: fix this
 	})
 	if err != nil {
+		if httpResponse != nil && httpResponse.StatusCode == http.StatusNoContent {
+			return nil
+		}
 		return err
 	}
 
