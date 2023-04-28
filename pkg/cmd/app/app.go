@@ -219,33 +219,7 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-
-	// sort units for printing
-	sort.SliceStable(a.Units, func(i, j int) bool {
-		if a.Units[i].ProcessName == a.Units[j].ProcessName {
-			if a.Units[i].Version == a.Units[j].Version {
-				return a.Units[i].CreatedAt.Before(a.Units[j].CreatedAt)
-			}
-			return a.Units[i].Version < a.Units[j].Version
-		}
-		return a.Units[i].ProcessName <= a.Units[j].ProcessName
-	})
-	// Set Calculated fields (for prettier printing)
-	mapIDToAppIdx := make(map[string]int, len(a.Units))
-	for i, unit := range a.Units {
-		mapIDToAppIdx[unit.ID] = i
-		a.Units[i].Age = parser.DurationFromTimeWithoutSeconds(unit.CreatedAt, "-")
-		if unit.Ready {
-			a.Units[i].Status = "ready"
-		}
-	}
-	for _, unitMetrics := range a.UnitsMetrics {
-		if idx, ok := mapIDToAppIdx[unitMetrics.ID]; ok {
-			a.Units[idx].CPU = parser.CPUValue(unitMetrics.CPU)
-			a.Units[idx].Memory = parser.MemoryValue(unitMetrics.Memory)
-		}
-	}
-	a.Quota = fmt.Sprintf("%d/%d", a.QuotaJSON.InUse, a.QuotaJSON.Limit)
+	a.prepareAppForPrint()
 
 	printApp := printer.PrintableType{
 		SimpleFields: []printer.FieldType{
@@ -263,17 +237,7 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		},
 	}
 	if len(a.Units) > 0 {
-		printApp.ComplexField = append(printApp.ComplexField, printer.ListType{
-			Name:    "Units",
-			Headers: []string{"Process", "Ver", "Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"},
-			Items: func() []printer.ItemType {
-				units := make([]printer.ItemType, len(a.Units))
-				for i, u := range a.Units {
-					units[i] = printer.ItemType{u.ProcessName, u.Version, u.ID, u.IP, u.Status, u.Restarts, u.Age, u.CPU, u.Memory}
-				}
-				return units
-			}(),
-		})
+		printApp.ListField = append(printApp.ListField, appUnitsToListType(&a))
 	}
 
 	format := "table"
@@ -285,6 +249,53 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	// 	TextTemplate: appInfoTemplate,
 	// 	HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics", "Ready"},
 	// })
+}
+
+func (a *app) prepareAppForPrint() {
+	// sort units for printing
+	sort.SliceStable(a.Units, func(i, j int) bool {
+		if a.Units[i].ProcessName == a.Units[j].ProcessName {
+			if a.Units[i].Version == a.Units[j].Version {
+				return a.Units[i].CreatedAt.Before(a.Units[j].CreatedAt)
+			}
+			return a.Units[i].Version < a.Units[j].Version
+		}
+		return a.Units[i].ProcessName <= a.Units[j].ProcessName
+	})
+
+	// Set Calculated fields (for prettier printing)
+	mapIDToAppIdx := make(map[string]int, len(a.Units))
+	for i, unit := range a.Units {
+		mapIDToAppIdx[unit.ID] = i
+		a.Units[i].Age = parser.DurationFromTimeWithoutSeconds(unit.CreatedAt, "-")
+		if unit.Ready {
+			a.Units[i].Status = "ready"
+		}
+	}
+
+	// Fill cpu and memory on Units
+	for _, unitMetrics := range a.UnitsMetrics {
+		if idx, ok := mapIDToAppIdx[unitMetrics.ID]; ok {
+			a.Units[idx].CPU = parser.CPUValue(unitMetrics.CPU)
+			a.Units[idx].Memory = parser.MemoryValue(unitMetrics.Memory)
+		}
+	}
+	a.Quota = fmt.Sprintf("%d/%d", a.QuotaJSON.InUse, a.QuotaJSON.Limit)
+
+}
+
+func appUnitsToListType(a *app) printer.ListType {
+	return printer.ListType{
+		Name:    "Units",
+		Headers: []string{"Process", "Ver", "Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"},
+		Items: func() []printer.ItemType {
+			units := make([]printer.ItemType, len(a.Units))
+			for i, u := range a.Units {
+				units[i] = printer.ItemType{u.ProcessName, u.Version, u.ID, u.IP, u.Status, u.Restarts, u.Age, u.CPU, u.Memory}
+			}
+			return units
+		}(),
+	}
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {

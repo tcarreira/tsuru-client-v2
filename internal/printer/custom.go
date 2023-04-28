@@ -29,7 +29,7 @@ type ListType struct {
 
 type PrintableType struct {
 	SimpleFields []FieldType
-	ComplexField []ListType
+	ListField    []ListType
 }
 
 var _ json.Marshaler = &PrintableType{}
@@ -43,7 +43,7 @@ func (p *PrintableType) MarshalJSON() ([]byte, error) {
 		ret[f.Name] = f.Value
 	}
 
-	for _, f := range p.ComplexField {
+	for _, f := range p.ListField {
 		ret[f.Name] = f.ToSliceOfMap()
 	}
 	return json.Marshal(p.SimpleFields)
@@ -70,7 +70,7 @@ func (p *PrintableType) MarshalYAML() (interface{}, error) {
 		ret[f.Name] = f.Value
 	}
 
-	for _, f := range p.ComplexField {
+	for _, f := range p.ListField {
 		ret[f.Name] = f.ToSliceOfMap()
 	}
 	return yaml.Marshal(ret)
@@ -91,7 +91,7 @@ func (p *PrintableType) PrintTable(out io.Writer) {
 		fmt.Fprintf(w, "%s:\t%v\n", f.Name, f.Value)
 	}
 
-	for _, f := range p.ComplexField {
+	for _, f := range p.ListField {
 		fmt.Fprintln(w)
 		fmt.Fprintf(w, "%s:\n", f.Name)
 		fmt.Fprintf(w, "\t%s\n", strings.Join(UpperCase(f.Headers), "\t"))
