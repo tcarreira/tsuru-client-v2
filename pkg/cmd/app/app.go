@@ -7,8 +7,10 @@ package app
 import (
 	"fmt"
 	"io"
+	"net/url"
 	"os"
 	"sort"
+	"time"
 
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
@@ -54,6 +56,122 @@ Units:
 {{- end }}
 {{- end }}
 `
+
+type app struct {
+	IP          string
+	CName       []string
+	Name        string
+	Provisioner string
+	Cluster     string
+	Platform    string
+	Repository  string
+	Teams       []string
+	Units       []unit
+	Owner       string
+	TeamOwner   string
+	Deploys     uint
+	Pool        string
+	Description string
+	Lock        lock
+	Quota       quota
+	Plan        plan
+	Router      string
+	RouterOpts  map[string]string
+	Tags        []string
+	Error       string
+	Routers     []appRouter
+	AutoScale   []tsuru.AutoScaleSpec
+
+	InternalAddresses    []appInternalAddress
+	UnitsMetrics         []unitMetrics
+	VolumeBinds          []volumeBind
+	ServiceInstanceBinds []serviceInstanceBind
+}
+
+type volumeBindID struct {
+	App        string
+	MountPoint string
+	Volume     string
+}
+
+type serviceInstanceBind struct {
+	Service  string
+	Instance string
+	Plan     string
+}
+
+type volumeBind struct {
+	ID       volumeBindID
+	ReadOnly bool
+}
+
+type appInternalAddress struct {
+	Domain   string
+	Protocol string
+	Port     int
+	Version  string
+	Process  string
+}
+
+type unitMetrics struct {
+	ID     string
+	CPU    string
+	Memory string
+}
+
+type appRouter struct {
+	Name         string            `json:"name"`
+	Opts         map[string]string `json:"opts"`
+	Address      string            `json:"address"`
+	Addresses    []string          `json:"addresses"`
+	Type         string            `json:"type"`
+	Status       string            `json:"status,omitempty"`
+	StatusDetail string            `json:"status-detail,omitempty"`
+}
+
+type unit struct {
+	ID           string
+	IP           string
+	InternalIP   string
+	Status       string
+	StatusReason string
+	ProcessName  string
+	Address      *url.URL
+	Addresses    []url.URL
+	Version      int
+	Routable     *bool
+	Ready        *bool
+	Restarts     *int
+	CreatedAt    *time.Time
+}
+
+type lock struct {
+	Locked      bool
+	Reason      string
+	Owner       string
+	AcquireDate time.Time
+}
+
+type quota struct {
+	Limit int `json:"limit"`
+	InUse int `json:"inuse"`
+}
+
+type plan struct {
+	Name   string `json:"name"`
+	Memory int64  `json:"memory"`
+	Swap   int64  `json:"swap"`
+	// CpuShare is DEPRECATED, use CPUMilli instead
+	CpuShare int          `json:"cpushare"`
+	CPUMilli int          `json:"cpumilli"`
+	Default  bool         `json:"default,omitempty"`
+	Override planOverride `json:"override,omitempty"`
+}
+
+type planOverride struct {
+	Memory   *int64 `json:"memory"`
+	CPUMilli *int   `json:"cpumilli"`
+}
 
 func AppCmd() *cobra.Command {
 	return appCmd
