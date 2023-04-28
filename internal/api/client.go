@@ -5,8 +5,10 @@
 package api
 
 import (
+	"crypto/tls"
 	"net/http"
 
+	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
 
@@ -44,6 +46,11 @@ func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTrans
 	t := &tsuruClientHTTPTransport{
 		t:   http.DefaultTransport,
 		cfg: cfg,
+	}
+	if viper.GetString("insecure-skip-verify") == "true" {
+		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
 	}
 	return t
 }
