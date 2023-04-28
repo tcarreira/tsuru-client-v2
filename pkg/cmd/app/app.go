@@ -5,9 +5,9 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"sort"
 	"time"
@@ -16,6 +16,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/parser"
 	"github.com/tsuru/tsuru-client/internal/printer"
 )
 
@@ -58,34 +59,34 @@ Units:
 `
 
 type app struct {
-	IP          string
-	CName       []string
-	Name        string
-	Provisioner string
 	Cluster     string
-	Platform    string
-	Repository  string
-	Teams       []string
-	Units       []unit
-	Owner       string
-	TeamOwner   string
+	CName       []string
 	Deploys     uint
-	Pool        string
 	Description string
+	Error       string
 	Lock        lock
-	Quota       quota
+	Name        string
+	Owner       string
 	Plan        plan
+	Platform    string
+	Pool        string
+	Provisioner string
+	Quota       string `json:"-"`
+	QuotaJSON   quota  `json:"quota"`
+	Repository  string
 	Router      string
 	RouterOpts  map[string]string
 	Tags        []string
-	Error       string
-	Routers     []appRouter
-	AutoScale   []tsuru.AutoScaleSpec
+	TeamOwner   string
+	Teams       []string
 
+	AutoScale            []tsuru.AutoScaleSpec
 	InternalAddresses    []appInternalAddress
+	Routers              []appRouter
+	ServiceInstanceBinds []serviceInstanceBind
+	Units                []unit
 	UnitsMetrics         []unitMetrics
 	VolumeBinds          []volumeBind
-	ServiceInstanceBinds []serviceInstanceBind
 }
 
 type volumeBindID struct {
@@ -130,19 +131,22 @@ type appRouter struct {
 }
 
 type unit struct {
-	ID           string
-	IP           string
-	InternalIP   string
+	ID string
+	IP string
+	// InternalIP   string
 	Status       string
 	StatusReason string
 	ProcessName  string
-	Address      *url.URL
-	Addresses    []url.URL
-	Version      int
-	Routable     *bool
-	Ready        *bool
-	Restarts     *int
-	CreatedAt    *time.Time
+	// Address      *url.URL
+	// Addresses    []url.URL
+	Version   int
+	Routable  bool
+	Ready     bool
+	Restarts  int
+	CreatedAt time.Time
+	Age       string
+	CPU       string
+	Memory    string
 }
 
 type lock struct {
@@ -169,8 +173,8 @@ type plan struct {
 }
 
 type planOverride struct {
-	Memory   *int64 `json:"memory"`
-	CPUMilli *int   `json:"cpumilli"`
+	Memory   int64 `json:"memory"`
+	CPUMilli int   `json:"cpumilli"`
 }
 
 func AppCmd() *cobra.Command {
@@ -206,27 +210,56 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		appName = args[0]
 	}
 
-	app, httpResponse, err := api.Client().AppApi.AppGet(cmd.Context(), appName)
+	request, err := api.NewRequest("GET", "/apps/"+appName, nil)
 	if err != nil {
 		return err
 	}
+	httpResponse, err := api.RawHTTPClient().Do(request)
+	if err != nil {
+		return err
+	}
+	defer httpResponse.Body.Close()
 	if httpResponse.StatusCode == 404 {
 		return fmt.Errorf("app %q not found", appName)
 	}
+	var a app
+	err = json.NewDecoder(httpResponse.Body).Decode(&a)
+	if err != nil {
+		return err
+	}
 
-	sort.Slice(app.Units, func(i, j int) bool {
-		return app.Units[i].Processname < app.Units[j].Processname ||
-			app.Units[i].Version < app.Units[j].Version ||
-			app.Units[i].CreatedAt < app.Units[j].CreatedAt
+	// sort units for printing
+	sort.SliceStable(a.Units, func(i, j int) bool {
+		if a.Units[i].ProcessName == a.Units[j].ProcessName {
+			if a.Units[i].Version == a.Units[j].Version {
+				return a.Units[i].CreatedAt.Before(a.Units[j].CreatedAt)
+			}
+			return a.Units[i].Version < a.Units[j].Version
+		}
+		return a.Units[i].ProcessName <= a.Units[j].ProcessName
 	})
+
+	// Set Calculated fields (for prettier printing)
+	mapIDToAppIdx := make(map[string]int, len(a.Units))
+	for i, unit := range a.Units {
+		mapIDToAppIdx[unit.ID] = i
+		a.Units[i].Age = parser.DurationFromTimeWithoutSeconds(unit.CreatedAt, "-")
+	}
+	for _, unitMetrics := range a.UnitsMetrics {
+		if idx, ok := mapIDToAppIdx[unitMetrics.ID]; ok {
+			a.Units[idx].CPU = unitMetrics.CPU
+			a.Units[idx].Memory = unitMetrics.Memory
+		}
+	}
+	a.Quota = fmt.Sprintf("%d/%d", a.QuotaJSON.InUse, a.QuotaJSON.Limit)
 
 	format := "table"
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintInfo(out, printer.FormatAs(format), app, &printer.TableViewOptions{
-		TextTemplate: appInfoTemplate,
-		HiddenFields: []string{"Address", "Appname", "Id", "Ready", "Restarts", "Routable", "Type"},
+	return printer.PrintInfo(out, printer.FormatAs(format), a, &printer.TableViewOptions{
+		// TextTemplate: appInfoTemplate,
+		HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics"},
 	})
 }
 

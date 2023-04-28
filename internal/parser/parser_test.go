@@ -26,7 +26,7 @@ func TestDurationFromTimeWithoutSeconds(t *testing.T) {
 		{"2019-12-30T23:51:00Z", "24h09m"},
 		{"2019-12-30T12:21:00Z", "35h39m"},
 	} {
-		got := DurationFromTimeWithoutSeconds(test.timeStr, "default")
+		got := DurationFromTimeStrWithoutSeconds(test.timeStr, "default")
 		assert.Equal(t, test.expected, got)
 	}
 }
@@ -46,7 +46,7 @@ func TestDurationFromTimeWithoutSeconds_OnError(t *testing.T) {
 		{"2019-12-30T23:51:90Z", "wrong second"},
 		{"2019-12-30T23:51:00L", "wrong tz"},
 	} {
-		got := DurationFromTimeWithoutSeconds(test.timeStr, test.defaultVal)
+		got := DurationFromTimeStrWithoutSeconds(test.timeStr, test.defaultVal)
 		assert.Equal(t, test.defaultVal, got)
 	}
 }

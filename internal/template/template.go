@@ -17,7 +17,7 @@ func DefaultTemplateFuncs() template.FuncMap {
 // SimpleAge parses a time.RFC3339 string (2006-01-02T15:04:05Z07:00)
 // and returns the duration since then in a human readable format (no seconds).
 func SimpleAge(timeStr string) string {
-	return parser.DurationFromTimeWithoutSeconds(timeStr, "")
+	return parser.DurationFromTimeStrWithoutSeconds(timeStr, "")
 }
 
 func Join(args []string) string {

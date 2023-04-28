@@ -15,14 +15,21 @@ var (
 	timeSince = time.Since // for mocking time.Since in tests
 )
 
-// DurationFromTimeWithoutSeconds returns a string representing the duration,
+// DurationFromTimeStrWithoutSeconds returns a string representing the duration,
 // without seconds, between the given time and now.
 // eg: 1h2m
-func DurationFromTimeWithoutSeconds(timeStr string, defaultOnError string) string {
+func DurationFromTimeStrWithoutSeconds(timeStr string, defaultOnError string) string {
 	createdAt, err := time.Parse(time.RFC3339, timeStr)
 	if err != nil {
 		return defaultOnError
 	}
+	return DurationFromTimeWithoutSeconds(createdAt, defaultOnError)
+}
+
+// DurationFromTimeWithoutSeconds returns a string representing the duration,
+// without seconds, between the given time and now.
+// eg: 1h2m
+func DurationFromTimeWithoutSeconds(createdAt time.Time, defaultOnError string) string {
 	age := timeSince(createdAt).Truncate(1 * time.Minute)
 	if age >= 1*time.Hour {
 		return fmt.Sprintf("%dh%02dm", age/time.Hour, age%time.Hour/time.Minute)

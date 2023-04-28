@@ -6,7 +6,10 @@ package api
 
 import (
 	"crypto/tls"
+	"io"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
@@ -14,6 +17,7 @@ import (
 
 var (
 	tsuruClient   *tsuru.APIClient
+	tsuruCfg      *tsuru.Configuration
 	rawHTTPClient *http.Client
 )
 
@@ -42,6 +46,20 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	return t.t.RoundTrip(req)
 }
 
+// NewRequest creates a new http.Request with the correct base path.
+func NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
+	if !strings.HasPrefix(url, tsuruCfg.BasePath) {
+		if !strings.HasPrefix(url, "/") {
+			url = "/" + url
+		}
+		if !regexp.MustCompile(`^/[0-9]+\.[0-9]+/`).MatchString(url) {
+			url = "/1.0" + url
+		}
+		url = strings.TrimRight(tsuruCfg.BasePath, "/") + url
+	}
+	return http.NewRequest(method, url, body)
+}
+
 func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTransport {
 	t := &tsuruClientHTTPTransport{
 		t:   http.DefaultTransport,
@@ -60,6 +78,7 @@ func SetupTsuruClient(cfg *tsuru.Configuration) {
 	if cfg == nil {
 		cfg = &tsuru.Configuration{}
 	}
+	tsuruCfg = cfg
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
