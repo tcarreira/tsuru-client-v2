@@ -45,7 +45,7 @@ Teams:	{{ .Teams | Join }}
 Units:
 	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
 {{- range .Units }}
-	{{ .ProcessName }}	{{ .Version }}	{{ .ID }}	{{ .IP }}	{{ .Status }}	{{ .Restarts }}	{{ .Age }}	-	-{{ end }}
+	{{ .ProcessName }}	{{ .Version }}	{{ .ID }}	{{ .IP }}	{{ .Status }}	{{ .Restarts }}	{{ .Age }}	{{ .CPU }}	{{ .Memory }}{{ end }}
 {{- end }}
 `
 
@@ -241,8 +241,8 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	for _, unitMetrics := range a.UnitsMetrics {
 		if idx, ok := mapIDToAppIdx[unitMetrics.ID]; ok {
-			a.Units[idx].CPU = unitMetrics.CPU
-			a.Units[idx].Memory = unitMetrics.Memory
+			a.Units[idx].CPU = parser.CPUValue(unitMetrics.CPU)
+			a.Units[idx].Memory = parser.MemoryValue(unitMetrics.Memory)
 		}
 	}
 	a.Quota = fmt.Sprintf("%d/%d", a.QuotaJSON.InUse, a.QuotaJSON.Limit)

@@ -37,6 +37,32 @@ func DurationFromTimeWithoutSeconds(createdAt time.Time, defaultOnError string) 
 	return fmt.Sprintf("%dm", age/time.Minute)
 }
 
+// CPUValue parses CPU as Quantity and returns a the percentage of a CPU core (as string).
+func CPUValue(q string) string {
+	qt, err := resource.ParseQuantity(q)
+	if err == nil {
+		return fmt.Sprintf("%d%%", qt.MilliValue()/10)
+	}
+	return ""
+}
+
+// MemoryValue parses Memory as Quantity and returns a human readable quantity.
+func MemoryValue(q string) string {
+	qt, err := resource.ParseQuantity(q)
+	if err != nil {
+		return ""
+	}
+	m := qt.Value()
+	if m >= 1024*1024*1024 {
+		return fmt.Sprintf("%dGi", m/1024/1024/1024)
+	} else if m >= 1024*1024 {
+		return fmt.Sprintf("%dMi", m/1024/1024)
+	} else if m >= 1024 {
+		return fmt.Sprintf("%dKi", m/1024)
+	}
+	return fmt.Sprintf("%d", m)
+}
+
 // CPUMilliToPercent returns a string representing the percentage of a CPU core.
 // eg: 1000 = 100%, 200 = 20%
 func CPUMilliToPercent(milli int32) string {
