@@ -19,10 +19,12 @@ type FieldType struct {
 	Value any
 }
 
+type ItemType []any
+
 type ListType struct {
 	Name    string
 	Headers []string
-	Values  [][]any
+	Items   []ItemType
 }
 
 type PrintableType struct {
@@ -53,7 +55,7 @@ func (l *ListType) MarshalJSON() ([]byte, error) {
 
 func (l *ListType) ToSliceOfMap() []map[string]any {
 	ret := []map[string]any{}
-	for i, v := range l.Values {
+	for i, v := range l.Items {
 		ret = append(ret, map[string]any{})
 		for j, h := range l.Headers {
 			ret[i][h] = v[j]
@@ -93,7 +95,7 @@ func (p *PrintableType) PrintTable(out io.Writer) {
 		fmt.Fprintln(w)
 		fmt.Fprintf(w, "%s:\n", f.Name)
 		fmt.Fprintf(w, "\t%s\n", strings.Join(UpperCase(f.Headers), "\t"))
-		for _, line := range f.Values {
+		for _, line := range f.Items {
 			for _, v := range line {
 				fmt.Fprintf(w, "\t%v", v)
 			}

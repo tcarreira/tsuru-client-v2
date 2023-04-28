@@ -15,8 +15,16 @@ func PrintInfo(out io.Writer, format OutputType, data any, opts *TableViewOption
 	case YAML:
 		return PrintYAML(out, data)
 	case Table:
+		if pData, ok := data.(PrintableType); ok {
+			pData.PrintTable(out)
+			return nil
+		}
 		return PrintTable(out, data, opts)
 	default:
+		if pData, ok := data.(PrintableType); ok {
+			pData.PrintTable(out)
+			return nil
+		}
 		return PrintTable(out, data, opts)
 	}
 }

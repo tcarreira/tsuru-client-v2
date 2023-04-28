@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/antihax/optional"
@@ -229,7 +230,6 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		}
 		return a.Units[i].ProcessName <= a.Units[j].ProcessName
 	})
-
 	// Set Calculated fields (for prettier printing)
 	mapIDToAppIdx := make(map[string]int, len(a.Units))
 	for i, unit := range a.Units {
@@ -247,14 +247,44 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 	}
 	a.Quota = fmt.Sprintf("%d/%d", a.QuotaJSON.InUse, a.QuotaJSON.Limit)
 
+	printApp := printer.PrintableType{
+		SimpleFields: []printer.FieldType{
+			{Name: "Name", Value: a.Name},
+			{Name: "Description", Value: a.Description},
+			{Name: "Deploys", Value: a.Deploys},
+			{Name: "Owner", Value: a.Owner},
+			{Name: "Platform", Value: a.Platform},
+			{Name: "Pool", Value: a.Pool},
+			{Name: "Provisioner", Value: a.Provisioner},
+			{Name: "Router", Value: a.Router},
+			{Name: "Tags", Value: strings.Join(a.Tags, ", ")},
+			{Name: "TeamOwner", Value: a.TeamOwner},
+			{Name: "Teams", Value: strings.Join(a.Teams, ", ")},
+		},
+	}
+	if len(a.Units) > 0 {
+		printApp.ComplexField = append(printApp.ComplexField, printer.ListType{
+			Name:    "Units",
+			Headers: []string{"Process", "Ver", "Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"},
+			Items: func() []printer.ItemType {
+				units := make([]printer.ItemType, len(a.Units))
+				for i, u := range a.Units {
+					units[i] = printer.ItemType{u.ProcessName, u.Version, u.ID, u.IP, u.Status, u.Restarts, u.Age, u.CPU, u.Memory}
+				}
+				return units
+			}(),
+		})
+	}
+
 	format := "table"
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printer.PrintInfo(out, printer.FormatAs(format), a, &printer.TableViewOptions{
-		TextTemplate: appInfoTemplate,
-		HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics", "Ready"},
-	})
+	return printer.PrintInfo(out, printer.FormatAs(format), printApp, nil)
+	// return printer.PrintInfo(out, printer.FormatAs(format), a, &printer.TableViewOptions{
+	// 	TextTemplate: appInfoTemplate,
+	// 	HiddenFields: []string{"CreatedAt", "QuotaJSON", "UnitsMetrics", "Ready"},
+	// })
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
