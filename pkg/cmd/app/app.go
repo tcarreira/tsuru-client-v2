@@ -237,7 +237,7 @@ func printAppInfo(cmd *cobra.Command, args []string, out io.Writer) error {
 		},
 	}
 	if len(a.Units) > 0 {
-		printApp.ListField = append(printApp.ListField, appUnitsToListType(&a))
+		printApp.DetailedFields = append(printApp.DetailedFields, appUnitsToListType(&a))
 	}
 
 	format := "table"
@@ -284,14 +284,14 @@ func (a *app) prepareAppForPrint() {
 
 }
 
-func appUnitsToListType(a *app) printer.ListType {
-	return printer.ListType{
-		Name:    "Units",
-		Headers: []string{"Process", "Ver", "Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"},
-		Items: func() []printer.ItemType {
-			units := make([]printer.ItemType, len(a.Units))
+func appUnitsToListType(a *app) printer.DetailedFieldType {
+	return printer.DetailedFieldType{
+		Name:   "Units",
+		Fields: []string{"Process", "Ver", "Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"},
+		Items: func() []printer.ArrayItemType {
+			units := make([]printer.ArrayItemType, len(a.Units))
 			for i, u := range a.Units {
-				units[i] = printer.ItemType{u.ProcessName, u.Version, u.ID, u.IP, u.Status, u.Restarts, u.Age, u.CPU, u.Memory}
+				units[i] = printer.ArrayItemType{u.ProcessName, u.Version, u.ID, u.IP, u.Status, u.Restarts, u.Age, u.CPU, u.Memory}
 			}
 			return units
 		}(),

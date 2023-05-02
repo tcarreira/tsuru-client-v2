@@ -19,23 +19,23 @@ type FieldType struct {
 	Value any
 }
 
-type ItemType []any
+type ArrayItemType []any
 
-type ListType struct {
-	Name    string
-	Headers []string
-	Items   []ItemType
+type DetailedFieldType struct {
+	Name   string
+	Fields []string
+	Items  []ArrayItemType
 }
 
 type PrintableType struct {
-	SimpleFields []FieldType
-	ListField    []ListType
+	SimpleFields   []FieldType
+	DetailedFields []DetailedFieldType
 }
 
 var _ json.Marshaler = &PrintableType{}
-var _ json.Marshaler = &ListType{}
+var _ json.Marshaler = &DetailedFieldType{}
 var _ yaml.Marshaler = &PrintableType{}
-var _ yaml.Marshaler = &ListType{}
+var _ yaml.Marshaler = &DetailedFieldType{}
 
 func (p *PrintableType) MarshalJSON() ([]byte, error) {
 	ret := make(map[string]any)
@@ -43,21 +43,21 @@ func (p *PrintableType) MarshalJSON() ([]byte, error) {
 		ret[f.Name] = f.Value
 	}
 
-	for _, f := range p.ListField {
+	for _, f := range p.DetailedFields {
 		ret[f.Name] = f.ToSliceOfMap()
 	}
 	return json.Marshal(p.SimpleFields)
 }
 
-func (l *ListType) MarshalJSON() ([]byte, error) {
+func (l *DetailedFieldType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(l.ToSliceOfMap())
 }
 
-func (l *ListType) ToSliceOfMap() []map[string]any {
+func (l *DetailedFieldType) ToSliceOfMap() []map[string]any {
 	ret := []map[string]any{}
 	for i, v := range l.Items {
 		ret = append(ret, map[string]any{})
-		for j, h := range l.Headers {
+		for j, h := range l.Fields {
 			ret[i][h] = v[j]
 		}
 	}
@@ -70,13 +70,13 @@ func (p *PrintableType) MarshalYAML() (interface{}, error) {
 		ret[f.Name] = f.Value
 	}
 
-	for _, f := range p.ListField {
+	for _, f := range p.DetailedFields {
 		ret[f.Name] = f.ToSliceOfMap()
 	}
 	return yaml.Marshal(ret)
 }
 
-func (l *ListType) MarshalYAML() (interface{}, error) {
+func (l *DetailedFieldType) MarshalYAML() (interface{}, error) {
 	return yaml.Marshal(l.ToSliceOfMap())
 }
 
@@ -91,10 +91,10 @@ func (p *PrintableType) PrintTable(out io.Writer) {
 		fmt.Fprintf(w, "%s:\t%v\n", f.Name, f.Value)
 	}
 
-	for _, f := range p.ListField {
+	for _, f := range p.DetailedFields {
 		fmt.Fprintln(w)
 		fmt.Fprintf(w, "%s:\n", f.Name)
-		fmt.Fprintf(w, "\t%s\n", strings.Join(UpperCase(f.Headers), "\t"))
+		fmt.Fprintf(w, "\t%s\n", strings.Join(UpperCase(f.Fields), "\t"))
 		for _, line := range f.Items {
 			for _, v := range line {
 				fmt.Fprintf(w, "\t%v", v)

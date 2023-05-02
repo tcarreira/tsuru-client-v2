@@ -14,19 +14,19 @@ func testingPrintableType() PrintableType {
 			{Name: "description", Value: "This is my app"},
 			{Name: "teamOwner", Value: "myteam"},
 		},
-		ListField: []ListType{
+		DetailedFields: []DetailedFieldType{
 			{
-				Name:    "units",
-				Headers: []string{"id", "status"},
-				Items: []ItemType{
+				Name:   "units",
+				Fields: []string{"id", "status"},
+				Items: []ArrayItemType{
 					{"unit1", "started"},
 					{"unit2", "stopped"},
 				},
 			},
 			{
-				Name:    "service instances",
-				Headers: []string{"service", "instance", "plan"},
-				Items: []ItemType{
+				Name:   "service instances",
+				Fields: []string{"service", "instance", "plan"},
+				Items: []ArrayItemType{
 					{"mysql", "mydb", "small"},
 					{"redis", "mycache-instance", "medium"},
 				},
