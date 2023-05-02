@@ -138,3 +138,11 @@ func appUnitsToListType(a *app) printer.DetailedFieldType {
 		}(),
 	}
 }
+
+func init() {
+	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app")
+	// appInfoCmd.Flags().MarkDeprecated("app", "please use the argument instead")
+	appInfoCmd.Flags().MarkHidden("app")
+	appInfoCmd.Flags().BoolP("simplified", "s", false, "Show simplified view of app")
+	appInfoCmd.Flags().Bool("json", false, "Show JSON view of app")
+}

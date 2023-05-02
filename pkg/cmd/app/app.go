@@ -236,10 +236,6 @@ func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 }
 
 func init() {
-	appCmd.PersistentFlags().StringP("app", "a", "", "The name of the app")
-	appCmd.PersistentFlags().MarkDeprecated("app", "please use the argument instead")
-	appCmd.PersistentFlags().MarkHidden("app")
-
 	appListCmd.Flags().StringP("name", "n", "", "Filter applications by name")
 	appListCmd.Flags().StringP("pool", "o", "", "Filter applications by pool")
 	appListCmd.Flags().StringP("platform", "p", "", "Filter applications by platform")
