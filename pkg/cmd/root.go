@@ -58,7 +58,7 @@ func init() {
 	// Flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
-	rootCmd.PersistentFlags().StringP("target", "t", "http://localhost", "Tsuru server endpoint")
+	rootCmd.PersistentFlags().StringP("target", "t", "", "Tsuru server endpoint")
 
 	// Add subcommands
 	rootCmd.AddCommand(app.AppCmd())
