@@ -6,12 +6,19 @@ package parser
 
 import (
 	"fmt"
+	"regexp"
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/resource"
+	"k8s.io/apimachinery/pkg/util/duration"
+)
+
+const (
+	cutoffHexID = 12
 )
 
 var (
+	hexRegex  = regexp.MustCompile(`(?i)^[a-f0-9]+$`)
 	timeSince = time.Since // for mocking time.Since in tests
 )
 
@@ -35,6 +42,14 @@ func DurationFromTimeWithoutSeconds(createdAt time.Time, defaultOnError string) 
 		return fmt.Sprintf("%dh%02dm", age/time.Hour, age%time.Hour/time.Minute)
 	}
 	return fmt.Sprintf("%dm", age/time.Minute)
+}
+
+func TranslateTimestampSince(timestamp *time.Time) string {
+	if timestamp == nil || timestamp.IsZero() {
+		return ""
+	}
+
+	return duration.HumanDuration(time.Since(*timestamp))
 }
 
 // CPUValue parses CPU as Quantity and returns a the percentage of a CPU core (as string).
@@ -73,4 +88,19 @@ func CPUMilliToPercent(milli int32) string {
 // eg: 1024 = 1Ki, 1024*1024 = 1Mi, 1024*1024*1024 = 1Gi
 func MemoryToHuman(memory int64) string {
 	return resource.NewQuantity(memory, resource.BinarySI).String()
+}
+
+func IntValue(i *int) string {
+	if i == nil {
+		return ""
+	}
+
+	return fmt.Sprintf("%d", *i)
+}
+
+func ShortID(id string) string {
+	if hexRegex.MatchString(id) && len(id) > cutoffHexID {
+		return id[:cutoffHexID]
+	}
+	return id
 }

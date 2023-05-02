@@ -7,8 +7,11 @@ package app
 import (
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/antihax/optional"
@@ -16,153 +19,14 @@ import (
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
+	appTypes "github.com/tsuru/tsuru/types/app"
+	quotaTypes "github.com/tsuru/tsuru/types/quota"
+	volumeTypes "github.com/tsuru/tsuru/types/volume"
 )
 
 var appCmd = &cobra.Command{
 	Use:   "app",
 	Short: "app is a runnable application running on Tsuru",
-}
-
-var appInfoTemplate = `Name:	{{ .Name }}
-Cluster:	{{ .Cluster }}
-Cname:	{{ .CName | Join }}
-Deploys:	{{ .Deploys }}
-Description:	{{ .Description }}
-Owner:	{{ .Owner }}
-Platform:	{{ .Platform }}
-Pool:	{{ .Pool }}
-Provisioner:	{{ .Provisioner }}
-Router:	{{ .Router }}
-Tags:	{{ .Tags | Join }}
-TeamOwner:	{{ .TeamOwner }}
-Teams:	{{ .Teams | Join }}
-
-{{- if .Units }}
-
-Units:
-	PROCESS	VER	NAME	HOST	STATUS	RESTARTS	AGE	CPU	MEMORY
-{{- range .Units }}
-	{{ .ProcessName }}	{{ .Version }}	{{ .ID }}	{{ .IP }}	{{ .Status }}	{{ .Restarts }}	{{ .Age }}	{{ .CPU }}	{{ .Memory }}{{ end }}
-{{- end }}
-`
-
-type app struct {
-	Cluster     string
-	CName       []string
-	Deploys     uint
-	Description string
-	Error       string
-	Lock        lock
-	Name        string
-	Owner       string
-	Plan        plan
-	Platform    string
-	Pool        string
-	Provisioner string
-	Quota       string `json:"-"`
-	QuotaJSON   quota  `json:"quota"`
-	Repository  string
-	Router      string
-	RouterOpts  map[string]string
-	Tags        []string
-	TeamOwner   string
-	Teams       []string
-
-	AutoScale            []tsuru.AutoScaleSpec
-	InternalAddresses    []appInternalAddress
-	Routers              []appRouter
-	ServiceInstanceBinds []serviceInstanceBind
-	Units                []unit
-	UnitsMetrics         []unitMetrics
-	VolumeBinds          []volumeBind
-}
-
-type volumeBindID struct {
-	App        string
-	MountPoint string
-	Volume     string
-}
-
-type serviceInstanceBind struct {
-	Service  string
-	Instance string
-	Plan     string
-}
-
-type volumeBind struct {
-	ID       volumeBindID
-	ReadOnly bool
-}
-
-type appInternalAddress struct {
-	Domain   string
-	Protocol string
-	Port     int
-	Version  string
-	Process  string
-}
-
-type unitMetrics struct {
-	ID     string
-	CPU    string
-	Memory string
-}
-
-type appRouter struct {
-	Name         string            `json:"name"`
-	Opts         map[string]string `json:"opts"`
-	Address      string            `json:"address"`
-	Addresses    []string          `json:"addresses"`
-	Type         string            `json:"type"`
-	Status       string            `json:"status,omitempty"`
-	StatusDetail string            `json:"status-detail,omitempty"`
-}
-
-type unit struct {
-	ID string
-	IP string
-	// InternalIP   string
-	Status       string
-	StatusReason string
-	ProcessName  string
-	// Address      *url.URL
-	// Addresses    []url.URL
-	Version   int
-	Routable  bool
-	Ready     bool
-	Restarts  int
-	CreatedAt time.Time
-	Age       string
-	CPU       string
-	Memory    string
-}
-
-type lock struct {
-	Locked      bool
-	Reason      string
-	Owner       string
-	AcquireDate time.Time
-}
-
-type quota struct {
-	Limit int `json:"limit"`
-	InUse int `json:"inuse"`
-}
-
-type plan struct {
-	Name   string `json:"name"`
-	Memory int64  `json:"memory"`
-	Swap   int64  `json:"swap"`
-	// CpuShare is DEPRECATED, use CPUMilli instead
-	CpuShare int          `json:"cpushare"`
-	CPUMilli int          `json:"cpumilli"`
-	Default  bool         `json:"default,omitempty"`
-	Override planOverride `json:"override,omitempty"`
-}
-
-type planOverride struct {
-	Memory   int64 `json:"memory"`
-	CPUMilli int   `json:"cpumilli"`
 }
 
 func AppCmd() *cobra.Command {
@@ -248,4 +112,118 @@ func init() {
 
 	appCmd.AddCommand(appInfoCmd)
 	appCmd.AddCommand(appListCmd)
+}
+
+type app struct {
+	IP          string
+	CName       []string
+	Name        string
+	Provisioner string
+	Cluster     string
+	Platform    string
+	Repository  string
+	Teams       []string
+	Units       []unit
+	Owner       string
+	TeamOwner   string
+	Deploys     uint
+	Pool        string
+	Description string
+	Lock        lock
+	Quota       quotaTypes.Quota
+	Plan        appTypes.Plan
+	Router      string
+	RouterOpts  map[string]string
+	Tags        []string
+	Error       string
+	Routers     []appTypes.AppRouter
+	AutoScale   []tsuru.AutoScaleSpec
+
+	InternalAddresses    []appInternalAddress
+	UnitsMetrics         []unitMetrics
+	VolumeBinds          []volumeTypes.VolumeBind
+	ServiceInstanceBinds []serviceInstanceBind
+}
+
+type serviceInstanceBind struct {
+	Service  string
+	Instance string
+	Plan     string
+}
+
+type appInternalAddress struct {
+	Domain   string
+	Protocol string
+	Port     int
+	Version  string
+	Process  string
+}
+
+type unitMetrics struct {
+	ID     string
+	CPU    string
+	Memory string
+}
+
+type unit struct {
+	ID           string
+	IP           string
+	InternalIP   string
+	Status       string
+	StatusReason string
+	ProcessName  string
+	Address      *url.URL
+	Addresses    []url.URL
+	Version      int
+	Routable     *bool
+	Ready        *bool
+	Restarts     *int
+	CreatedAt    *time.Time
+}
+
+func (u *unit) Host() string {
+	address := ""
+	if len(u.Addresses) > 0 {
+		address = u.Addresses[0].Host
+	} else if u.Address != nil {
+		address = u.Address.Host
+	} else if u.IP != "" {
+		return u.IP
+	}
+	if address == "" {
+		return address
+	}
+
+	host, _, _ := net.SplitHostPort(address)
+	return host
+
+}
+
+func (u *unit) ReadyAndStatus() string {
+	if u.Ready != nil && *u.Ready {
+		return "ready"
+	}
+
+	if u.StatusReason != "" {
+		return u.Status + " (" + u.StatusReason + ")"
+	}
+
+	return u.Status
+}
+
+func (u *unit) Port() string {
+	if len(u.Addresses) == 0 {
+		if u.Address == nil {
+			return ""
+		}
+		_, port, _ := net.SplitHostPort(u.Address.Host)
+		return port
+	}
+
+	ports := []string{}
+	for _, addr := range u.Addresses {
+		_, port, _ := net.SplitHostPort(addr.Host)
+		ports = append(ports, port)
+	}
+	return strings.Join(ports, ", ")
 }
