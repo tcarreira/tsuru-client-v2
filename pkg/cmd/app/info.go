@@ -219,9 +219,9 @@ func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified boo
 	renderVolumeBinds(&buf, a.VolumeBinds)
 
 	var tplBuffer bytes.Buffer
-	tmpl.Execute(&tplBuffer, a)
+	err := tmpl.Execute(&tplBuffer, a)
 	fmt.Fprintln(out, tplBuffer.String()+buf.String())
-	return nil
+	return err
 }
 
 func init() {
@@ -397,7 +397,7 @@ func renderUnits(buf *bytes.Buffer, units []unit, metrics []unitMetrics, provisi
 					parser.IntValue(unit.Restarts),
 					parser.TranslateTimestampSince(unit.CreatedAt),
 					parser.CPUValue(mapUnitMetrics[unit.ID].CPU),
-					parser.MemoryValue(mapUnitMetrics[unit.ID].Memory),
+					memoryValue(mapUnitMetrics[unit.ID].Memory),
 				}
 			} else {
 				row = tablecli.Row{

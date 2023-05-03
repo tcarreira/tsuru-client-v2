@@ -23,6 +23,7 @@ import (
 	appTypes "github.com/tsuru/tsuru/types/app"
 	quotaTypes "github.com/tsuru/tsuru/types/quota"
 	volumeTypes "github.com/tsuru/tsuru/types/volume"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 var appCmd = &cobra.Command{
@@ -325,4 +326,14 @@ func (a *app) SimpleServicesView() string {
 	}
 
 	return strings.Join(pairs, ", ")
+}
+
+func memoryValue(q string) string {
+	var memory string
+	qt, err := resource.ParseQuantity(q)
+	if err == nil {
+		memory = fmt.Sprintf("%vMi", qt.Value()/(1024*1024))
+
+	}
+	return memory
 }

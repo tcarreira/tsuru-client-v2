@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
@@ -76,6 +77,70 @@ Units: 2
 	api.SetupTsuruClient(&tsuru.Configuration{BasePath: mockServer.URL})
 
 	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
+	err := printAppInfo(appInfoCmd, []string{}, mockServer.Client(), &stdout)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestAppInfoKubernetes(t *testing.T) {
+	var stdout bytes.Buffer
+	t0 := time.Now().UTC().Format(time.RFC3339)
+	t1 := time.Now().Add(time.Hour * -1).UTC().Format(time.RFC3339)
+	t2 := time.Now().Add(time.Hour * -1 * 24 * 30).UTC().Format(time.RFC3339)
+
+	result := fmt.Sprintf(`{
+		"name":"app1",
+		"teamowner":"myteam",
+		"cname":[""],"ip":"myapp.tsuru.io",
+		"provisioner": "kubernetes",
+		"platform":"php",
+		"repository":"git@git.com:php.git",
+		"state":"dead",
+		"cluster": "kube-cluster-dev",
+		"pool": "dev-a",
+		"units":[
+			{"Ip":"10.10.10.10","ID":"app1/0","Status":"started","Address":{"Host": "10.8.7.6:3333"}, "ready": true, "restarts": 10, "createdAt": "%s"},
+			{"Ip":"9.9.9.9","ID":"app1/1","Status":"started","Address":{"Host": "10.8.7.6:3323"}, "ready": true, "restarts": 0, "createdAt": "%s"},
+			{"Ip":"","ID":"app1/2","Status":"pending", "ready": false, "createdAt": "%s"}
+		],
+		"unitsMetrics": [
+			{"ID": "app1/0", "CPU": "900m", "Memory": "2000000Ki"},
+			{"ID": "app1/1", "CPU": "800m", "Memory": "3000000Ki"},
+			{"ID": "app1/2", "CPU": "80m", "Memory": "300Ki"}
+		],
+		"teams": ["tsuruteam","crane"],
+		"owner": "myapp_owner",
+		"deploys": 7,
+		"router": "planb"
+	}`, t0, t1, t2)
+	expected := `Application: app1
+Platform: php
+Provisioner: kubernetes
+Router: planb
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: myapp.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Cluster: kube-cluster-dev
+Pool: dev-a
+Quota: 0/0 units
+
+Units: 3
++--------+----------+---------+----------+-----+-----+--------+
+| Name   | Host     | Status  | Restarts | Age | CPU | Memory |
++--------+----------+---------+----------+-----+-----+--------+
+| app1/2 |          | pending |          | 30d | 8%  | 0Mi    |
+| app1/0 | 10.8.7.6 | ready   | 10       | 0s  | 90% | 1953Mi |
+| app1/1 | 10.8.7.6 | ready   | 0        | 60m | 80% | 2929Mi |
++--------+----------+---------+----------+-----+-----+--------+
+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	api.SetupTsuruClient(&tsuru.Configuration{BasePath: mockServer.URL})
+
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, mockServer.Client(), &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
