@@ -30,7 +30,8 @@ import (
 	volumeTypes "github.com/tsuru/tsuru/types/volume"
 )
 
-const simplifiedFormat = `{{ if .Error -}}
+const (
+	simplifiedFormat = `{{ if .Error -}}
 Error: {{ .Error }}
 {{ end -}}
 Application: {{.Name}}
@@ -58,8 +59,7 @@ Cluster External Addresses: {{.Addr}}
 Bound Services: {{ .SimpleServicesView }}
 {{- end }}
 `
-
-const fullFormat = `{{ if .Error -}}
+	fullFormat = `{{ if .Error -}}
 Error: {{ .Error }}
 {{ end -}}
 Application: {{.Name}}
@@ -87,6 +87,7 @@ Pool:{{if .Pool}} {{.Pool}}{{end}}{{if .Lock.Locked}}
 {{.Lock.String}}{{end}}
 Quota: {{ .QuotaString }}
 `
+)
 
 var appInfoCmd = &cobra.Command{
 	Use:   "info [flags] [app]",

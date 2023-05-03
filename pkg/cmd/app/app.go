@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -226,4 +227,81 @@ func (u *unit) Port() string {
 		ports = append(ports, port)
 	}
 	return strings.Join(ports, ", ")
+}
+
+func (a *app) QuotaString() string {
+	var limit strings.Builder
+	if a.Quota.IsUnlimited() {
+		limit.WriteString("unlimited")
+	} else {
+		fmt.Fprintf(&limit, "%d units", a.Quota.Limit)
+	}
+	return fmt.Sprintf("%d/%s", a.Quota.InUse, limit.String())
+}
+
+func (a *app) TeamList() string {
+	teams := []string{}
+	if a.TeamOwner != "" {
+		teams = append(teams, a.TeamOwner+" (owner)")
+	}
+
+	for _, t := range a.Teams {
+		if t != a.TeamOwner {
+			teams = append(teams, t)
+		}
+	}
+
+	return strings.Join(teams, ", ")
+
+}
+
+func (a *app) InternalAddr() string {
+
+	addrs := []string{}
+	for _, a := range a.InternalAddresses {
+		if a.Protocol == "UDP" {
+			addrs = append(addrs, fmt.Sprintf("%s:%d (UDP)", a.Domain, a.Port))
+		} else {
+			addrs = append(addrs, fmt.Sprintf("%s:%d", a.Domain, a.Port))
+		}
+	}
+
+	return strings.Join(addrs, ", ")
+}
+
+func (a *app) Addr() string {
+	var allAddrs []string
+	for _, cname := range a.CName {
+		if cname != "" {
+			allAddrs = append(allAddrs, cname+" (cname)")
+		}
+	}
+	if len(a.Routers) == 0 {
+		if a.IP != "" {
+			allAddrs = append(allAddrs, a.IP)
+		}
+	} else {
+		for _, r := range a.Routers {
+			if len(r.Addresses) > 0 {
+				sort.Strings(r.Addresses)
+				allAddrs = append(allAddrs, r.Addresses...)
+			} else if r.Address != "" {
+				allAddrs = append(allAddrs, r.Address)
+			}
+		}
+	}
+	return strings.Join(allAddrs, ", ")
+}
+
+func (a *app) TagList() string {
+	return strings.Join(a.Tags, ", ")
+}
+
+func (a *app) GetRouterOpts() string {
+	var kv []string
+	for k, v := range a.RouterOpts {
+		kv = append(kv, fmt.Sprintf("%s=%s", k, v))
+	}
+	sort.Strings(kv)
+	return strings.Join(kv, ", ")
 }
