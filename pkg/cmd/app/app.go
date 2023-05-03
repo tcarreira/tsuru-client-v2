@@ -305,3 +305,24 @@ func (a *app) GetRouterOpts() string {
 	sort.Strings(kv)
 	return strings.Join(kv, ", ")
 }
+
+func (a *app) SimpleServicesView() string {
+	sibs := make([]serviceInstanceBind, len(a.ServiceInstanceBinds))
+	copy(sibs, a.ServiceInstanceBinds)
+
+	sort.Slice(sibs, func(i, j int) bool {
+		if sibs[i].Service < sibs[j].Service {
+			return true
+		}
+		if sibs[i].Service > sibs[j].Service {
+			return false
+		}
+		return sibs[i].Instance < sibs[j].Instance
+	})
+	pairs := []string{}
+	for _, b := range sibs {
+		pairs = append(pairs, b.Service+"/"+b.Instance)
+	}
+
+	return strings.Join(pairs, ", ")
+}
