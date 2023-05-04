@@ -335,3 +335,11 @@ func memoryValue(q string) string {
 	}
 	return memory
 }
+
+func (l *lock) String() string {
+	format := `Lock:
+ Acquired in: %s
+ Owner: %s
+ Running: %s`
+	return fmt.Sprintf(format, l.AcquireDate, l.Owner, l.Reason)
+}
