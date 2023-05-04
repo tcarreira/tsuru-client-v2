@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -800,6 +801,44 @@ Quota: 0/0 units
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestAppInfoWithoutArgs(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{"name":"secret","teamowner":"myteam","ip":"secret.tsuru.io","platform":"ruby","repository":"git@git.com:php.git","state":"dead","units":[{"Ip":"","ID":"secret/0","Status":"started"}, {"Ip":"","ID":"secret/1","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "quota": {"inUse": 0, "limit": -1}}`
+	expected := `Application: secret
+Platform: ruby
+Router: planb
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: secret.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/unlimited
+
+Units: 2
++----------+---------+------+------+
+| Name     | Status  | Host | Port |
++----------+---------+------+------+
+| secret/0 | started |      |      |
+| secret/1 | pending |      |      |
++----------+---------+------+------+
+
+`
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/apps/secret") && r.Method == "GET" {
+			fmt.Fprintln(w, result)
+		}
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
