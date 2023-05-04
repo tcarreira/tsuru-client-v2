@@ -185,3 +185,97 @@ Units: 3
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestAppInfoMultipleRouters(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `
+{
+	"name": "app1",
+	"teamowner": "myteam",
+	"cname": [
+		"cname1"
+	],
+	"ip": "myapp.tsuru.io",
+	"platform": "php",
+	"repository": "git@git.com:php.git",
+	"state": "dead",
+	"units": [
+		{
+			"Ip": "10.10.10.10",
+			"ID": "app1/0",
+			"Status": "started",
+			"Address": {
+				"Host": "10.8.7.6:3333"
+			}
+		},
+		{
+			"Ip": "9.9.9.9",
+			"ID": "app1/1",
+			"Status": "started",
+			"Address": {
+				"Host": "10.8.7.6:3323"
+			}
+		},
+		{
+			"Ip": "",
+			"ID": "app1/2",
+			"Status": "pending"
+		}
+	],
+	"teams": [
+		"tsuruteam",
+		"crane"
+	],
+	"owner": "myapp_owner",
+	"deploys": 7,
+	"router": "planb",
+	"routers": [
+		{"name": "r1", "type": "r", "opts": {"a": "b", "x": "y"}, "address": "addr1"},
+		{"name": "r2", "addresses": ["addr2", "addr9"], "status": "ready"},
+		{"name": "r3", "type": "r3", "address": "addr3", "status": "not ready", "status-detail": "something happening"}
+	]
+}`
+	expected := `Application: app1
+Platform: php
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: cname1 (cname), addr1, addr2, addr9, addr3
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units: 3
++--------+---------+----------+------+
+| Name   | Status  | Host     | Port |
++--------+---------+----------+------+
+| app1/2 | pending |          |      |
+| app1/0 | started | 10.8.7.6 | 3333 |
+| app1/1 | started | 10.8.7.6 | 3323 |
++--------+---------+----------+------+
+
+Routers:
++------+------+-----------+--------------------------------+
+| Name | Opts | Addresses | Status                         |
++------+------+-----------+--------------------------------+
+| r1   | a: b | addr1     |                                |
+|      | x: y |           |                                |
++------+------+-----------+--------------------------------+
+| r2   |      | addr2     | ready                          |
+|      |      | addr9     |                                |
++------+------+-----------+--------------------------------+
+| r3   |      | addr3     | not ready: something happening |
++------+------+-----------+--------------------------------+
+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
