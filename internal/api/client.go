@@ -15,22 +15,12 @@ import (
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
 
-var (
-	tsuruClient   *tsuru.APIClient
-	tsuruCfg      *tsuru.Configuration
-	rawHTTPClient *http.Client
-)
+var apiClientSingleton *APIClient
 
-// Client returns a tsuru client configured with SetupTsuruClient() or with the default configuration.
-func Client() *tsuru.APIClient {
-	if tsuruClient == nil {
-		SetupTsuruClient(&tsuru.Configuration{})
-	}
-	return tsuruClient
-}
-
-func RawHTTPClient() *http.Client {
-	return rawHTTPClient
+type APIClient struct {
+	Client        *tsuru.APIClient
+	RawHTTPClient *http.Client
+	Config        *tsuru.Configuration
 }
 
 type tsuruClientHTTPTransport struct {
@@ -46,20 +36,6 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	return t.t.RoundTrip(req)
 }
 
-// NewRequest creates a new http.Request with the correct base path.
-func NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
-	if !strings.HasPrefix(url, tsuruCfg.BasePath) {
-		if !strings.HasPrefix(url, "/") {
-			url = "/" + url
-		}
-		if !regexp.MustCompile(`^/[0-9]+\.[0-9]+/`).MatchString(url) {
-			url = "/1.0" + url
-		}
-		url = strings.TrimRight(tsuruCfg.BasePath, "/") + url
-	}
-	return http.NewRequest(method, url, body)
-}
-
 func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTransport {
 	t := &tsuruClientHTTPTransport{
 		t:   http.DefaultTransport,
@@ -73,18 +49,47 @@ func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTrans
 	return t
 }
 
-// SetupTsuruClient configures the tsuru APIClient to be returned by Client().
-func SetupTsuruClient(cfg *tsuru.Configuration) {
-	if cfg == nil {
-		cfg = &tsuru.Configuration{}
+// APIClientSingleton returns the APIClient singleton configured with SetupAPIClientSingleton().
+func APIClientSingleton() *APIClient {
+	if apiClientSingleton == nil {
+		SetupAPIClientSingleton(nil)
 	}
-	tsuruCfg = cfg
+	return apiClientSingleton
+}
+
+// SetupAPIClientSingleton configures the tsuru APIClient to be returned by APIClientSingleton().
+func SetupAPIClientSingleton(cfg *tsuru.Configuration) {
+	apiClientSingleton = APIClientWithConfig(cfg)
+}
+
+// APIClientWithConfig returns a new APIClient with the given configuration.
+func APIClientWithConfig(cfg *tsuru.Configuration) *APIClient {
+	if cfg == nil {
+		cfg = tsuru.NewConfiguration()
+	}
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
-	rawHTTPClient = cfg.HTTPClient
-	if rawHTTPClient.Transport == nil {
-		rawHTTPClient.Transport = newTsuruClientHTTPTransport(cfg)
+	if cfg.HTTPClient.Transport == nil {
+		cfg.HTTPClient.Transport = newTsuruClientHTTPTransport(cfg)
 	}
-	tsuruClient = tsuru.NewAPIClient(cfg)
+	return &APIClient{
+		Client:        tsuru.NewAPIClient(cfg),
+		RawHTTPClient: cfg.HTTPClient,
+		Config:        cfg,
+	}
+}
+
+// NewRequest creates a new http.Request with the correct base path.
+func (a *APIClient) NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
+	if !strings.HasPrefix(url, a.Config.BasePath) {
+		if !strings.HasPrefix(url, "/") {
+			url = "/" + url
+		}
+		if !regexp.MustCompile(`^/[0-9]+\.[0-9]+/`).MatchString(url) {
+			url = "/1.0" + url
+		}
+		url = strings.TrimRight(a.Config.BasePath, "/") + url
+	}
+	return http.NewRequest(method, url, body)
 }

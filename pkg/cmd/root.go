@@ -61,7 +61,7 @@ func init() {
 	rootCmd.PersistentFlags().StringP("target", "t", "", "Tsuru server endpoint")
 
 	// Add subcommands
-	rootCmd.AddCommand(app.AppCmd())
+	rootCmd.AddCommand(app.NewAppCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -103,5 +103,5 @@ func SetupTsuruClientSingleton() {
 		cfg.AddDefaultHeader("Authorization", "bearer "+token)
 	}
 
-	api.SetupTsuruClient(cfg)
+	api.SetupAPIClientSingleton(cfg)
 }

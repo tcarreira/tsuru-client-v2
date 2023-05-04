@@ -26,17 +26,18 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-var appCmd = &cobra.Command{
-	Use:   "app",
-	Short: "app is a runnable application running on Tsuru",
-}
-
-func AppCmd() *cobra.Command {
+func NewAppCmd() *cobra.Command {
+	appCmd := &cobra.Command{
+		Use:   "app",
+		Short: "app is a runnable application running on Tsuru",
+	}
+	appCmd.AddCommand(newAppInfoCmd())
+	appCmd.AddCommand(appListCmd)
 	return appCmd
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	apps, _, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+	apps, _, err := api.APIClientSingleton().Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(true),
 		Name:       optional.NewString(toComplete),
 	})
@@ -68,7 +69,7 @@ $ tsuru app list --status error
 func printAppList(cmd *cobra.Command, args []string, out io.Writer) error {
 	cmd.SilenceUsage = true
 
-	apps, httpResponse, err := api.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+	apps, httpResponse, err := api.APIClientSingleton().Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(false),
 		Name:       optional.NewString(cmd.Flag("name").Value.String()),
 		TeamOwner:  optional.NewString(cmd.LocalFlags().Lookup("team").Value.String()),
@@ -111,9 +112,6 @@ func init() {
 	appListCmd.Flags().StringSliceP("tag", "g", []string{}, "Filter applications by tag. Can be used multiple times")
 	appListCmd.Flags().BoolP("locked", "l", false, "Filter applications by lock status")
 	appListCmd.Flags().BoolP("names-only", "q", false, "Display only applications name")
-
-	appCmd.AddCommand(appInfoCmd)
-	appCmd.AddCommand(appListCmd)
 }
 
 type app struct {

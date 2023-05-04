@@ -44,10 +44,11 @@ Units: 3
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	api.SetupTsuruClient(&tsuru.Configuration{BasePath: mockServer.URL})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
+	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, mockServer.Client(), &stdout)
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
@@ -74,10 +75,11 @@ Units: 2
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	api.SetupTsuruClient(&tsuru.Configuration{BasePath: mockServer.URL})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
+	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
-	err := printAppInfo(appInfoCmd, []string{}, mockServer.Client(), &stdout)
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
@@ -138,10 +140,12 @@ Units: 3
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	api.SetupTsuruClient(&tsuru.Configuration{BasePath: mockServer.URL})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
+	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, mockServer.Client(), &stdout)
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }

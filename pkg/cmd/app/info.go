@@ -89,21 +89,30 @@ Quota: {{ .QuotaString }}
 `
 )
 
-var appInfoCmd = &cobra.Command{
-	Use:   "info [flags] [app]",
-	Short: "shows information about a specific app",
-	Long: `shows information about a specific app.
-Its name, platform, state (and its units), address, etc.
-You need to be a member of a team that has access to the app to be able to see information about it.`,
-	Example: `$ tsuru app info myapp
-$ tsuru app info -a myapp`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return printAppInfo(cmd, args, api.RawHTTPClient(), os.Stdout)
-	},
-	ValidArgsFunction: completeAppNames,
+func newAppInfoCmd() *cobra.Command {
+	appInfoCmd := &cobra.Command{
+		Use:   "info [flags] [app]",
+		Short: "shows information about a specific app",
+		Long: `shows information about a specific app.
+	Its name, platform, state (and its units), address, etc.
+	You need to be a member of a team that has access to the app to be able to see information about it.`,
+		Example: `$ tsuru app info myapp
+	$ tsuru app info -a myapp`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return printAppInfo(cmd, args, api.APIClientSingleton(), os.Stdout)
+		},
+		ValidArgsFunction: completeAppNames,
+	}
+
+	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app")
+	// appInfoCmd.Flags().MarkDeprecated("app", "please use the argument instead")
+	appInfoCmd.Flags().MarkHidden("app")
+	appInfoCmd.Flags().BoolP("simplified", "s", false, "Show simplified view of app")
+	appInfoCmd.Flags().Bool("json", false, "Show JSON view of app")
+	return appInfoCmd
 }
 
-func printAppInfo(cmd *cobra.Command, args []string, httpClient *http.Client, out io.Writer) error {
+func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
 	}
@@ -117,11 +126,11 @@ func printAppInfo(cmd *cobra.Command, args []string, httpClient *http.Client, ou
 		appName = args[0]
 	}
 
-	request, err := api.NewRequest("GET", "/apps/"+appName, nil)
+	request, err := apiClient.NewRequest("GET", "/apps/"+appName, nil)
 	if err != nil {
 		return err
 	}
-	httpResponse, err := httpClient.Do(request)
+	httpResponse, err := apiClient.RawHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
@@ -222,14 +231,6 @@ func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified boo
 	err := tmpl.Execute(&tplBuffer, a)
 	fmt.Fprintln(out, tplBuffer.String()+buf.String())
 	return err
-}
-
-func init() {
-	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app")
-	// appInfoCmd.Flags().MarkDeprecated("app", "please use the argument instead")
-	appInfoCmd.Flags().MarkHidden("app")
-	appInfoCmd.Flags().BoolP("simplified", "s", false, "Show simplified view of app")
-	appInfoCmd.Flags().Bool("json", false, "Show JSON view of app")
 }
 
 type lock struct {
