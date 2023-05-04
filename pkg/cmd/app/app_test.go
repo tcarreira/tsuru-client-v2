@@ -1115,3 +1115,66 @@ App Plan:
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestAppInfoShortensHexIDs(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{
+		"name": "app1",
+		"teamowner": "myteam",
+		"ip": "app1.tsuru.io",
+		"platform": "php",
+		"repository": "git@git.com:php.git",
+		"units": [
+			{
+				"ID": "abcea389cbaebce89abc9a",
+				"Status": "started"
+			},
+			{
+				"ID": "abcea3",
+				"Status": "started"
+			},
+			{
+				"ID": "my_long_non_hex_id",
+				"Status": "started"
+			}
+		],
+		"Teams": [
+			"tsuruteam",
+			"crane"
+		],
+		"owner": "myapp_owner",
+		"deploys": 7,
+		"router": "planb"
+	}`
+	expected := `Application: app1
+Platform: php
+Router: planb
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: app1.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units: 3
++--------------------+---------+------+------+
+| Name               | Status  | Host | Port |
++--------------------+---------+------+------+
+| abcea3             | started |      |      |
+| abcea389cbae       | started |      |      |
+| my_long_non_hex_id | started |      |      |
++--------------------+---------+------+------+
+
+`
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
