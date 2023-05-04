@@ -1272,3 +1272,12 @@ Volumes: 1
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestAppInfoInfo(t *testing.T) {
+	var stdout bytes.Buffer
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.SetOutput(&stdout)
+	err := appInfoCmd.Help()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stdout.String())
+}
