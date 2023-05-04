@@ -654,3 +654,98 @@ Units [process worker] [version 2] [routable]: 1
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestAppInfoWithAutoScale(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{
+  "name": "app1",
+  "teamowner": "myteam",
+  "cname": [
+    ""
+  ],
+  "ip": "myapp.tsuru.io",
+  "platform": "php",
+  "repository": "git@git.com:php.git",
+  "state": "dead",
+  "units": [
+    {
+      "ID": "app1/0",
+      "Status": "started",
+      "ProcessName": "web"
+    },
+    {
+      "ID": "app1/1",
+      "Status": "started",
+      "ProcessName": "worker"
+    }
+  ],
+  "teams": [
+    "tsuruteam",
+    "crane"
+  ],
+  "owner": "myapp_owner",
+  "deploys": 7,
+  "router": "planb",
+  "autoscale": [
+    {
+      "process":"web",
+      "minUnits":1,
+      "maxUnits":10,
+      "averageCPU":"500m",
+      "version":10
+    },
+    {
+      "process":"worker",
+      "minUnits":2,
+      "maxUnits":5,
+      "averageCPU":"2",
+      "version":10
+    }
+  ]
+}`
+	expected := `Application: app1
+Platform: php
+Router: planb
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: myapp.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units [process web]: 1
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/0 | started |      |      |
++--------+---------+------+------+
+
+Units [process worker]: 1
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/1 | started |      |      |
++--------+---------+------+------+
+
+Auto Scale:
++--------------+-----+-----+------------+
+| Process      | Min | Max | Target CPU |
++--------------+-----+-----+------------+
+| web (v10)    | 1   | 10  | 50%        |
+| worker (v10) | 2   | 5   | 200%       |
++--------------+-----+-----+------------+
+
+`
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
