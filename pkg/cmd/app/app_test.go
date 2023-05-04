@@ -544,3 +544,113 @@ Units [process worker]: 2
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestAppInfoManyVersions(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{
+  "name": "app1",
+  "teamowner": "myteam",
+  "cname": [
+    ""
+  ],
+  "ip": "myapp.tsuru.io",
+  "platform": "php",
+  "repository": "git@git.com:php.git",
+  "state": "dead",
+  "units": [
+    {
+      "ID": "app1/0",
+      "Status": "started",
+	  "ProcessName": "web",
+	  "Version": 1,
+	  "Routable": false
+    },
+    {
+      "ID": "app1/1",
+      "Status": "started",
+	  "ProcessName": "worker",
+	  "Version": 1,
+	  "Routable": false
+    },
+    {
+      "ID": "app1/2",
+      "Status": "pending",
+	  "ProcessName": "worker",
+	  "Version": 1,
+	  "Routable": false
+	},
+	{
+      "ID": "app1/3",
+      "Status": "started",
+	  "ProcessName": "web",
+	  "Version": 2,
+	  "Routable": true
+    },
+    {
+      "ID": "app1/4",
+      "Status": "started",
+	  "ProcessName": "worker",
+	  "Version": 2,
+	  "Routable": true
+    }
+  ],
+  "teams": [
+    "tsuruteam",
+    "crane"
+  ],
+  "owner": "myapp_owner",
+  "deploys": 7,
+  "router": "planb"
+}`
+	expected := `Application: app1
+Platform: php
+Router: planb
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: myapp.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units [process web] [version 1]: 1
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/0 | started |      |      |
++--------+---------+------+------+
+
+Units [process worker] [version 1]: 2
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/1 | started |      |      |
+| app1/2 | pending |      |      |
++--------+---------+------+------+
+
+Units [process web] [version 2] [routable]: 1
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/3 | started |      |      |
++--------+---------+------+------+
+
+Units [process worker] [version 2] [routable]: 1
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/4 | started |      |      |
++--------+---------+------+------+
+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
