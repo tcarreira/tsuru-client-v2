@@ -282,7 +282,6 @@ Routers:
 
 func TestAppInfoWithDescription(t *testing.T) {
 	var stdout bytes.Buffer
-
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "description": "My app", "router": "planb"}`
 	expected := `Application: app1
 Description: My app
@@ -320,7 +319,6 @@ Units: 3
 
 func TestAppInfoWithTags(t *testing.T) {
 	var stdout bytes.Buffer
-
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started"}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "tags": ["tag 1", "tag 2", "tag 3"], "router": "planb"}`
 	expected := `Application: app1
 Tags: tag 1, tag 2, tag 3
@@ -341,6 +339,42 @@ Units: 3
 | app1/0 | started | 10.10.10.10 |      |
 | app1/1 | started | 9.9.9.9     |      |
 +--------+---------+-------------+------+
+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestAppInfoWithRouterOpts(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "routeropts": {"opt1": "val1", "opt2": "val2"}, "router": "planb"}`
+	expected := `Application: app1
+Platform: php
+Router: planb (opt1=val1, opt2=val2)
+Teams: myteam (owner), tsuruteam, crane
+External Addresses: myapp.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units: 3
++--------+---------+------+------+
+| Name   | Status  | Host | Port |
++--------+---------+------+------+
+| app1/0 | started |      |      |
+| app1/1 | started |      |      |
+| app1/2 | pending |      |      |
++--------+---------+------+------+
 
 `
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
