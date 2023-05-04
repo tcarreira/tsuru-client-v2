@@ -1281,3 +1281,10 @@ func TestAppInfoInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stdout.String())
 }
+
+func TestAppInfoFlags(t *testing.T) {
+	appInfoCmd := newAppInfoCmd()
+	flags := appInfoCmd.Flags()
+	flag := flags.Lookup("app")
+	assert.NotNil(t, flag)
+}
