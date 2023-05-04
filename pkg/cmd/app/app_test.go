@@ -1178,3 +1178,46 @@ Units: 3
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestAppInfoWithInternalAddresses(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `{"name":"powerapp","teamowner":"powerteam","cname":[""],"ip":"monster.tsuru.io","platform":"assembly","repository":"git@git.com:app.git","state":"dead", "units":[{"Ip":"9.9.9.9","ID":"app1/1","Status":"started","Address":{"Host": "10.8.7.6:3323"}}],"teams":["tsuruzers"], "owner": "myapp_owner", "deploys": 7, "router": "", "internalAddresses":[{"domain":"test.cluster.com","port":80,"protocol":"TCP","process": "web","version":"2"}, {"domain":"test.cluster.com","port":443,"protocol":"TCP","process":"jobs","version":"3"}]}`
+	expected := `Application: powerapp
+Platform: assembly
+Router:
+Teams: powerteam (owner), tsuruzers
+External Addresses: monster.tsuru.io
+Created by: myapp_owner
+Deploys: 7
+Pool:
+Quota: 0/0 units
+
+Units: 1
++--------+---------+----------+------+
+| Name   | Status  | Host     | Port |
++--------+---------+----------+------+
+| app1/1 | started | 10.8.7.6 | 3323 |
++--------+---------+----------+------+
+
+Cluster internal addresses:
++------------------+---------+---------+---------+
+| Domain           | Port    | Process | Version |
++------------------+---------+---------+---------+
+| test.cluster.com | 80/TCP  | web     | 2       |
+| test.cluster.com | 443/TCP | jobs    | 3       |
++------------------+---------+---------+---------+
+
+`
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
