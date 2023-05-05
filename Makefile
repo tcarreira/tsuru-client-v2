@@ -2,13 +2,13 @@
 # Use of this source code is governed by a BSD-style
 # license that can be found in the LICENSE file.
 
-GOCMD		?= go
+GOCMD	?= go
 GOTEST	?= $(GOCMD) test
-GOVET		?= $(GOCMD) vet
-GOFMT		?= gofmt
+GOVET	?= $(GOCMD) vet
+GOFMT	?= gofmt
 BINARY	?= tsuru
 VERSION	?= $(shell git describe --tags --dirty --match='v*' 2> /dev/null || echo dev)
-FILES		?= $(shell find . -type f -name '*.go')
+FILES	?= $(shell find . -type f -name '*.go')
 
 GREEN  := $(shell tput -Txterm setaf 2)
 YELLOW := $(shell tput -Txterm setaf 3)
