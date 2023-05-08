@@ -70,7 +70,7 @@ coverage: test-coverage  ## Run test-coverage and open coverage in your browser
 ## Lint:
 lint: lint-license-header lint-go ## Run all available linters
 
-lint-go: ## Use golintci-lint on your project
+lint-go: ## Use gofmt and staticcheck on your project
 ifneq (, $(shell $(GOFMT) -l . ))
 	@echo "This files are not gofmt compliant:"
 	@$(GOFMT) -l .
