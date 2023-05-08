@@ -94,10 +94,10 @@ func newAppInfoCmd() *cobra.Command {
 		Use:   "info [flags] [app]",
 		Short: "shows information about a specific app",
 		Long: `shows information about a specific app.
-	Its name, platform, state (and its units), address, etc.
-	You need to be a member of a team that has access to the app to be able to see information about it.`,
+Its name, platform, state (and its units), address, etc.
+You need to be a member of a team that has access to the app to be able to see information about it.`,
 		Example: `$ tsuru app info myapp
-	$ tsuru app info -a myapp`,
+$ tsuru app info -a myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return printAppInfo(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
