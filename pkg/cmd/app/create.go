@@ -15,6 +15,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/parser"
 )
 
 func newAppCreateCmd() *cobra.Command {
@@ -126,8 +127,12 @@ func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		}
 	}
 	if routerOpts, err := cmd.LocalFlags().GetStringArray("router-opts"); err == nil {
-		for _, opt := range routerOpts {
-			v.Add("routeropts", opt)
+		routerOptsMap, err := parser.SliceToMapFlags(routerOpts)
+		if err != nil {
+			return err
+		}
+		for key, val := range routerOptsMap {
+			v.Add("routeropts."+key, val)
 		}
 	}
 

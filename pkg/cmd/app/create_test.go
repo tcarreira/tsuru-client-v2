@@ -1,3 +1,7 @@
+// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package app
 
 import (
@@ -149,6 +153,36 @@ func TestV1AppCreatePool(t *testing.T) {
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.LocalFlags().Parse([]string{"-o", "mypool"})
+	var stdout bytes.Buffer
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
+}
+
+func TestV1AppCreateRouterOpts(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
+
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/apps"))
+		assert.Equal(t, "ble", r.FormValue("name"))
+		assert.Equal(t, "django", r.FormValue("platform"))
+		assert.Equal(t, "", r.FormValue("teamOwner"))
+		assert.Equal(t, "", r.FormValue("plan"))
+		assert.Equal(t, "", r.FormValue("pool"))
+		assert.Equal(t, "", r.FormValue("description"))
+		assert.Equal(t, "", r.FormValue("router"))
+		r.ParseForm()
+		assert.Nil(t, r.Form["tag"])
+		assert.Equal(t, "1", r.FormValue("routeropts.a"))
+		assert.Equal(t, "2", r.FormValue("routeropts.b"))
+
+		fmt.Fprintln(w, `{"status":"success"}`)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appCreateCmd := newAppCreateCmd()
+	appCreateCmd.LocalFlags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
