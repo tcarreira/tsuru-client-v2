@@ -78,7 +78,7 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 	appCreateCmd.LocalFlags().StringP("router", "r", "", "the router used by the app")
 	appCreateCmd.LocalFlags().StringP("team", "t", "", "team owning the app")
 	appCreateCmd.LocalFlags().StringP("pool", "o", "", "pool to deploy your app")
-	appCreateCmd.LocalFlags().StringArrayP("tags", "g", nil, "app tags")
+	appCreateCmd.LocalFlags().StringArrayP("tag", "g", nil, "app tags")
 	appCreateCmd.LocalFlags().StringArray("router-opts", nil, "router options")
 
 	return appCreateCmd
@@ -116,7 +116,7 @@ func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	v.Set("router", cmd.LocalFlags().Lookup("router").Value.String())
 	v.Set("teamOwner", cmd.LocalFlags().Lookup("team").Value.String())
 	v.Set("pool", cmd.LocalFlags().Lookup("pool").Value.String())
-	if tags, err := cmd.LocalFlags().GetStringArray("tags"); err == nil {
+	if tags, err := cmd.LocalFlags().GetStringArray("tag"); err == nil {
 		for _, tag := range tags {
 			v.Add("tag", tag)
 		}
