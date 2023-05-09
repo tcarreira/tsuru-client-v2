@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -148,7 +147,7 @@ func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		return err
 	}
 	defer response.Body.Close()
-	result, err := ioutil.ReadAll(response.Body)
+	result, err := io.ReadAll(response.Body)
 	if err != nil {
 		return err
 	}
