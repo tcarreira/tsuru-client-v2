@@ -104,24 +104,22 @@ $ tsuru app info -a myapp`,
 		ValidArgsFunction: completeAppNames,
 	}
 
-	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app")
-	// appInfoCmd.Flags().MarkDeprecated("app", "please use the argument instead")
-	appInfoCmd.Flags().MarkHidden("app")
-	appInfoCmd.Flags().BoolP("simplified", "s", false, "Show simplified view of app")
-	appInfoCmd.Flags().Bool("json", false, "Show JSON view of app")
+	appInfoCmd.LocalFlags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
+	appInfoCmd.LocalFlags().BoolP("simplified", "s", false, "Show simplified view of app")
+	appInfoCmd.LocalFlags().Bool("json", false, "Show JSON view of app")
 	return appInfoCmd
 }
 
 func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
-	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
+	if len(args) == 0 && cmd.LocalFlags().Lookup("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
 	}
-	if len(args) > 0 && cmd.Flag("app").Value.String() != "" {
+	if len(args) > 0 && cmd.LocalFlags().Lookup("app").Value.String() != "" {
 		return fmt.Errorf("either pass an app name as an argument or use the --app flag, not both")
 	}
 	cmd.SilenceUsage = true
 
-	appName := cmd.Flag("app").Value.String()
+	appName := cmd.LocalFlags().Lookup("app").Value.String()
 	if appName == "" {
 		appName = args[0]
 	}
@@ -146,10 +144,10 @@ func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	}
 
 	format := "table"
-	if cmd.Flag("json").Value.String() == "true" {
+	if cmd.LocalFlags().Lookup("json").Value.String() == "true" {
 		format = "json"
 	}
-	return a.PrintInfo(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true")
+	return a.PrintInfo(out, printer.FormatAs(format), cmd.LocalFlags().Lookup("simplified").Value.String() == "true")
 }
 
 func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified bool) error {
