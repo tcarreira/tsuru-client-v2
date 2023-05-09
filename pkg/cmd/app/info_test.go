@@ -1287,3 +1287,18 @@ func TestV1AppInfoFlags(t *testing.T) {
 	flag := appInfoCmd.LocalFlags().Lookup("app")
 	assert.NotNil(t, flag)
 }
+
+func TestAppInfoIsRegistered(t *testing.T) {
+	appCmd := NewAppCmd()
+	assert.NotNil(t, appCmd)
+	subCommands := appCmd.Commands()
+	assert.NotNil(t, subCommands)
+
+	found := false
+	for _, subCmd := range subCommands {
+		if subCmd.Name() == "info" {
+			found = true
+		}
+	}
+	assert.True(t, found, "subcommand info not registered in appCmd")
+}
