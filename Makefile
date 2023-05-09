@@ -88,7 +88,7 @@ ifeq (, $(shell which addlicense))
 endif
 	@echo "addlicense -check -f LICENSE-HEADER ."
 	@addlicense -check -f LICENSE-HEADER . \
-		|| (echo "Some files are missing the license header, please run 'make addlicense' to add it" && exit 1)
+		|| (echo "Some files are missing the license header, please run '$(CYAN)make addlicense$(RESET)' to add it" && exit 1)
 
 ## Help:
 help: ## Show this help.
