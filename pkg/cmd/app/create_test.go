@@ -155,6 +155,20 @@ func TestV1AppCreatePool(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
+func TestV1AppCreateWithInvalidFramework(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintln(w, "")
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appCreateCmd := newAppCreateCmd()
+	var stdout bytes.Buffer
+	err := appCreateRun(appCreateCmd, []string{}, apiClient, &stdout)
+	assert.Error(t, err)
+	assert.Equal(t, "", stdout.String())
+}
+
 func TestV1AppCreateWithTags(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
