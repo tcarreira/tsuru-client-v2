@@ -291,3 +291,12 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
+
+func TestV1AppCreateInfo(t *testing.T) {
+	var stdout bytes.Buffer
+	appCreateCmd := newAppCreateCmd()
+	appCreateCmd.SetOutput(&stdout)
+	err := appCreateCmd.Help()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stdout.String())
+}
