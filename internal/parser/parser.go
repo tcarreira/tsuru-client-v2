@@ -7,6 +7,7 @@ package parser
 import (
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -103,4 +104,18 @@ func ShortID(id string) string {
 		return id[:cutoffHexID]
 	}
 	return id
+}
+
+// SliceToMapFlags converts a slice of flags on the form "key=value" to a map.
+// If a flag is not on the form "key=value" an error is returned.
+func SliceToMapFlags(flags []string) (map[string]string, error) {
+	ret := map[string]string{}
+	for _, flag := range flags {
+		kv := strings.SplitN(flag, "=", 2)
+		if len(kv) != 2 {
+			return nil, fmt.Errorf("invalid flag %q. Must be on the form \"key=value\"", flag)
+		}
+		ret[kv[0]] = kv[1]
+	}
+	return ret, nil
 }

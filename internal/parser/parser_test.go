@@ -5,6 +5,7 @@
 package parser
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -88,5 +89,29 @@ func TestMemoryToHuman(t *testing.T) {
 	} {
 		got := MemoryToHuman(test.memory)
 		assert.Equal(t, test.expected, got)
+	}
+}
+
+func TestSliceToMapFlags(t *testing.T) {
+	invalidErrorMsg := "invalid flag %q. Must be on the form \"key=value\""
+	for _, test := range []struct {
+		in  []string
+		out map[string]string
+		err error
+	}{
+		{nil, map[string]string{}, nil},
+		{[]string{}, map[string]string{}, nil},
+		{[]string{"hey"}, nil, fmt.Errorf(invalidErrorMsg, "hey")},
+		{[]string{"hey=hoy"}, map[string]string{"hey": "hoy"}, nil},
+		{[]string{"hey=hoy=whaa"}, map[string]string{"hey": "hoy=whaa"}, nil},
+		{[]string{"hey=hoy", "two=2"}, map[string]string{"hey": "hoy", "two": "2"}, nil},
+		{[]string{"hey=hoy", "two=2", "hey=over"}, map[string]string{"hey": "over", "two": "2"}, nil},
+		{[]string{"hey=hoy", "two=2", "all", "must_be_map"}, nil, fmt.Errorf(invalidErrorMsg, "all")},
+	} {
+		got, err := SliceToMapFlags(test.in)
+		if test.err != nil {
+			assert.EqualError(t, err, test.err.Error())
+		}
+		assert.Equal(t, test.out, got)
 	}
 }
