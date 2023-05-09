@@ -1,7 +1,16 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"net/url"
+	"os"
+	"strings"
+
 	"github.com/spf13/cobra"
+	"github.com/tsuru/tsuru-client/internal/api"
 )
 
 func newAppCreateCmd() *cobra.Command {
@@ -55,24 +64,85 @@ implementation.
 $ tsuru app create myapp python
 $ tsuru app create myapp go
 $ tsuru app create myapp python --plan small --team myteam
-$ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
-`,
-		RunE: appCreateCmdRunE,
+$ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return appCreateRun(cmd, args, api.APIClientSingleton(), os.Stdout)
+		},
+		Args: cobra.RangeArgs(1, 2),
 	}
 
-	appCreateCmd.LocalFlags().StringP("app", "a", "", "The name of the app. Must be unique across tsuru")
-	appCreateCmd.LocalFlags().String("platform", "", "The [[--platform]] parameter is the name of the platform to be used when creating the app. This will define how tsuru understands and executes your app. The list of available platforms can be found running [[tsuru platform list]]")
-	appCreateCmd.LocalFlags().StringP("description", "d", "", "App description")
-	appCreateCmd.LocalFlags().StringP("plan", "p", "", "The plan used to create the app")
-	appCreateCmd.LocalFlags().StringP("router", "r", "", "The router used by the app")
-	appCreateCmd.LocalFlags().StringP("team", "t", "", "Team owning the app")
-	appCreateCmd.LocalFlags().StringP("pool", "o", "", "Pool to deploy your app")
-	appCreateCmd.LocalFlags().StringArrayP("tags", "g", []string{}, "App tags")
-	appCreateCmd.LocalFlags().StringArray("router-opts", []string{}, "Router options")
+	appCreateCmd.LocalFlags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru")
+	appCreateCmd.LocalFlags().String("platform", "", "the platform for the app (can be changed later)")
+	appCreateCmd.LocalFlags().StringP("description", "d", "", "app description")
+	appCreateCmd.LocalFlags().StringP("plan", "p", "", "the plan used to create the app")
+	appCreateCmd.LocalFlags().StringP("router", "r", "", "the router used by the app")
+	appCreateCmd.LocalFlags().StringP("team", "t", "", "team owning the app")
+	appCreateCmd.LocalFlags().StringP("pool", "o", "", "pool to deploy your app")
+	appCreateCmd.LocalFlags().StringArrayP("tags", "g", []string{}, "app tags")
+	appCreateCmd.LocalFlags().StringArray("router-opts", []string{}, "router options")
 
 	return appCreateCmd
 }
 
-func appCreateCmdRunE(cmd *cobra.Command, args []string) error {
+func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
+	var appName, platform string
+	if len(args) == 0 && cmd.LocalFlags().Lookup("app").Value.String() == "" {
+		return fmt.Errorf("no app was provided. Please provide an app name")
+	}
+	if len(args) > 0 && cmd.LocalFlags().Lookup("app").Value.String() != "" {
+		return fmt.Errorf("flag --app and argument app cannot be used at the same time")
+	}
+	cmd.SilenceUsage = true
+
+
+	if len(args) > 0 {
+		appName = args[0]
+	}
+	if len(args) > 1 {
+		platform = args[1]
+	}
+
+	if appName != "" && cmd.LocalFlags().Lookup("app").Value.String() != "" {
+		return fmt.Errorf("flag --app and argument app cannot be used at the same time")
+	}
+	if platform != "" && cmd.LocalFlags().Lookup("platform").Value.String() != "" {
+		return fmt.Errorf("flag --platform and argument platform cannot be used at the same time")
+	}
+
+	v := url.Values{}
+	v.Set("name", appName)
+	v.Set("platform", platform)
+	v.Set("description", cmd.LocalFlags().Lookup("description").Value.String())
+	v.Set("plan", cmd.LocalFlags().Lookup("plan").Value.String())
+	v.Set("router", cmd.LocalFlags().Lookup("router").Value.String())
+	v.Set("teamOwner", cmd.LocalFlags().Lookup("team").Value.String())
+	v.Set("pool", cmd.LocalFlags().Lookup("pool").Value.String())
+	v.Set("tag", cmd.LocalFlags().Lookup("tags").Value.String())
+	v.Set("routeropts", cmd.LocalFlags().Lookup("router-opts").Value.String())
+
+	b := strings.NewReader(v.Encode())
+	request, err := apiClient.NewRequest("POST", "/apps", b)
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	response, err := apiClient.RawHTTPClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer response.Body.Close()
+	result, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	data := make(map[string]string)
+	err = json.Unmarshal(result, &data)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintf(out, "App %q has been created!\n", appName)
+	fmt.Fprintln(out, "Use app info to check the status of the app and its units.")
 	return nil
 }
