@@ -300,3 +300,52 @@ func TestV1AppCreateInfo(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stdout.String())
 }
+
+func TestV1AppCreateFlags(t *testing.T) {
+	appCreateCmd := newAppCreateCmd()
+	flagset := appCreateCmd.LocalFlags()
+	assert.NotNil(t, flagset)
+
+	for _, test := range []struct {
+		short   string
+		long    string
+		usage   string
+		toParse []string
+	}{
+		{"-p", "plan", "the plan used to create the app", []string{"-p", "myplan"}},
+		{"-p", "plan", "the plan used to create the app", []string{"--plan", "myplan2"}},
+		{"-t", "team", "team owning the app", []string{"-t", "myteam"}},
+		{"-t", "team", "team owning the app", []string{"--team", "myteam2"}},
+		{"-r", "router", "the router used by the app", []string{"-r", "myrouter"}},
+		{"-r", "router", "the router used by the app", []string{"--router", "myrouter2"}},
+	} {
+		err := flagset.Parse(test.toParse)
+		assert.NoError(t, err)
+		flag := flagset.Lookup(test.long)
+		assert.Equal(t, test.long, flag.Name)
+		assert.Equal(t, test.usage, flag.Usage)
+		assert.Equal(t, test.toParse[1], flag.Value.String())
+	}
+
+	err := flagset.Parse([]string{"--tag", "tag1", "--tag", "tag2"})
+	assert.NoError(t, err)
+	tagFlag := flagset.Lookup("tag")
+	assert.Equal(t, "tag", tagFlag.Name)
+	assert.Equal(t, "app tags", tagFlag.Usage)
+	assert.Equal(t, `[tag1,tag2]`, tagFlag.Value.String())
+
+	err = flagset.Parse([]string{"-g", "tag3", "-g", "tag4"})
+	assert.NoError(t, err)
+	tagFlag = flagset.Lookup("tag")
+	assert.Equal(t, "tag", tagFlag.Name)
+	assert.Equal(t, "app tags", tagFlag.Usage)
+	assert.Equal(t, `[tag1,tag2,tag3,tag4]`, tagFlag.Value.String())
+
+	err = flagset.Parse([]string{"--router-opts", "opt1=val1", "--router-opts", "opt2=val2"})
+	assert.NoError(t, err)
+	optsFlag := flagset.Lookup("router-opts")
+	assert.Equal(t, "router-opts", optsFlag.Name)
+	assert.Equal(t, "router options", optsFlag.Usage)
+	assert.Equal(t, `[opt1=val1,opt2=val2]`, optsFlag.Value.String())
+
+}
