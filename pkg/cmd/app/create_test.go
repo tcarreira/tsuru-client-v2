@@ -347,5 +347,19 @@ func TestV1AppCreateFlags(t *testing.T) {
 	assert.Equal(t, "router-opts", optsFlag.Name)
 	assert.Equal(t, "router options", optsFlag.Usage)
 	assert.Equal(t, `[opt1=val1,opt2=val2]`, optsFlag.Value.String())
+}
 
+func TestAppCreateIsRegistered(t *testing.T) {
+	appCmd := NewAppCmd()
+	assert.NotNil(t, appCmd)
+	subCommands := appCmd.Commands()
+	assert.NotNil(t, subCommands)
+
+	found := false
+	for _, subCmd := range subCommands {
+		if subCmd.Name() == "create" {
+			found = true
+		}
+	}
+	assert.True(t, found, "subcommand create not registered in appCmd")
 }
