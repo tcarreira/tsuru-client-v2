@@ -32,6 +32,7 @@ func NewAppCmd() *cobra.Command {
 		Short: "app is a runnable application running on Tsuru",
 	}
 	appCmd.AddCommand(newAppInfoCmd())
+	appCmd.AddCommand(newAppCreateCmd())
 	appCmd.AddCommand(appListCmd)
 	return appCmd
 }
