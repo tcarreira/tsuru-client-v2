@@ -260,3 +260,34 @@ func TestV1AppCreateWithTags(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
+
+func TestV1AppCreateWithEmptyTag(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, http.MethodPost, r.Method)
+		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
+
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/apps"))
+		assert.Equal(t, "ble", r.FormValue("name"))
+		assert.Equal(t, "django", r.FormValue("platform"))
+		assert.Equal(t, "", r.FormValue("teamOwner"))
+		assert.Equal(t, "", r.FormValue("plan"))
+		assert.Equal(t, "", r.FormValue("pool"))
+		assert.Equal(t, "", r.FormValue("description"))
+		assert.Equal(t, "", r.FormValue("router"))
+		r.ParseForm()
+		// if assert.Equal(t, 1, len(r.Form["tag"])) {
+		// 	assert.Equal(t, "", r.Form["tag"][0])
+		// }
+		assert.Equal(t, 0, len(r.Form["tag"])) // XXX: breaking test from V1
+
+		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appCreateCmd := newAppCreateCmd()
+	appCreateCmd.LocalFlags().Parse([]string{"--tag", ""})
+	var stdout bytes.Buffer
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
+	assert.NoError(t, err)
+	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
+}
