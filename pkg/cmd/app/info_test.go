@@ -1273,6 +1273,23 @@ Volumes: 1
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestAppInfoAppNotFound(t *testing.T) {
+	var stdout bytes.Buffer
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintln(w, "App myapp not found")
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appInfoCmd := newAppInfoCmd()
+	appInfoCmd.Flags().Parse([]string{"-a", "myapp"})
+
+	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
+	assert.ErrorContains(t, err, `app "myapp" not found`)
+	assert.Equal(t, "", stdout.String())
+}
+
 func TestV1AppInfoInfo(t *testing.T) {
 	var stdout bytes.Buffer
 	appInfoCmd := newAppInfoCmd()

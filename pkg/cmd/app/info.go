@@ -134,7 +134,7 @@ func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		return err
 	}
 	defer httpResponse.Body.Close()
-	if httpResponse.StatusCode == http.StatusNoContent {
+	if httpResponse.StatusCode == http.StatusNotFound {
 		return fmt.Errorf("app %q not found", appName)
 	}
 
