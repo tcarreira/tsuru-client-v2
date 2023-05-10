@@ -59,6 +59,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
 	rootCmd.PersistentFlags().StringP("target", "t", "", "Tsuru server endpoint")
+	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
 
 	// Add subcommands
 	rootCmd.AddCommand(app.NewAppCmd())
@@ -79,6 +80,7 @@ func initConfig() {
 	viper.SetEnvPrefix("tsuru")
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	viper.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
+	viper.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
 	viper.AutomaticEnv() // read in environment variables that match
 
 	// If a config file is found, read it in.
@@ -103,5 +105,7 @@ func SetupTsuruClientSingleton() {
 		cfg.AddDefaultHeader("Authorization", "bearer "+token)
 	}
 
-	api.SetupAPIClientSingleton(cfg, nil)
+	api.SetupAPIClientSingleton(cfg, &api.APIClientOpts{
+		Verbosity: viper.GetInt("verbosity"),
+	})
 }
