@@ -24,7 +24,7 @@ func TestV1AppList(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
@@ -47,7 +47,7 @@ func TestV1AppListDisplayAppsInAlphabeticalOrder(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
@@ -68,7 +68,7 @@ func TestV1AppListUnitIsntAvailable(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
@@ -89,7 +89,7 @@ func TestV1AppListErrorFetchingUnits(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)

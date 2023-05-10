@@ -21,6 +21,11 @@ type APIClient struct {
 	Client        *tsuru.APIClient
 	RawHTTPClient *http.Client
 	Config        *tsuru.Configuration
+	Opts          *APIClientOpts
+}
+
+type APIClientOpts struct {
+	Verbosity int
 }
 
 type tsuruClientHTTPTransport struct {
@@ -52,18 +57,18 @@ func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTrans
 // APIClientSingleton returns the APIClient singleton configured with SetupAPIClientSingleton().
 func APIClientSingleton() *APIClient {
 	if apiClientSingleton == nil {
-		SetupAPIClientSingleton(nil)
+		SetupAPIClientSingleton(nil, nil)
 	}
 	return apiClientSingleton
 }
 
 // SetupAPIClientSingleton configures the tsuru APIClient to be returned by APIClientSingleton().
-func SetupAPIClientSingleton(cfg *tsuru.Configuration) {
-	apiClientSingleton = APIClientWithConfig(cfg)
+func SetupAPIClientSingleton(cfg *tsuru.Configuration, opts *APIClientOpts) {
+	apiClientSingleton = APIClientWithConfig(cfg, opts)
 }
 
 // APIClientWithConfig returns a new APIClient with the given configuration.
-func APIClientWithConfig(cfg *tsuru.Configuration) *APIClient {
+func APIClientWithConfig(cfg *tsuru.Configuration, opts *APIClientOpts) *APIClient {
 	if cfg == nil {
 		cfg = tsuru.NewConfiguration()
 	}
@@ -77,6 +82,7 @@ func APIClientWithConfig(cfg *tsuru.Configuration) *APIClient {
 		Client:        tsuru.NewAPIClient(cfg),
 		RawHTTPClient: cfg.HTTPClient,
 		Config:        cfg,
+		Opts:          opts,
 	}
 }
 

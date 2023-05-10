@@ -103,5 +103,5 @@ func SetupTsuruClientSingleton() {
 		cfg.AddDefaultHeader("Authorization", "bearer "+token)
 	}
 
-	api.SetupAPIClientSingleton(cfg)
+	api.SetupAPIClientSingleton(cfg, nil)
 }

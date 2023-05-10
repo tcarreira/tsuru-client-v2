@@ -39,7 +39,7 @@ func TestV1AppCreate(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	var stdout bytes.Buffer
@@ -66,7 +66,7 @@ func TestV1AppCreateEmptyPlatform(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	var stdout bytes.Buffer
@@ -93,7 +93,7 @@ func TestV1AppCreateTeamOwner(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-t", "myteam"})
@@ -121,7 +121,7 @@ func TestV1AppCreatePlan(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-p", "myplan"})
@@ -149,7 +149,7 @@ func TestV1AppCreatePool(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-o", "mypool"})
@@ -179,7 +179,7 @@ func TestV1AppCreateRouterOpts(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
@@ -207,7 +207,7 @@ func TestV1AppCreateNoRepository(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	var stdout bytes.Buffer
@@ -221,7 +221,7 @@ func TestV1AppCreateWithInvalidFramework(t *testing.T) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "")
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	var stdout bytes.Buffer
@@ -251,7 +251,7 @@ func TestV1AppCreateWithTags(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
@@ -282,7 +282,7 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", ""})
