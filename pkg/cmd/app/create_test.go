@@ -96,7 +96,7 @@ func TestV1AppCreateTeamOwner(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"-t", "myteam"})
+	appCreateCmd.Flags().Parse([]string{"-t", "myteam"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestV1AppCreatePlan(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"-p", "myplan"})
+	appCreateCmd.Flags().Parse([]string{"-p", "myplan"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -152,7 +152,7 @@ func TestV1AppCreatePool(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"-o", "mypool"})
+	appCreateCmd.Flags().Parse([]string{"-o", "mypool"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -182,7 +182,7 @@ func TestV1AppCreateRouterOpts(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
+	appCreateCmd.Flags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -254,7 +254,7 @@ func TestV1AppCreateWithTags(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
+	appCreateCmd.Flags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -285,7 +285,7 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appCreateCmd := newAppCreateCmd()
-	appCreateCmd.LocalFlags().Parse([]string{"--tag", ""})
+	appCreateCmd.Flags().Parse([]string{"--tag", ""})
 	var stdout bytes.Buffer
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -303,7 +303,7 @@ func TestV1AppCreateInfo(t *testing.T) {
 
 func TestV1AppCreateFlags(t *testing.T) {
 	appCreateCmd := newAppCreateCmd()
-	flagset := appCreateCmd.LocalFlags()
+	flagset := appCreateCmd.Flags()
 	assert.NotNil(t, flagset)
 
 	for _, test := range []struct {

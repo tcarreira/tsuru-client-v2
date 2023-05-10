@@ -48,7 +48,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -79,7 +79,7 @@ Units: 2
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1", "-s"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -144,7 +144,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -180,7 +180,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -274,7 +274,7 @@ Routers:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -311,7 +311,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -348,7 +348,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -384,7 +384,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -420,7 +420,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -460,7 +460,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -539,7 +539,7 @@ Units [process worker]: 2
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -649,7 +649,7 @@ Units [process worker] [version 2] [routable]: 1
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -744,7 +744,7 @@ Auto Scale:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -772,7 +772,7 @@ Quota: 0/0 units
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -800,7 +800,7 @@ Quota: 0/0 units
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"--app", "app1"})
+	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -838,7 +838,7 @@ Units: 2
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -875,7 +875,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -919,7 +919,7 @@ Service instances: 1
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -964,7 +964,7 @@ Service instances: 2
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1008,7 +1008,7 @@ App Plan:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1058,7 +1058,7 @@ App Plan:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1108,7 +1108,7 @@ App Plan:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1172,7 +1172,7 @@ Units: 3
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1215,7 +1215,7 @@ Cluster internal addresses:
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
@@ -1266,7 +1266,7 @@ Volumes: 1
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
 
 	appInfoCmd := newAppInfoCmd()
-	appInfoCmd.LocalFlags().Parse([]string{"-a", "secret"})
+	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 
 	err := printAppInfo(appInfoCmd, []string{}, apiClient, &stdout)
 	assert.NoError(t, err)
@@ -1284,7 +1284,7 @@ func TestV1AppInfoInfo(t *testing.T) {
 
 func TestV1AppInfoFlags(t *testing.T) {
 	appInfoCmd := newAppInfoCmd()
-	flag := appInfoCmd.LocalFlags().Lookup("app")
+	flag := appInfoCmd.Flag("app")
 	assert.NotNil(t, flag)
 }
 

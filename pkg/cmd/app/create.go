@@ -75,25 +75,25 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 		Args: cobra.RangeArgs(1, 2),
 	}
 
-	appCreateCmd.LocalFlags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru")
-	appCreateCmd.LocalFlags().String("platform", "", "the platform for the app (can be changed later)")
-	appCreateCmd.LocalFlags().StringP("description", "d", "", "app description")
-	appCreateCmd.LocalFlags().StringP("plan", "p", "", "the plan used to create the app")
-	appCreateCmd.LocalFlags().StringP("router", "r", "", "the router used by the app")
-	appCreateCmd.LocalFlags().StringP("team", "t", "", "team owning the app")
-	appCreateCmd.LocalFlags().StringP("pool", "o", "", "pool to deploy your app")
-	appCreateCmd.LocalFlags().StringArrayP("tag", "g", nil, "app tags")
-	appCreateCmd.LocalFlags().StringArray("router-opts", nil, "router options")
+	appCreateCmd.Flags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru")
+	appCreateCmd.Flags().String("platform", "", "the platform for the app (can be changed later)")
+	appCreateCmd.Flags().StringP("description", "d", "", "app description")
+	appCreateCmd.Flags().StringP("plan", "p", "", "the plan used to create the app")
+	appCreateCmd.Flags().StringP("router", "r", "", "the router used by the app")
+	appCreateCmd.Flags().StringP("team", "t", "", "team owning the app")
+	appCreateCmd.Flags().StringP("pool", "o", "", "pool to deploy your app")
+	appCreateCmd.Flags().StringArrayP("tag", "g", nil, "app tags")
+	appCreateCmd.Flags().StringArray("router-opts", nil, "router options")
 
 	return appCreateCmd
 }
 
 func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
 	var appName, platform string
-	if len(args) == 0 && cmd.LocalFlags().Lookup("app").Value.String() == "" {
+	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name")
 	}
-	if len(args) > 0 && cmd.LocalFlags().Lookup("app").Value.String() != "" {
+	if len(args) > 0 && cmd.Flag("app").Value.String() != "" {
 		return fmt.Errorf("flag --app and argument app cannot be used at the same time")
 	}
 	cmd.SilenceUsage = true
@@ -105,27 +105,27 @@ func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		platform = args[1]
 	}
 
-	if appName != "" && cmd.LocalFlags().Lookup("app").Value.String() != "" {
+	if appName != "" && cmd.Flag("app").Value.String() != "" {
 		return fmt.Errorf("flag --app and argument app cannot be used at the same time")
 	}
-	if platform != "" && cmd.LocalFlags().Lookup("platform").Value.String() != "" {
+	if platform != "" && cmd.Flag("platform").Value.String() != "" {
 		return fmt.Errorf("flag --platform and argument platform cannot be used at the same time")
 	}
 
 	v := url.Values{}
 	v.Set("name", appName)
 	v.Set("platform", platform)
-	v.Set("description", cmd.LocalFlags().Lookup("description").Value.String())
-	v.Set("plan", cmd.LocalFlags().Lookup("plan").Value.String())
-	v.Set("router", cmd.LocalFlags().Lookup("router").Value.String())
-	v.Set("teamOwner", cmd.LocalFlags().Lookup("team").Value.String())
-	v.Set("pool", cmd.LocalFlags().Lookup("pool").Value.String())
-	if tags, err := cmd.LocalFlags().GetStringArray("tag"); err == nil {
+	v.Set("description", cmd.Flag("description").Value.String())
+	v.Set("plan", cmd.Flag("plan").Value.String())
+	v.Set("router", cmd.Flag("router").Value.String())
+	v.Set("teamOwner", cmd.Flag("team").Value.String())
+	v.Set("pool", cmd.Flag("pool").Value.String())
+	if tags, err := cmd.Flags().GetStringArray("tag"); err == nil {
 		for _, tag := range tags {
 			v.Add("tag", tag)
 		}
 	}
-	if routerOpts, err := cmd.LocalFlags().GetStringArray("router-opts"); err == nil {
+	if routerOpts, err := cmd.Flags().GetStringArray("router-opts"); err == nil {
 		routerOptsMap, err := parser.SliceToMapFlags(routerOpts)
 		if err != nil {
 			return err
