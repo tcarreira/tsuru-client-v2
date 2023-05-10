@@ -77,6 +77,27 @@ func TestV1AppListUnitIsntAvailable(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1AppListErrorFetchingUnits(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","name":"app1","units":[],"Error": "timeout"}]`
+	expected := `+-------------+----------------------+-------------+
+| Application | Units                | Address     |
++-------------+----------------------+-------------+
+| app1        | error fetching units | 10.10.10.10 |
++-------------+----------------------+-------------+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()})
+
+	appListCmd := newAppListCmd()
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
 func TestAppListIsRegistered(t *testing.T) {
 	appCmd := NewAppCmd()
 	assert.NotNil(t, appCmd)
