@@ -6,12 +6,14 @@ package api
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
 
@@ -25,12 +27,15 @@ type APIClient struct {
 }
 
 type APIClientOpts struct {
-	Verbosity int
+	Verbosity          int
+	VerboseOutput      io.Writer
+	InsecureSkipVerify bool
 }
 
 type tsuruClientHTTPTransport struct {
-	t   http.RoundTripper
-	cfg *tsuru.Configuration
+	t             http.RoundTripper
+	cfg           *tsuru.Configuration
+	apiClientOpts *APIClientOpts
 }
 
 func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -38,20 +43,40 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	for k, v := range t.cfg.DefaultHeader {
 		req.Header.Set(k, v)
 	}
-	return t.t.RoundTrip(req)
-}
+	if t.apiClientOpts != nil && t.apiClientOpts.Verbosity > 0 {
+		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.apiClientOpts.Verbosity))
 
-func newTsuruClientHTTPTransport(cfg *tsuru.Configuration) *tsuruClientHTTPTransport {
-	t := &tsuruClientHTTPTransport{
-		t:   http.DefaultTransport,
-		cfg: cfg,
+		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
+		requestDump, err := httputil.DumpRequest(req, true)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Fprint(t.apiClientOpts.VerboseOutput, string(requestDump))
+		if requestDump[len(requestDump)-1] != '\n' {
+			fmt.Fprintln(t.apiClientOpts.VerboseOutput)
+		}
+		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
 	}
-	if viper.GetString("insecure-skip-verify") == "true" {
+
+	req.Close = true
+
+	if t.apiClientOpts != nil && t.apiClientOpts.InsecureSkipVerify {
 		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
 	}
-	return t
+	return t.t.RoundTrip(req)
+}
+
+func httpTransportWrapper(cfg *tsuru.Configuration, apiClientOpts *APIClientOpts, roundTripper http.RoundTripper) *tsuruClientHTTPTransport {
+	if roundTripper == nil {
+		roundTripper = http.DefaultTransport
+	}
+	return &tsuruClientHTTPTransport{
+		t:             roundTripper,
+		cfg:           cfg,
+		apiClientOpts: apiClientOpts,
+	}
 }
 
 // APIClientSingleton returns the APIClient singleton configured with SetupAPIClientSingleton().
@@ -75,9 +100,9 @@ func APIClientWithConfig(cfg *tsuru.Configuration, opts *APIClientOpts) *APIClie
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
-	if cfg.HTTPClient.Transport == nil {
-		cfg.HTTPClient.Transport = newTsuruClientHTTPTransport(cfg)
-	}
+
+	cfg.HTTPClient.Transport = httpTransportWrapper(cfg, opts, cfg.HTTPClient.Transport)
+
 	return &APIClient{
 		Client:        tsuru.NewAPIClient(cfg),
 		RawHTTPClient: cfg.HTTPClient,
