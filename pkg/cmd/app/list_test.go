@@ -285,6 +285,27 @@ func TestV1AppListSortByCountAndStatus(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1AppListWithFlagQ(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"app1/0","Status":"started"}]},{"ip":"10.10.10.11","name":"app2","units":[{"ID":"app2/0","Status":"started"}]},{"ip":"10.10.10.12","cname":["app3.tsuru.io"],"name":"app3","units":[{"ID":"app3/0","Status":"started"}]}]`
+	expected := `app1
+app2
+app3
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appListCmd := newAppListCmd()
+	appListCmd.Flags().Parse([]string{"-q"})
+
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
 func TestAppListIsRegistered(t *testing.T) {
 	appCmd := NewAppCmd()
 	assert.NotNil(t, appCmd)
