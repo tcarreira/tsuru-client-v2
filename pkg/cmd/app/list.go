@@ -208,7 +208,7 @@ func appListQueryString(cmd *cobra.Command, apiClient *api.APIClient) url.Values
 		result.Set("owner", userFlag)
 		if userFlag == "me" {
 			user, _, err := apiClient.Client.UserApi.UserGet(cmd.Context())
-			if err != nil {
+			if err == nil {
 				result.Set("owner", user.Email)
 			}
 		}

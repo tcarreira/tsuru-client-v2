@@ -215,6 +215,40 @@ func TestV1AppListFiltering(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1AppListFilteringMe(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
+	expected := `+-------------+-----------+-----------------------+
+| Application | Units     | Address               |
++-------------+-----------+-----------------------+
+| app1        | 1 started | app1.tsuru.io (cname) |
+|             |           | 10.10.10.10           |
++-------------+-----------+-----------------------+
+`
+	httpServerState := 0
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch httpServerState {
+		case 0:
+			fmt.Fprintln(w, `{"Email":"gopher@tsuru.io","Teams":[]}`)
+		case 1:
+			assert.EqualValues(t, url.Values(map[string][]string{"owner": {"gopher@tsuru.io"}}), r.URL.Query())
+			fmt.Fprintln(w, result)
+		default:
+			assert.Fail(t, "unexpected httpServerState: %d", httpServerState)
+		}
+		httpServerState++
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appListCmd := newAppListCmd()
+	appListCmd.Flags().Parse([]string{"-u", "me"})
+
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
 func TestAppListIsRegistered(t *testing.T) {
 	appCmd := NewAppCmd()
 	assert.NotNil(t, appCmd)
