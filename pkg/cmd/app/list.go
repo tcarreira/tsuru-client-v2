@@ -5,16 +5,16 @@
 package app
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"sort"
 	"strings"
 
-	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tablecli"
 	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
@@ -52,28 +52,23 @@ $ tsuru app list --status error`,
 func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
 	cmd.SilenceUsage = true
 
-	apps, httpResponse, err := apiClient.Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
-		Simplified: optional.NewBool(false),
-		Name:       optional.NewString(cmd.Flag("name").Value.String()),
-		Platform:   optional.NewString(cmd.Flag("platform").Value.String()),
-		TeamOwner:  optional.NewString(cmd.Flag("team").Value.String()),
-		Locked:     optional.NewBool(cmd.Flag("locked").Value.String() == "true"),
-		Pool:       optional.NewString(cmd.Flag("pool").Value.String()),
-		Status:     optional.NewString(cmd.Flag("status").Value.String()),
-		Owner: optional.NewString(func() string {
-			userFlag := cmd.Flag("user").Value.String()
-			if userFlag == "me" {
-				user, _, _ := apiClient.Client.UserApi.UserGet(cmd.Context())
-				return user.Email
-			}
-			return userFlag
-		}()),
-		Tag: optional.NewInterface(cmd.Flag("tag").Value.String()),
-	})
+	qs := appListQueryString(cmd, apiClient)
+	request, err := apiClient.NewRequest("GET", "/apps", nil)
 	if err != nil {
-		if httpResponse != nil && httpResponse.StatusCode == http.StatusNoContent {
-			return nil
-		}
+		return err
+	}
+	request.URL.RawQuery = qs.Encode()
+	httpResponse, err := apiClient.RawHTTPClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer httpResponse.Body.Close()
+	if httpResponse.StatusCode == http.StatusNoContent {
+		return nil
+	}
+	var apps []app
+	err = json.NewDecoder(httpResponse.Body).Decode(&apps)
+	if err != nil {
 		return err
 	}
 
@@ -88,7 +83,7 @@ func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, 
 	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", verbosity, apps)
 }
 
-func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []tsuru.MiniApp) error {
+func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []app) error {
 	if format == printer.JSON {
 		return printer.PrintPrettyJSON(out, apps)
 	}
@@ -107,7 +102,7 @@ func printAppList(out io.Writer, format printer.OutputType, simplified bool, ver
 		if app.Error == "" {
 			unitsStatus := make(map[string]int)
 			for _, unit := range app.Units {
-				if unit.Id != "" {
+				if unit.ID != "" {
 					if unit.Ready != nil && *unit.Ready {
 						unitsStatus["ready"]++
 					} else {
@@ -175,16 +170,16 @@ func newUnitSorter(m map[string]int) *unitSorter {
 	return us
 }
 
-func appAddr(a tsuru.MiniApp) string {
+func appAddr(a app) string {
 	var allAddrs []string
-	for _, cname := range a.Cname {
+	for _, cname := range a.CName {
 		if cname != "" {
 			allAddrs = append(allAddrs, cname+" (cname)")
 		}
 	}
 	if len(a.Routers) == 0 {
-		if a.Ip != "" {
-			allAddrs = append(allAddrs, a.Ip)
+		if a.IP != "" {
+			allAddrs = append(allAddrs, a.IP)
 		}
 	} else {
 		for _, r := range a.Routers {
@@ -194,4 +189,40 @@ func appAddr(a tsuru.MiniApp) string {
 		}
 	}
 	return strings.Join(allAddrs, ", ")
+}
+
+func appListQueryString(cmd *cobra.Command, apiClient *api.APIClient) url.Values {
+	result := make(url.Values)
+
+	// string flags with the same name as the query string
+	for _, flagName := range []string{"name", "platform", "pool", "status"} {
+		if cmd.Flag(flagName).Value.String() != "" {
+			result.Set(flagName, cmd.Flag(flagName).Value.String())
+		}
+	}
+	if cmd.Flag("team").Value.String() != "" {
+		result.Set("teamOwner", cmd.Flag("team").Value.String())
+	}
+	if cmd.Flag("user").Value.String() != "" {
+		userFlag := cmd.Flag("user").Value.String()
+		result.Set("owner", userFlag)
+		if userFlag == "me" {
+			user, _, err := apiClient.Client.UserApi.UserGet(cmd.Context())
+			if err != nil {
+				result.Set("owner", user.Email)
+			}
+		}
+	}
+	if cmd.Flag("locked").Value.String() == "true" {
+		result.Set("locked", "true")
+	}
+	if cmd.Flag("simplified").Value.String() == "true" {
+		result.Set("simplified", "true")
+	}
+	tags, _ := cmd.Flags().GetStringSlice("tag")
+	for _, tag := range tags {
+		result.Add("tag", tag)
+	}
+
+	return result
 }

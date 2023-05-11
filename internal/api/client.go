@@ -49,6 +49,9 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	if req.Header.Get("Authorization") == "" {
 		req.Header.Set("Authorization", "bearer sometoken")
 	}
+	if req.Header.Get("Accept") == "" {
+		req.Header.Set("Accept", "application/json")
+	}
 
 	if t.apiClientOpts != nil && t.apiClientOpts.InsecureSkipVerify {
 		t.t.(*http.Transport).TLSClientConfig = &tls.Config{

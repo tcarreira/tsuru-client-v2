@@ -117,15 +117,15 @@ func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
 
-	expected := "*************************** <Request uri=\"/1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner=\"> **********************************\n" +
-		"GET /1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner= HTTP/1.1\r\n" +
+	expected := "*************************** <Request uri=\"/1.0/apps\"> **********************************\n" +
+		"GET /1.0/apps HTTP/1.1\r\n" +
 		"Host: " + strings.Split(mockServer.URL, "://")[1] + "\r\n" +
 		"Accept: application/json\r\n" +
 		"Authorization: bearer sometoken\r\n" +
 		"User-Agent: tsuru-client\r\n" +
 		"X-Tsuru-Verbosity: 1\r\n" +
 		"\r\n" +
-		"*************************** </Request uri=\"/1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner=\"> **********************************\n" +
+		"*************************** </Request uri=\"/1.0/apps\"> **********************************\n" +
 		"+-------------+-------------------------------+-------------+\n" +
 		"| Application | Units                         | Address     |\n" +
 		"+-------------+-------------------------------+-------------+\n" +
