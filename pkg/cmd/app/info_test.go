@@ -1319,3 +1319,7 @@ func TestAppInfoIsRegistered(t *testing.T) {
 	}
 	assert.True(t, found, "subcommand info not registered in appCmd")
 }
+
+func TestV1AppListIsACommand(t *testing.T) {
+	TestAppInfoIsRegistered(t)
+}
