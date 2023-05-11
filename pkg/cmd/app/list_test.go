@@ -293,12 +293,38 @@ app2
 app3
 `
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.EqualValues(t, url.Values(map[string][]string{"simplified": {"true"}}), r.URL.Query())
 		fmt.Fprintln(w, result)
 	}))
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-q"})
+
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestV1AppListWithFlags(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"name":"app1","platform":"python","pool":"pool2"},{"name":"app2","platform":"python","pool":"pool2"},{"name":"app3","platform":"go","pool":"pool1"}]`
+	expected := `app1
+app2
+app3
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.EqualValues(t, url.Values(map[string][]string{
+			"platform":   {"python"},
+			"simplified": {"true"},
+		}), r.URL.Query())
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appListCmd := newAppListCmd()
+	appListCmd.Flags().Parse([]string{"-p", "python", "-q"})
 
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
 
