@@ -332,6 +332,15 @@ app3
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1AppListInfo(t *testing.T) {
+	var stdout bytes.Buffer
+	appListCmd := newAppListCmd()
+	appListCmd.SetOutput(&stdout)
+	err := appListCmd.Help()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stdout.String())
+}
+
 func TestAppListIsRegistered(t *testing.T) {
 	appCmd := NewAppCmd()
 	assert.NotNil(t, appCmd)
