@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -173,6 +174,41 @@ func TestAppListCName(t *testing.T) {
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appListCmd := newAppListCmd()
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestV1AppListFiltering(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
+	expected := `+-------------+-----------+-----------------------+
+| Application | Units     | Address               |
++-------------+-----------+-----------------------+
+| app1        | 1 started | app1.tsuru.io (cname) |
+|             |           | 10.10.10.10           |
++-------------+-----------+-----------------------+
+`
+	expectedQueryString := url.Values(map[string][]string{
+		"platform":  {"python"},
+		"locked":    {"true"},
+		"owner":     {"glenda@tsuru.io"},
+		"teamOwner": {"tsuru"},
+		"name":      {"myapp"},
+		"pool":      {"pool"},
+		"status":    {"started"},
+		"tag":       {"tag a", "tag b"},
+	})
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.EqualValues(t, expectedQueryString, r.URL.Query())
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appListCmd := newAppListCmd()
+	appListCmd.Flags().Parse([]string{"-p", "python", "--locked", "--user", "glenda@tsuru.io", "-t", "tsuru", "--name", "myapp", "--pool", "pool", "--status", "started", "--tag", "tag a", "--tag", "tag b"})
+
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
