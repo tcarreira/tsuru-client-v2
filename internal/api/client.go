@@ -50,9 +50,18 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 		req.Header.Set("Authorization", "bearer sometoken")
 	}
 
-	if t.apiClientOpts != nil && t.apiClientOpts.Verbosity > 0 {
-		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.apiClientOpts.Verbosity))
+	if t.apiClientOpts != nil && t.apiClientOpts.InsecureSkipVerify {
+		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
 
+	req.Close = true
+
+	req.Header.Set("X-Tsuru-Verbosity", "0")
+	// Verbosity level=1: log request
+	if t.apiClientOpts != nil && t.apiClientOpts.Verbosity >= 1 {
+		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.apiClientOpts.Verbosity))
 		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
 		requestDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
@@ -65,14 +74,23 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
 	}
 
-	req.Close = true
+	response, err := t.t.RoundTrip(req)
 
-	if t.apiClientOpts != nil && t.apiClientOpts.InsecureSkipVerify {
-		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
+	// Verbosity level=2: log response
+	if t.apiClientOpts != nil && t.apiClientOpts.Verbosity >= 2 && response != nil {
+		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
+		responseDump, errDump := httputil.DumpResponse(response, true)
+		if errDump != nil {
+			return nil, errDump
 		}
+		fmt.Fprint(t.apiClientOpts.VerboseOutput, string(responseDump))
+		if responseDump[len(responseDump)-1] != '\n' {
+			fmt.Fprintln(t.apiClientOpts.VerboseOutput)
+		}
+		fmt.Fprintf(t.apiClientOpts.VerboseOutput, "*************************** </Response uri=%q> **********************************\n", req.URL.RequestURI())
 	}
-	return t.t.RoundTrip(req)
+
+	return response, err
 }
 
 func httpTransportWrapper(cfg *tsuru.Configuration, apiClientOpts *APIClientOpts, roundTripper http.RoundTripper) *tsuruClientHTTPTransport {
