@@ -136,6 +136,27 @@ func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1AppListUnitWithoutID(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"","Status":"pending"}, {"ID":"unit2","Status":"stopped"}]}]`
+	expected := `+-------------+-----------+-------------+
+| Application | Units     | Address     |
++-------------+-----------+-------------+
+| app1        | 1 stopped | 10.10.10.10 |
++-------------+-----------+-------------+
+`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appListCmd := newAppListCmd()
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
 func TestAppListIsRegistered(t *testing.T) {
 	appCmd := NewAppCmd()
 	assert.NotNil(t, appCmd)
