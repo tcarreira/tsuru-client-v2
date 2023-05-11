@@ -44,6 +44,7 @@ $ tsuru app list --status error`,
 
 	return appListCmd
 }
+
 func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
 	cmd.SilenceUsage = true
 
@@ -76,10 +77,14 @@ func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, 
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", apps)
+	verbosity := 0
+	if apiClient.Opts != nil {
+		verbosity = apiClient.Opts.Verbosity
+	}
+	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", verbosity, apps)
 }
 
-func printAppList(out io.Writer, format printer.OutputType, simplified bool, apps []tsuru.MiniApp) error {
+func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []tsuru.MiniApp) error {
 	if format == printer.JSON {
 		return printer.PrintPrettyJSON(out, apps)
 	}
@@ -117,9 +122,9 @@ func printAppList(out io.Writer, format printer.OutputType, simplified bool, app
 			summary = strings.Join(statusText, "\n")
 		} else {
 			summary = "error fetching units"
-			// if client.Verbosity > 0 {
-			// 	summary += fmt.Sprintf(": %s", app.Error)
-			// }
+			if verbosity > 0 {
+				summary += fmt.Sprintf(": %s", app.Error)
+			}
 		}
 		addrs := strings.Replace(appAddr(app), ", ", "\n", -1)
 		table.AddRow(tablecli.Row([]string{app.Name, summary, addrs}))

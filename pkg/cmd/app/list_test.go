@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -93,6 +94,39 @@ func TestV1AppListErrorFetchingUnits(t *testing.T) {
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
+	var stdout bytes.Buffer
+	result := `[{"ip":"10.10.10.10","name":"app1","units":[],"Error": "timeout"}]`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+	apiClient := api.APIClientWithConfig(
+		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
+		&api.APIClientOpts{Verbosity: 1, VerboseOutput: &stdout},
+	)
+
+	appListCmd := newAppListCmd()
+	err := appListCmdRun(appListCmd, []string{}, apiClient, &stdout)
+
+	expected := "*************************** <Request uri=\"/1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner=\"> **********************************\n" +
+		"GET /1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner= HTTP/1.1\r\n" +
+		"Host: " + strings.Split(mockServer.URL, "://")[1] + "\r\n" +
+		"Accept: application/json\r\n" +
+		"Authorization: bearer sometoken\r\n" +
+		"User-Agent: tsuru-client\r\n" +
+		"X-Tsuru-Verbosity: 1\r\n" +
+		"\r\n" +
+		"*************************** </Request uri=\"/1.0/apps?locked=false&name=&owner=&platform=&pool=&simplified=false&status=&tag=%5B%5D&teamOwner=\"> **********************************\n" +
+		"+-------------+-------------------------------+-------------+\n" +
+		"| Application | Units                         | Address     |\n" +
+		"+-------------+-------------------------------+-------------+\n" +
+		"| app1        | error fetching units: timeout | 10.10.10.10 |\n" +
+		"+-------------+-------------------------------+-------------+\n"
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
