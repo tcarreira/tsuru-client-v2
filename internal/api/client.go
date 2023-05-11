@@ -39,10 +39,17 @@ type tsuruClientHTTPTransport struct {
 }
 
 func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", t.cfg.UserAgent)
 	for k, v := range t.cfg.DefaultHeader {
 		req.Header.Set(k, v)
 	}
+	req.Header.Set("User-Agent", t.cfg.UserAgent)
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Set("User-Agent", "tsuru-client")
+	}
+	if req.Header.Get("Authorization") == "" {
+		req.Header.Set("Authorization", "bearer sometoken")
+	}
+
 	if t.apiClientOpts != nil && t.apiClientOpts.Verbosity > 0 {
 		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.apiClientOpts.Verbosity))
 
