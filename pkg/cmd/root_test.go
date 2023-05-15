@@ -12,22 +12,26 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func findLeafCommands(t *testing.T, cmd *cobra.Command, cmdPath []string, cmdPathChan chan []string) {
+func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []string, cmdPathChan chan []string) {
 	if len(cmd.Commands()) == 0 {
 		cmdPathChan <- cmdPath
 	}
 	for _, c := range cmd.Commands() {
+		c.RunE = nil
+		c.Run = nil
 		newCmdPath := make([]string, len(cmdPath))
 		copy(newCmdPath, cmdPath)
 		newCmdPath = append(newCmdPath, c.Name())
-		findLeafCommands(t, c, newCmdPath, cmdPathChan)
+		iterateCmdTreeAndRemoveRun(t, c, newCmdPath, cmdPathChan)
 	}
 }
 
-func TestOverridenFlags(t *testing.T) {
+func TestOverridingFlags(t *testing.T) {
+	rootCmd.SetOutput(io.Discard)
+
 	cmdPathChan := make(chan []string)
 	go func() {
-		findLeafCommands(t, rootCmd, []string{}, cmdPathChan)
+		iterateCmdTreeAndRemoveRun(t, rootCmd, []string{}, cmdPathChan)
 		close(cmdPathChan)
 	}()
 
@@ -40,10 +44,7 @@ func TestOverridenFlags(t *testing.T) {
 			}()
 
 			rootCmd.SetArgs(cmdPath)
-			rootCmd.SetOutput(io.Discard)
 			rootCmd.Execute()
 		})
-
 	}
-	t.Error("test")
 }
