@@ -145,7 +145,7 @@ func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	}
 
 	format := "table"
-	if cmd.Flag("json").Value.String() == "true" {
+	if v, _ := cmd.Flags().GetBool("json"); v {
 		format = "json"
 	}
 	return a.PrintInfo(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true")
