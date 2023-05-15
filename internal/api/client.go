@@ -42,16 +42,6 @@ func (t *tsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	for k, v := range t.cfg.DefaultHeader {
 		req.Header.Set(k, v)
 	}
-	req.Header.Set("User-Agent", t.cfg.UserAgent)
-	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", "tsuru-client")
-	}
-	if req.Header.Get("Authorization") == "" {
-		req.Header.Set("Authorization", "bearer sometoken")
-	}
-	if req.Header.Get("Accept") == "" {
-		req.Header.Set("Accept", "application/json")
-	}
 
 	if t.apiClientOpts != nil && t.apiClientOpts.InsecureSkipVerify {
 		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
@@ -107,6 +97,25 @@ func httpTransportWrapper(cfg *tsuru.Configuration, apiClientOpts *APIClientOpts
 	}
 }
 
+func tsuruDefaultHeadersFromConfig(cfg *tsuru.Configuration) map[string]string {
+	result := map[string]string{}
+	for k, v := range cfg.DefaultHeader {
+		result[k] = v
+	}
+
+	result["User-Agent"] = cfg.UserAgent
+	if result["User-Agent"] == "" {
+		result["User-Agent"] = "tsuru-client"
+	}
+	if result["Authorization"] == "" {
+		result["Authorization"] = "bearer sometoken"
+	}
+	if result["Accept"] == "" {
+		result["Accept"] = "application/json"
+	}
+	return result
+}
+
 // APIClientSingleton returns the APIClient singleton configured with SetupAPIClientSingleton().
 func APIClientSingleton() *APIClient {
 	if apiClientSingleton == nil {
@@ -129,6 +138,7 @@ func APIClientWithConfig(cfg *tsuru.Configuration, opts *APIClientOpts) *APIClie
 		cfg.HTTPClient = http.DefaultClient
 	}
 
+	cfg.DefaultHeader = tsuruDefaultHeadersFromConfig(cfg)
 	cfg.HTTPClient.Transport = httpTransportWrapper(cfg, opts, cfg.HTTPClient.Transport)
 
 	return &APIClient{
