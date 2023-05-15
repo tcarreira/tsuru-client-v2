@@ -7,7 +7,6 @@ package app
 import (
 	"fmt"
 	"io"
-	"net/http"
 	"net/url"
 	"os"
 	"os/signal"
@@ -54,11 +53,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 
-	if err := checkAppInfo(apiClient, appName); err != nil {
-		return err
-	}
-
-	width, height, deferFn, err := getStdinDimensions(in)
+	width, height, deferFn, err := setupStdin(in)
 	if err != nil {
 		return err
 	}
@@ -141,23 +136,7 @@ func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName
 	return
 }
 
-func checkAppInfo(apiClient *api.APIClient, appName string) error {
-	request, err := apiClient.NewRequest("GET", "/apps/"+appName, nil)
-	if err != nil {
-		return err
-	}
-	httpResponse, err := apiClient.RawHTTPClient.Do(request)
-	if err != nil {
-		return err
-	}
-	defer httpResponse.Body.Close()
-	if httpResponse.StatusCode == http.StatusNotFound {
-		return fmt.Errorf("app %q not found", appName)
-	}
-	return nil
-}
-
-func getStdinDimensions(in *os.File) (width, height int, deferFn func(), err error) {
+func setupStdin(in *os.File) (width, height int, deferFn func(), err error) {
 	fd := int(in.Fd())
 	if term.IsTerminal(fd) {
 		width, height, _ = term.GetSize(fd)
