@@ -58,7 +58,7 @@ func init() {
 	// Flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
-	rootCmd.PersistentFlags().StringP("target", "t", "", "Tsuru server endpoint")
+	rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
 	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
 
 	// Add subcommands
