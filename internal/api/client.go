@@ -162,3 +162,11 @@ func (a *APIClient) NewRequest(method string, url string, body io.Reader) (*http
 	}
 	return http.NewRequest(method, url, body)
 }
+
+func (a *APIClient) DefaultHeaders() http.Header {
+	headers := make(http.Header)
+	for k, v := range a.Config.DefaultHeader {
+		headers.Add(k, v)
+	}
+	return headers
+}
