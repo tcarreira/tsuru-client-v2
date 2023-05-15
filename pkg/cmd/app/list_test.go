@@ -332,6 +332,61 @@ app3
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestAppListFlags(t *testing.T) {
+	appListCmd := newAppListCmd()
+	flagset := appListCmd.Flags()
+	assert.NotNil(t, flagset)
+
+	for _, test := range []struct {
+		long    string
+		usage   string
+		toParse []string
+	}{
+		{"name", "filter applications by name", []string{"-n", "myname"}},
+		{"name", "filter applications by name", []string{"--name", "myname2"}},
+		{"pool", "filter applications by pool", []string{"-o", "mypool"}},
+		{"pool", "filter applications by pool", []string{"--pool", "mypool2"}},
+		{"status", "filter applications by unit status. Accepts multiple values separated by commas. Possible values can be: building, created, starting, error, started, stopped, asleep", []string{"-s", "mystatus"}},
+		{"status", "filter applications by unit status. Accepts multiple values separated by commas. Possible values can be: building, created, starting, error, started, stopped, asleep", []string{"--status", "mystatus2"}},
+		{"platform", "filter applications by platform", []string{"-p", "myplatform"}},
+		{"platform", "filter applications by platform", []string{"--platform", "myplatform2"}},
+		{"team", "filter applications by team owner", []string{"-t", "myteam"}},
+		{"team", "filter applications by team owner", []string{"--team", "myteam2"}},
+		{"user", "filter applications by owner", []string{"-u", "myuser"}},
+		{"user", "filter applications by owner", []string{"--user", "myuser2"}},
+	} {
+		err := flagset.Parse(test.toParse)
+		assert.NoError(t, err)
+		flag := flagset.Lookup(test.long)
+		assert.Equal(t, test.long, flag.Name)
+		assert.Equal(t, test.usage, flag.Usage)
+		assert.Equal(t, test.toParse[1], flag.Value.String())
+	}
+
+	for _, test := range []struct {
+		long     string
+		usage    string
+		toParse  []string
+		expected string
+	}{
+		{"locked", "filter applications by lock status", []string{""}, "false"},
+		{"locked", "filter applications by lock status", []string{"-l"}, "true"},
+		{"locked", "filter applications by lock status", []string{"--locked"}, "true"},
+		{"simplified", "display only applications name", []string{""}, "false"},
+		{"simplified", "display only applications name", []string{"-q"}, "true"},
+		{"simplified", "display only applications name", []string{"--simplified"}, "true"},
+		{"json", "display applications in JSON format", []string{""}, "false"},
+		{"json", "display applications in JSON format", []string{"--json"}, "true"},
+	} {
+		err := flagset.Parse(test.toParse)
+		assert.NoError(t, err)
+		flag := flagset.Lookup(test.long)
+		assert.Equal(t, test.long, flag.Name)
+		assert.Equal(t, test.usage, flag.Usage)
+		assert.Equal(t, test.expected, flag.Value.String())
+	}
+}
+
 func TestV1AppListInfo(t *testing.T) {
 	var stdout bytes.Buffer
 	appListCmd := newAppListCmd()
