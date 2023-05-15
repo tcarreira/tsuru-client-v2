@@ -58,7 +58,22 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 
-	qs, err := appShellQueryString(cmd, apiClient, in, unitID)
+	width, height, deferFn, err := getStdinDimensions(in)
+	if err != nil {
+		return err
+	}
+	defer deferFn()
+
+	qs := make(url.Values)
+	qs.Set("isolated", cmd.Flag("isolated").Value.String())
+	qs.Set("width", strconv.Itoa(width))
+	qs.Set("height", strconv.Itoa(height))
+	qs.Set("unit", unitID)
+	qs.Set("container_id", unitID)
+	if term := os.Getenv("TERM"); term != "" {
+		qs.Set("term", term)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -142,7 +157,7 @@ func checkAppInfo(apiClient *api.APIClient, appName string) error {
 	return nil
 }
 
-func getStdinDimensions(in *os.File) (width, height int, err error) {
+func getStdinDimensions(in *os.File) (width, height int, deferFn func(), err error) {
 	fd := int(in.Fd())
 	if term.IsTerminal(fd) {
 		width, height, _ = term.GetSize(fd)
@@ -151,7 +166,7 @@ func getStdinDimensions(in *os.File) (width, height int, err error) {
 		if err != nil {
 			return
 		}
-		defer term.Restore(fd, oldState)
+		deferFn = func() { term.Restore(fd, oldState) }
 		sigChan := make(chan os.Signal, 2)
 		go func(c <-chan os.Signal) {
 			if _, ok := <-c; ok {
@@ -162,22 +177,4 @@ func getStdinDimensions(in *os.File) (width, height int, err error) {
 		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	}
 	return
-}
-
-func appShellQueryString(cmd *cobra.Command, apiClient *api.APIClient, in *os.File, unitID string) (url.Values, error) {
-	width, height, err := getStdinDimensions(in)
-	if err != nil {
-		return nil, err
-	}
-
-	queryString := make(url.Values)
-	queryString.Set("isolated", cmd.Flag("isolated").Value.String())
-	queryString.Set("width", strconv.Itoa(width))
-	queryString.Set("height", strconv.Itoa(height))
-	queryString.Set("unit", unitID)
-	queryString.Set("container_id", unitID)
-	if term := os.Getenv("TERM"); term != "" {
-		queryString.Set("term", term)
-	}
-	return queryString, nil
 }
