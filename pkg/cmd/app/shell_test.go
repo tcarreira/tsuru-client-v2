@@ -57,7 +57,28 @@ func TestAppShellRunWithApp(t *testing.T) {
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
-	err := appShellCmdRun(appShellCmd, []string{}, apiClient, &stdout, nil)
+	err = appShellCmdRun(appShellCmd, []string{}, apiClient, &stdout, stdin)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestShellToContainerWithUnit(t *testing.T) {
+	stdout := bytes.Buffer{}
+	expected := "hello my friend\nglad to see you here\n"
+	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
+		req := ws.Request()
+		assert.NotNil(t, req)
+		assert.True(t, strings.HasSuffix(req.URL.Path, "/apps/myapp/shell"))
+		assert.Equal(t, req.URL.Query().Get("unit"), "containerid")
+
+		fmt.Fprint(ws, expected)
+		ws.Close()
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appShellCmd := newAppShellCmd()
+	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
+	err := appShellCmdRun(appShellCmd, []string{"containerid"}, apiClient, &stdout, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
