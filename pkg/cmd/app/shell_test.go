@@ -42,7 +42,7 @@ func TestAppShellIsRegistered(t *testing.T) {
 	assert.True(t, found, "subcommand list not registered in appCmd")
 }
 
-func TestAppShellRunWithApp(t *testing.T) {
+func TestV1AppShellRunWithApp(t *testing.T) {
 	stdout := bytes.Buffer{}
 	expected := "hello my friend\nglad to see you here\n"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
@@ -62,7 +62,7 @@ func TestAppShellRunWithApp(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
-func TestShellToContainerWithUnit(t *testing.T) {
+func TestV1ShellToContainerWithUnit(t *testing.T) {
 	stdout := bytes.Buffer{}
 	expected := "hello my friend\nglad to see you here\n"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
@@ -103,3 +103,13 @@ func TestShellToContainerWithUnitAppFromArgs(t *testing.T) {
 	assert.Equal(t, expected, stdout.String())
 }
 
+func TestV1ShellToContainerCmdConnectionRefused(t *testing.T) {
+	stdout := bytes.Buffer{}
+	mockServer := httptest.NewServer(nil)
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	mockServer.Close()
+
+	appShellCmd := newAppShellCmd()
+	err := appShellCmdRun(appShellCmd, []string{"myapp"}, apiClient, &stdout, nil)
+	assert.ErrorContains(t, err, "connection refused")
+}
