@@ -53,11 +53,11 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 
-	width, height, deferFn, err := setupStdin(in)
+	width, height, restoreStdin, err := setupStdin(in)
 	if err != nil {
 		return err
 	}
-	defer deferFn()
+	defer restoreStdin()
 
 	qs := make(url.Values)
 	qs.Set("isolated", cmd.Flag("isolated").Value.String())
@@ -67,10 +67,6 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	qs.Set("container_id", unitID)
 	if term := os.Getenv("TERM"); term != "" {
 		qs.Set("term", term)
-	}
-
-	if err != nil {
-		return err
 	}
 
 	request, err := apiClient.NewRequest("GET", "/apps/"+appName+"/shell", nil)
@@ -92,6 +88,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 	defer conn.Close()
+
 	errs := make(chan error, 2)
 	quit := make(chan bool)
 	go io.Copy(conn, in)
@@ -136,8 +133,9 @@ func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName
 	return
 }
 
-func setupStdin(in *os.File) (width, height int, deferFn func(), err error) {
+func setupStdin(in *os.File) (width, height int, restoreStdin func(), err error) {
 	fd := int(in.Fd())
+	restoreStdin = func() {}
 	if term.IsTerminal(fd) {
 		width, height, _ = term.GetSize(fd)
 		var oldState *term.State
@@ -145,7 +143,7 @@ func setupStdin(in *os.File) (width, height int, deferFn func(), err error) {
 		if err != nil {
 			return
 		}
-		deferFn = func() { term.Restore(fd, oldState) }
+		restoreStdin = func() { term.Restore(fd, oldState) }
 		sigChan := make(chan os.Signal, 2)
 		go func(c <-chan os.Signal) {
 			if _, ok := <-c; ok {
