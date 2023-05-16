@@ -359,6 +359,7 @@ func TestAppCreateIsRegistered(t *testing.T) {
 	for _, subCmd := range subCommands {
 		if subCmd.Name() == "create" {
 			found = true
+			break
 		}
 	}
 	assert.True(t, found, "subcommand create not registered in appCmd")

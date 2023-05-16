@@ -406,6 +406,7 @@ func TestAppListIsRegistered(t *testing.T) {
 	for _, subCmd := range subCommands {
 		if subCmd.Name() == "list" {
 			found = true
+			break
 		}
 	}
 	assert.True(t, found, "subcommand list not registered in appCmd")

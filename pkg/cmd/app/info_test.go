@@ -1315,6 +1315,7 @@ func TestAppInfoIsRegistered(t *testing.T) {
 	for _, subCmd := range subCommands {
 		if subCmd.Name() == "info" {
 			found = true
+			break
 		}
 	}
 	assert.True(t, found, "subcommand info not registered in appCmd")
