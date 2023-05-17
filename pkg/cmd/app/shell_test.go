@@ -7,6 +7,7 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -147,12 +148,17 @@ func TestAppShellSendStdin(t *testing.T) {
 		assert.True(t, strings.HasSuffix(req.URL.Path, "/apps/myapp/shell"))
 		assert.Equal(t, req.URL.Query().Get("unit"), "containerid")
 
-		var buf bytes.Buffer
-		_, err2 := buf.ReadFrom(ws)
-		assert.NoError(t, err2)
-		assert.Equal(t, expected, buf.String())
+		fmt.Fprint(ws, "from websocket server\n")
 
-		fmt.Fprint(ws, "from websocket server")
+		var buf = make([]byte, 1024)
+		n, err := ws.Read(buf)
+		assert.NoError(t, err, io.EOF)
+		assert.Equal(t, expected, string(buf[:n]))
+
+		n, err = ws.Read(buf)
+		assert.ErrorIs(t, err, io.EOF)
+		assert.Equal(t, 0, n)
+
 		ws.Close()
 	}))
 	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
@@ -160,5 +166,5 @@ func TestAppShellSendStdin(t *testing.T) {
 	appShellCmd := newAppShellCmd()
 	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, apiClient, &stdout, stdin)
 	assert.NoError(t, err)
-	assert.Equal(t, "from websocket server", stdout.String())
+	assert.Equal(t, "from websocket server\n", stdout.String())
 }

@@ -5,6 +5,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/url"
@@ -12,6 +13,7 @@ import (
 	"os/signal"
 	"regexp"
 	"strconv"
+	"sync"
 	"syscall"
 
 	"github.com/spf13/cobra"
@@ -83,23 +85,77 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 
 	config.Header = apiClient.DefaultHeaders()
 
-	conn, err := websocket.DialConfig(config)
+	ws, err := websocket.DialConfig(config)
 	if err != nil {
 		return err
 	}
-	defer conn.Close()
+	defer ws.Close()
 
+	wg := sync.WaitGroup{}
 	errs := make(chan error, 2)
-	quit := make(chan bool)
-	go io.Copy(conn, in)
-	go func() {
-		defer close(quit)
-		_, err := io.Copy(out, conn)
-		if err != nil && err != io.EOF {
-			errs <- err
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+	wg.Add(1)
+	go func() { // handle interrupts
+		defer wg.Done()
+		defer cancelCtx()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-interrupt:
+				errs <- fmt.Errorf("interrupted! Closing connection")
+				return
+			}
 		}
 	}()
-	<-quit
+
+	wg.Add(1)
+	go func() { // read from ws and write to stdout
+		defer wg.Done()
+		defer cancelCtx()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				var buf = make([]byte, 1024)
+				n, err := ws.Read(buf)
+				if err != nil {
+					if err != io.EOF {
+						errs <- err
+					}
+					return
+				}
+				out.Write(buf[:n])
+			}
+		}
+	}()
+	wg.Add(1)
+	go func() { // read from stdin and write to ws
+		defer wg.Done()
+		defer cancelCtx()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				buf := make([]byte, 1024)
+				n, err := in.Read(buf)
+				if err != nil {
+					if err != io.EOF {
+						errs <- err
+					}
+					return
+				}
+				ws.Write(buf[:n])
+			}
+		}
+	}()
+
+	wg.Wait()
 	close(errs)
 	return <-errs
 }
