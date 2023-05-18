@@ -6,6 +6,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -86,7 +87,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 
 	/********* wetbsocket does not implement DialWithContext : */
 	dialerCancelChan := make(chan struct{})
-	config.Dialer.Cancel = dialerCancelChan
+	config.Dialer.Cancel = dialerCancelChan //lint:ignore SA1019 This is a golang.org/x/net/websocket limitation
 	go func() {
 		select {
 		case <-time.After(5 * time.Second):
@@ -112,7 +113,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	defer restoreStdin()
 
 	wg := sync.WaitGroup{}
-	errs := make(chan error, 2)
+	errChan := make(chan error, 3)
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -126,7 +127,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 			case <-ctx.Done():
 				return
 			case <-interrupt:
-				errs <- fmt.Errorf("interrupted! Closing connection")
+				errChan <- fmt.Errorf("interrupted! Closing connection")
 				return
 			}
 		}
@@ -137,49 +138,35 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		defer wg.Done()
 		defer cancelCtx()
 
-		for {
-			select {
-			case <-ctx.Done():
-				readFromToBuffered(ws, out, errs)
-				return
-			default:
-				readFromToBuffered(ws, out, errs)
-			}
+		_, err1 := copyWithContext(ctx, out, ws)
+		if err1 != nil {
+			errChan <- err1
+			return
 		}
 	}()
 
-	wg.Add(1)
+	// wg.Add(1) // leaking this goroutine intentionally. stdin.Read() is blocking
 	go func() { // read from stdin and write to ws
-		defer wg.Done()
+		// defer wg.Done()
 		defer cancelCtx()
 
-		for {
-			select {
-			case <-ctx.Done(): //
-				readFromToBuffered(in, ws, errs)
-				return
-			default:
-				readFromToBuffered(in, ws, errs)
-			}
+		_, err1 := copyWithContext(ctx, ws, in)
+		if err1 != nil {
+			errChan <- err1
+			return
 		}
 	}()
 
 	wg.Wait()
-	fmt.Fprintln(out)
-	close(errs)
-	return <-errs
-}
 
-func readFromToBuffered(from io.Reader, to io.Writer, errs chan error) {
-	buf := make([]byte, 1024)
-	n, err := from.Read(buf)
-	if err != nil {
-		if err != io.EOF {
-			errs <- err
-		}
-		return
+	close(errChan)
+	errs := []error{}
+	for e := range errChan {
+		errs = append(errs, e)
 	}
-	to.Write(buf[:n])
+
+	fmt.Fprintln(out)
+	return errors.Join(errs...)
 }
 
 func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) {
@@ -233,4 +220,19 @@ func setupRawStdin(in *os.File) (restoreStdin func(), err error) {
 		}
 	}
 	return
+}
+
+type readerFunc func(p []byte) (n int, err error)
+
+func (rf readerFunc) Read(p []byte) (n int, err error) { return rf(p) }
+
+func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
+	return io.Copy(dst, readerFunc(func(p []byte) (int, error) {
+		select {
+		case <-ctx.Done():
+			return 0, io.EOF
+		default:
+			return src.Read(p)
+		}
+	}))
 }
