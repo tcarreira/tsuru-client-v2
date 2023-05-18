@@ -8,13 +8,16 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/url"
 	"os"
 	"os/signal"
 	"regexp"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tsuru-client/internal/api"
@@ -70,20 +73,37 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	if err != nil {
 		return err
 	}
-	request.URL.RawQuery = qs.Encode()
 	request.URL.Scheme = httpRegexp.ReplaceAllString(request.URL.Scheme, "ws")
+	reqURLWithoutQuerystring := request.URL.String()
+	request.URL.RawQuery = qs.Encode()
 
 	config, err := websocket.NewConfig(request.URL.String(), "ws://localhost")
 	if err != nil {
 		return err
 	}
-
 	config.Header = apiClient.DefaultHeaders()
+	config.Dialer = &net.Dialer{}
+
+	/********* wetbsocket does not implement DialWithContext : */
+	dialerCancelChan := make(chan struct{})
+	config.Dialer.Cancel = dialerCancelChan
+	go func() {
+		select {
+		case <-time.After(5 * time.Second):
+			close(dialerCancelChan)
+		case <-dialerCancelChan:
+		}
+	}()
+	/********* <- wetbsocket does not implement DialWithContext :( */
 
 	ws, err := websocket.DialConfig(config)
 	if err != nil {
+		if strings.HasSuffix(err.Error(), "operation was canceled") {
+			return fmt.Errorf("timeout connecting to the server: %s", reqURLWithoutQuerystring)
+		}
 		return err
 	}
+	close(dialerCancelChan)
 	defer ws.Close()
 	restoreStdin, err := setupRawStdin(in)
 	if err != nil {
