@@ -55,18 +55,13 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 
-	width, height, restoreStdin, err := setupStdin(in)
-	if err != nil {
-		return err
-	}
-	defer restoreStdin()
-
 	qs := make(url.Values)
 	qs.Set("isolated", cmd.Flag("isolated").Value.String())
-	qs.Set("width", strconv.Itoa(width))
-	qs.Set("height", strconv.Itoa(height))
 	qs.Set("unit", unitID)
 	qs.Set("container_id", unitID)
+	width, height := getStdinSize(in)
+	qs.Set("width", strconv.Itoa(width))
+	qs.Set("height", strconv.Itoa(height))
 	if term := os.Getenv("TERM"); term != "" {
 		qs.Set("term", term)
 	}
@@ -90,6 +85,11 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		return err
 	}
 	defer ws.Close()
+	restoreStdin, err := setupRawStdin(in)
+	if err != nil {
+		return err
+	}
+	defer restoreStdin()
 
 	wg := sync.WaitGroup{}
 	errs := make(chan error, 2)
@@ -116,48 +116,50 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	go func() { // read from ws and write to stdout
 		defer wg.Done()
 		defer cancelCtx()
+
 		for {
 			select {
 			case <-ctx.Done():
+				readFromToBuffered(ws, out, errs)
 				return
 			default:
-				var buf = make([]byte, 1024)
-				n, err := ws.Read(buf)
-				if err != nil {
-					if err != io.EOF {
-						errs <- err
-					}
-					return
-				}
-				out.Write(buf[:n])
+				readFromToBuffered(ws, out, errs)
 			}
 		}
 	}()
+
 	wg.Add(1)
 	go func() { // read from stdin and write to ws
 		defer wg.Done()
 		defer cancelCtx()
+
 		for {
 			select {
-			case <-ctx.Done():
+			case <-ctx.Done(): //
+				readFromToBuffered(in, ws, errs)
 				return
 			default:
-				buf := make([]byte, 1024)
-				n, err := in.Read(buf)
-				if err != nil {
-					if err != io.EOF {
-						errs <- err
-					}
-					return
-				}
-				ws.Write(buf[:n])
+				readFromToBuffered(in, ws, errs)
 			}
 		}
 	}()
 
 	wg.Wait()
+	fmt.Fprintln(out)
 	close(errs)
 	return <-errs
+}
+
+func readFromToBuffered(from io.Reader, to io.Writer, errs chan error) {
+	buf := make([]byte, 1024)
+	n, err := from.Read(buf)
+	if err != nil {
+		if err != io.EOF {
+			errs <- err
+		}
+		return
+	}
+	to.Write(buf[:n])
 }
 
 func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) {
@@ -189,25 +191,26 @@ func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName
 	return
 }
 
-func setupStdin(in *os.File) (width, height int, restoreStdin func(), err error) {
+func getStdinSize(in *os.File) (width, height int) {
+	fd := int(in.Fd())
+	if term.IsTerminal(fd) {
+		width, height, _ = term.GetSize(fd)
+	}
+	return
+}
+
+func setupRawStdin(in *os.File) (restoreStdin func(), err error) {
 	fd := int(in.Fd())
 	restoreStdin = func() {}
 	if term.IsTerminal(fd) {
-		width, height, _ = term.GetSize(fd)
 		var oldState *term.State
 		oldState, err = term.MakeRaw(fd)
 		if err != nil {
 			return
 		}
-		restoreStdin = func() { term.Restore(fd, oldState) }
-		sigChan := make(chan os.Signal, 2)
-		go func(c <-chan os.Signal) {
-			if _, ok := <-c; ok {
-				term.Restore(fd, oldState)
-				os.Exit(1)
-			}
-		}(sigChan)
-		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+		restoreStdin = func() {
+			term.Restore(fd, oldState)
+		}
 	}
 	return
 }
