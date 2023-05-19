@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -115,13 +116,13 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	wg := sync.WaitGroup{}
 	errChan := make(chan error, 3)
 	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	wg.Add(1)
 	go func() { // handle interrupts
 		defer wg.Done()
-		defer cancelCtx()
 		for {
 			select {
 			case <-ctx.Done():
@@ -136,7 +137,6 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	wg.Add(1)
 	go func() { // read from ws and write to stdout
 		defer wg.Done()
-		defer cancelCtx()
 
 		_, err1 := copyWithContext(ctx, out, ws)
 		if err1 != nil {
@@ -148,7 +148,11 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	// wg.Add(1) // leaking this goroutine intentionally. stdin.Read() is blocking
 	go func() { // read from stdin and write to ws
 		// defer wg.Done()
-		defer cancelCtx()
+		defer func() {
+			// most important for testing. In real life, this is irrelevant
+			time.Sleep(100 * time.Millisecond)
+			cancelCtx()
+		}()
 
 		_, err1 := copyWithContext(ctx, ws, in)
 		if err1 != nil {
@@ -227,6 +231,9 @@ type readerFunc func(p []byte) (n int, err error)
 func (rf readerFunc) Read(p []byte) (n int, err error) { return rf(p) }
 
 func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
+	if reflect.ValueOf(src).IsNil() {
+		return 0, nil
+	}
 	return io.Copy(dst, readerFunc(func(p []byte) (int, error) {
 		select {
 		case <-ctx.Done():

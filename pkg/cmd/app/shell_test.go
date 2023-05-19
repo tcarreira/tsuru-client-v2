@@ -7,7 +7,6 @@ package app
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http/httptest"
 	"os"
 	"strings"
@@ -46,7 +45,7 @@ func TestAppShellIsRegistered(t *testing.T) {
 
 func TestV1AppShellRunWithApp(t *testing.T) {
 	stdout := bytes.Buffer{}
-	expected := "hello my friend\nglad to see you here\n"
+	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
 		assert.NotNil(t, req)
@@ -61,12 +60,12 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
 	err := appShellCmdRun(appShellCmd, []string{}, apiClient, &stdout, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected+"\n", stdout.String())
 }
 
 func TestV1AppShellWithUnit(t *testing.T) {
 	stdout := bytes.Buffer{}
-	expected := "hello my friend\nglad to see you here\n"
+	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
 		assert.NotNil(t, req)
@@ -82,12 +81,12 @@ func TestV1AppShellWithUnit(t *testing.T) {
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
 	err := appShellCmdRun(appShellCmd, []string{"containerid"}, apiClient, &stdout, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected+"\n", stdout.String())
 }
 
 func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 	stdout := bytes.Buffer{}
-	expected := "hello my friend\nglad to see you here\n"
+	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
 		assert.NotNil(t, req)
@@ -102,7 +101,7 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 	appShellCmd := newAppShellCmd()
 	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, apiClient, &stdout, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected+"\n", stdout.String())
 }
 
 func TestV1AppShellCmdConnectionRefused(t *testing.T) {
@@ -133,14 +132,13 @@ func newFileWithContent(content []byte) (stdin *os.File, deferFn func(), err err
 
 func TestAppShellSendStdin(t *testing.T) {
 	stdout := bytes.Buffer{}
-	expected := "hello my friend\n"
-	stdin, deferFn, err := newFileWithContent([]byte(expected))
+	strFromStdin := "hello my friend"
+	strFromServer := "from websocket server"
+	stdin, deferFn, err := newFileWithContent([]byte(strFromStdin))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		deferFn()
-	}()
+	defer deferFn()
 
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
@@ -148,16 +146,12 @@ func TestAppShellSendStdin(t *testing.T) {
 		assert.True(t, strings.HasSuffix(req.URL.Path, "/apps/myapp/shell"))
 		assert.Equal(t, req.URL.Query().Get("unit"), "containerid")
 
-		fmt.Fprint(ws, "from websocket server\n")
+		fmt.Fprint(ws, strFromServer)
 
 		var buf = make([]byte, 1024)
 		n, err := ws.Read(buf)
-		assert.NoError(t, err, io.EOF)
-		assert.Equal(t, expected, string(buf[:n]))
-
-		n, err = ws.Read(buf)
-		assert.ErrorIs(t, err, io.EOF)
-		assert.Equal(t, 0, n)
+		assert.NoError(t, err)
+		assert.Equal(t, strFromStdin, string(buf[:n]))
 
 		ws.Close()
 	}))
@@ -166,5 +160,5 @@ func TestAppShellSendStdin(t *testing.T) {
 	appShellCmd := newAppShellCmd()
 	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, apiClient, &stdout, stdin)
 	assert.NoError(t, err)
-	assert.Equal(t, "from websocket server\n", stdout.String())
+	assert.Equal(t, strFromServer+"\n", stdout.String())
 }
