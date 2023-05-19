@@ -112,7 +112,8 @@ func TestV1AppShellCmdConnectionRefused(t *testing.T) {
 
 	appShellCmd := newAppShellCmd()
 	err := appShellCmdRun(appShellCmd, []string{"myapp"}, apiClient, &stdout, nil)
-	assert.ErrorContains(t, err, "connection refused")
+	assert.ErrorContains(t, err, "refused") // windows: connectex: No connection could be made because the target machine actively refused it.
+	// assert.ErrorContains(t, err, "connection refused") // unix: connect: connection refused
 }
 
 // newFileWithContent may be used to create a mock for Stdin.
