@@ -106,6 +106,7 @@ func SetupTsuruClientSingleton() {
 	}
 
 	api.SetupAPIClientSingleton(cfg, &api.APIClientOpts{
-		Verbosity: viper.GetInt("verbosity"),
+		Verbosity:          viper.GetInt("verbosity"),
+		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
 	})
 }
