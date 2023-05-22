@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -112,6 +113,41 @@ func TestV1AppLogWithUnparsableData(t *testing.T) {
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
+	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestV1AppLogWithoutTheFlag(t *testing.T) {
+	var stdout bytes.Buffer
+	t1 := time.Now().In(time.UTC)
+	t2 := t1.Add(2 * time.Hour)
+	logs := []log{
+		{Date: t1, Message: "creating app lost", Source: "tsuru"},
+		{Date: t2, Message: "app lost successfully created", Source: "app"},
+	}
+
+	result, err := json.Marshal(logs)
+	assert.NoError(t, err)
+
+	cfy := printer.Colorify{}
+	expected := cfy.Colorfy(t1.Format(tLogFmt)+" [tsuru]:", "blue", "", "") + " creating app lost\n"
+	expected += cfy.Colorfy(t2.Format(tLogFmt)+" [app]:", "blue", "", "") + " app lost successfully created\n"
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/apps/hitthelights/log"))
+		assert.Equal(t, "10", r.URL.Query().Get("lines"))
+		w.Write(result)
+	}))
+	apiClient := api.APIClientWithConfig(
+		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
+		&api.APIClientOpts{LocalTZ: time.UTC},
+	)
+
+	appLogCmd := newAppLogCmd()
+	appLogCmd.Flags().Parse([]string{"--app", "hitthelights"})
 	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
 
 	assert.NoError(t, err)
