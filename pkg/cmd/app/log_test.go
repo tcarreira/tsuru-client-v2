@@ -304,3 +304,39 @@ func TestV1AppLogWithNoSource(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestV1AppLogFlags(t *testing.T) {
+	appLogCmd := newAppLogCmd()
+	flagset := appLogCmd.Flags()
+	assert.NotNil(t, flagset)
+
+	for _, test := range []struct {
+		long     string
+		usage    string
+		toParse  []string
+		expected string
+	}{
+		{"app", "The name of the app (may be passed as argument)", []string{"-a", "myapp"}, "myapp"},
+		{"app", "The name of the app (may be passed as argument)", []string{"--app", "myapp2"}, "myapp2"},
+		{"unit", "The log from the given unit (may be passed as argument)", []string{"-u", "myunit"}, "myunit"},
+		{"unit", "The log from the given unit (may be passed as argument)", []string{"--unit", "myunit2"}, "myunit2"},
+		{"lines", "The number of log lines to display", []string{"-l", "25"}, "25"},
+		{"lines", "The number of log lines to display", []string{"--lines", "45"}, "45"},
+		{"source", "The log from the given source", []string{"-s", "mysource"}, "mysource"},
+		{"source", "The log from the given source", []string{"--source", "mysource2"}, "mysource2"},
+		{"follow", "Follow logs", []string{}, "false"},
+		{"follow", "Follow logs", []string{"-f"}, "true"},
+		{"follow", "Follow logs", []string{"--follow"}, "true"},
+		{"no-date", "No date information", []string{}, "false"},
+		{"no-date", "No date information", []string{"--no-date"}, "true"},
+		{"no-source", "No source information", []string{}, "false"},
+		{"no-source", "No source information", []string{"--no-source"}, "true"},
+	} {
+		err := flagset.Parse(test.toParse)
+		assert.NoError(t, err)
+		flag := flagset.Lookup(test.long)
+		assert.Equal(t, test.long, flag.Name)
+		assert.Equal(t, test.usage, flag.Usage)
+		assert.Equal(t, test.expected, flag.Value.String())
+	}
+}
