@@ -192,3 +192,18 @@ func TestV1AppLogBySource(t *testing.T) {
 	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
 	assert.NoError(t, err)
 }
+
+func TestV1AppLogByUnit(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/apps/hitthelights/log"))
+		assert.Equal(t, "api", r.URL.Query().Get("unit"))
+		w.Write(nil)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appLogCmd := newAppLogCmd()
+	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--unit", "api"})
+	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
+	assert.NoError(t, err)
+}
