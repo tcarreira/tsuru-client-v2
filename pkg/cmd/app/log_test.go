@@ -153,3 +153,18 @@ func TestV1AppLogWithoutTheFlag(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
 }
+
+func TestV1AppLogShouldReturnNilIfHasNoContent(t *testing.T) {
+	var stdout bytes.Buffer
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write(nil)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appLogCmd := newAppLogCmd()
+	appLogCmd.Flags().Parse([]string{"--app", "appName"})
+	err := appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	assert.NoError(t, err)
+	assert.Equal(t, "", stdout.String())
+}
