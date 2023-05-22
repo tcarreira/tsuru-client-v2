@@ -53,12 +53,11 @@ $ tsuru app shell myapp --isolated`,
 }
 
 func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer, in *os.File) error {
-	cmd.SilenceUsage = true
-
 	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
 	}
+	cmd.SilenceUsage = true
 
 	qs := make(url.Values)
 	qs.Set("isolated", cmd.Flag("isolated").Value.String())
