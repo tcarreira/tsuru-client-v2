@@ -238,3 +238,33 @@ func TestV1AppLogWithFollow(t *testing.T) {
 	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
 	assert.NoError(t, err)
 }
+
+func TestV1AppLogWithNoDateAndNoSource(t *testing.T) {
+	var stdout bytes.Buffer
+	t1 := time.Now().In(time.UTC)
+	t2 := t1.Add(2 * time.Hour)
+	logs := []log{
+		{Date: t1, Message: "GET /", Source: "web"},
+		{Date: t2, Message: "POST /", Source: "web"},
+	}
+
+	result, err := json.Marshal(logs)
+	assert.NoError(t, err)
+
+	expected := "GET /\nPOST /\n"
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "GET", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/apps/hitthelights/log"))
+		assert.Equal(t, "12", r.URL.Query().Get("lines"))
+		assert.Equal(t, "1", r.URL.Query().Get("follow"))
+		w.Write(result)
+	}))
+	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+
+	appLogCmd := newAppLogCmd()
+	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-date", "--no-source"})
+	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
