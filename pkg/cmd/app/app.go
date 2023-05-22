@@ -31,6 +31,7 @@ func NewAppCmd() *cobra.Command {
 	appCmd.AddCommand(newAppCreateCmd())
 	appCmd.AddCommand(newAppListCmd())
 	appCmd.AddCommand(newAppShellCmd())
+	appCmd.AddCommand(newAppLogCmd())
 	return appCmd
 }
 
