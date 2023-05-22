@@ -7,6 +7,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -73,6 +74,36 @@ func TestV1AppLog(t *testing.T) {
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(result)
+	}))
+	apiClient := api.APIClientWithConfig(
+		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
+		&api.APIClientOpts{LocalTZ: time.UTC},
+	)
+
+	appLogCmd := newAppLogCmd()
+	appLogCmd.Flags().Parse([]string{"--app", "appName"})
+	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, stdout.String())
+}
+
+func TestV1AppLogWithUnparsableData(t *testing.T) {
+	var stdout bytes.Buffer
+	t1 := time.Now().In(time.UTC)
+	logs := []log{
+		{Date: t1, Message: "creating app lost", Source: "tsuru"},
+	}
+
+	result, err := json.Marshal(logs)
+	assert.NoError(t, err)
+
+	cfy := printer.Colorify{}
+	expected := cfy.Colorfy(t1.Format(tLogFmt)+" [tsuru]:", "blue", "", "") + " creating app lost\n"
+	expected += "Error: unable to parse json: invalid character 'u' looking for beginning of value: \"\\nunparseable data\""
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, string(result)+"\nunparseable data")
 	}))
 	apiClient := api.APIClientWithConfig(
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
