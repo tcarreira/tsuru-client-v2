@@ -3,7 +3,8 @@
 # license that can be found in the LICENSE file.
 
 GOCMD	?= go
-GOTEST	?= $(GOCMD) test
+PARALL	?= $(shell { nproc --all || echo 1 ; } | xargs -I{} expr {} / 2 + 1 )
+GOTEST	?= $(GOCMD) test -timeout 10s -parallel $(PARALL)
 GOVET	?= $(GOCMD) vet
 GOFMT	?= gofmt
 BINARY	?= tsuru
