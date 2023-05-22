@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
@@ -30,6 +31,7 @@ type APIClientOpts struct {
 	Verbosity          int
 	VerboseOutput      io.Writer
 	InsecureSkipVerify bool
+	LocalTZ            *time.Location
 }
 
 type tsuruClientHTTPTransport struct {
@@ -140,6 +142,12 @@ func APIClientWithConfig(cfg *tsuru.Configuration, opts *APIClientOpts) *APIClie
 
 	cfg.DefaultHeader = tsuruDefaultHeadersFromConfig(cfg)
 	cfg.HTTPClient.Transport = httpTransportWrapper(cfg, opts, cfg.HTTPClient.Transport)
+
+	if opts == nil {
+		opts = &APIClientOpts{
+			LocalTZ: time.Local,
+		}
+	}
 
 	return &APIClient{
 		Client:        tsuru.NewAPIClient(cfg),

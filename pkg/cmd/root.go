@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -108,5 +109,6 @@ func SetupTsuruClientSingleton() {
 	api.SetupAPIClientSingleton(cfg, &api.APIClientOpts{
 		Verbosity:          viper.GetInt("verbosity"),
 		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
+		LocalTZ:            time.Local,
 	})
 }

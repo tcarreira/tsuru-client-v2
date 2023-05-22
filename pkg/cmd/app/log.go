@@ -20,6 +20,8 @@ import (
 	"github.com/tsuru/tsuru-client/internal/printer"
 )
 
+const tLogFmt = "2006-01-02 15:04:05 -0700"
+
 func newAppLogCmd() *cobra.Command {
 	appLogCmd := &cobra.Command{
 		Use:   "log [FLAGS] APP [UNIT]",
@@ -98,6 +100,7 @@ func appLogCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	formatter := logFormatter{
 		noDate:   func() bool { v, _ := cmd.Flags().GetBool("no-date"); return v }(),
 		noSource: func() bool { v, _ := cmd.Flags().GetBool("no-source"); return v }(),
+		localTZ:  apiClient.Opts.LocalTZ,
 	}
 	dec := json.NewDecoder(httpResponse.Body)
 	for {
@@ -115,6 +118,7 @@ func appLogCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 type logFormatter struct {
 	noDate   bool
 	noSource bool
+	localTZ  *time.Location
 }
 type log struct {
 	Date    time.Time
@@ -152,7 +156,7 @@ func (f logFormatter) Format(out io.Writer, dec *json.Decoder) error {
 func (f logFormatter) prefix(l log) string {
 	parts := make([]string, 0, 2)
 	if !f.noDate {
-		parts = append(parts, l.Date.In(time.Local).Format("2006-01-02 15:04:05 -0700"))
+		parts = append(parts, l.Date.In(f.localTZ).Format(tLogFmt))
 	}
 	if !f.noSource {
 		if l.Unit != "" {
