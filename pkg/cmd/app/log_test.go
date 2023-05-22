@@ -168,3 +168,12 @@ func TestV1AppLogShouldReturnNilIfHasNoContent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "", stdout.String())
 }
+
+func TestV1AppLogInfo(t *testing.T) {
+	var stdout bytes.Buffer
+	appLogCmd := newAppLogCmd()
+	appLogCmd.SetOutput(&stdout)
+	err := appLogCmd.Help()
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stdout.String())
+}
