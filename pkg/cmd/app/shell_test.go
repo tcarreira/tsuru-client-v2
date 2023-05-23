@@ -14,7 +14,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"golang.org/x/net/websocket"
 )
 
@@ -54,11 +54,11 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
-	err := appShellCmdRun(appShellCmd, []string{}, apiClient, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{}, tsuruCtx, &stdout, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -75,11 +75,11 @@ func TestV1AppShellWithUnit(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
-	err := appShellCmdRun(appShellCmd, []string{"containerid"}, apiClient, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"containerid"}, tsuruCtx, &stdout, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -96,10 +96,10 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appShellCmd := newAppShellCmd()
-	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, apiClient, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx, &stdout, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -107,11 +107,11 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 func TestV1AppShellCmdConnectionRefused(t *testing.T) {
 	stdout := bytes.Buffer{}
 	mockServer := httptest.NewServer(nil)
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 	mockServer.Close()
 
 	appShellCmd := newAppShellCmd()
-	err := appShellCmdRun(appShellCmd, []string{"myapp"}, apiClient, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"myapp"}, tsuruCtx, &stdout, nil)
 	assert.ErrorContains(t, err, "refused") // windows: connectex: No connection could be made because the target machine actively refused it.
 	// assert.ErrorContains(t, err, "connection refused") // unix: connect: connection refused
 }
@@ -156,10 +156,10 @@ func TestAppShellSendStdin(t *testing.T) {
 
 		ws.Close()
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appShellCmd := newAppShellCmd()
-	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, apiClient, &stdout, stdin)
+	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx, &stdout, stdin)
 	assert.NoError(t, err)
 	assert.Equal(t, strFromServer+"\n", stdout.String())
 }

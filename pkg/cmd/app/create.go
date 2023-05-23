@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/parser"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func newAppCreateCmd() *cobra.Command {
@@ -70,7 +70,7 @@ $ tsuru app create myapp go
 $ tsuru app create myapp python --plan small --team myteam
 $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appCreateRun(cmd, args, api.APIClientSingleton(), os.Stdout)
+			return appCreateRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -88,7 +88,7 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 	return appCreateCmd
 }
 
-func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
+func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
 	var appName, platform string
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name")
@@ -136,13 +136,13 @@ func appCreateRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	}
 
 	b := strings.NewReader(v.Encode())
-	request, err := apiClient.NewRequest("POST", "/apps", b)
+	request, err := tsuruCtx.NewRequest("POST", "/apps", b)
 	if err != nil {
 		return err
 	}
 
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	response, err := apiClient.RawHTTPClient.Do(request)
+	response, err := tsuruCtx.RawHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}

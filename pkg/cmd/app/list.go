@@ -16,8 +16,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tablecli"
-	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func newAppListCmd() *cobra.Command {
@@ -31,7 +31,7 @@ Flags can be used to filter the list of applications.`,
 $ tsuru app list -n my
 $ tsuru app list --status error`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appListCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout)
+			return appListCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -50,16 +50,16 @@ $ tsuru app list --status error`,
 	return appListCmd
 }
 
-func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
+func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
 	cmd.SilenceUsage = true
 
-	qs := appListQueryString(cmd, apiClient)
-	request, err := apiClient.NewRequest("GET", "/apps", nil)
+	qs := appListQueryString(cmd, tsuruCtx)
+	request, err := tsuruCtx.NewRequest("GET", "/apps", nil)
 	if err != nil {
 		return err
 	}
 	request.URL.RawQuery = qs.Encode()
-	httpResponse, err := apiClient.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
@@ -77,11 +77,8 @@ func appListCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, 
 	if cmd.Flag("json").Value.String() == "true" {
 		format = "json"
 	}
-	verbosity := 0
-	if apiClient.Opts != nil {
-		verbosity = apiClient.Opts.Verbosity
-	}
-	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", verbosity, apps)
+
+	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity, apps)
 }
 
 func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []app) error {
@@ -192,7 +189,7 @@ func appAddr(a app) string {
 	return strings.Join(allAddrs, ", ")
 }
 
-func appListQueryString(cmd *cobra.Command, apiClient *api.APIClient) url.Values {
+func appListQueryString(cmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) url.Values {
 	result := make(url.Values)
 
 	// string flags with the same name as the query string
@@ -208,7 +205,7 @@ func appListQueryString(cmd *cobra.Command, apiClient *api.APIClient) url.Values
 		userFlag := cmd.Flag("user").Value.String()
 		result.Set("owner", userFlag)
 		if userFlag == "me" {
-			user, _, err := apiClient.Client.UserApi.UserGet(cmd.Context())
+			user, _, err := tsuruCtx.Client.UserApi.UserGet(cmd.Context())
 			if err == nil {
 				result.Set("owner", user.Email)
 			}

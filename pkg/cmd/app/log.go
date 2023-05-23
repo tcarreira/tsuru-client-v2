@@ -16,8 +16,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 const tLogFmt = "2006-01-02 15:04:05 -0700"
@@ -49,7 +49,7 @@ information, useful to very dense logs.
 		Example: `$ tsuru app log myapp
 $ tsuru app log -l 50 -f myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appLogCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout)
+			return appLogCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -65,14 +65,14 @@ $ tsuru app log -l 50 -f myapp`,
 	return appLogCmd
 }
 
-func appLogCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
+func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
 	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
 	}
 	cmd.SilenceUsage = true
 
-	request, err := apiClient.NewRequest("GET", "/apps/"+appName+"/log", nil)
+	request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName+"/log", nil)
 	if err != nil {
 		return err
 	}
@@ -88,7 +88,7 @@ func appLogCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		qs.Set("follow", "1")
 	}
 	request.URL.RawQuery = qs.Encode()
-	httpResponse, err := apiClient.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func appLogCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 	formatter := logFormatter{
 		noDate:   func() bool { v, _ := cmd.Flags().GetBool("no-date"); return v }(),
 		noSource: func() bool { v, _ := cmd.Flags().GetBool("no-source"); return v }(),
-		localTZ:  apiClient.Opts.LocalTZ,
+		localTZ:  tsuruCtx.LocalTZ,
 	}
 	dec := json.NewDecoder(httpResponse.Body)
 	for {

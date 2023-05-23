@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/cmd/app"
 	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
 )
@@ -108,9 +108,9 @@ func SetupTsuruClientSingleton() {
 		cfg.AddDefaultHeader("Authorization", "bearer "+token)
 	}
 
-	api.SetupAPIClientSingleton(cfg, &api.APIClientOpts{
-		Verbosity:          viper.GetInt("verbosity"),
+	tsuructx.SetupTsuruContextSingleton(cfg, &tsuructx.TsuruContextOpts{
 		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
+		Verbosity:          viper.GetInt("verbosity"),
 		LocalTZ:            time.Local,
 	})
 }

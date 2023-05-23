@@ -19,9 +19,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tablecli"
-	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/parser"
 	"github.com/tsuru/tsuru-client/internal/printer"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/cmd/plan"
 	"github.com/tsuru/tsuru-client/pkg/cmd/router"
 	"k8s.io/apimachinery/pkg/api/resource"
@@ -100,7 +100,7 @@ You need to be a member of a team that has access to the app to be able to see i
 		Example: `$ tsuru app info myapp
 $ tsuru app info -a myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return printAppInfo(cmd, args, api.APIClientSingleton(), os.Stdout)
+			return printAppInfo(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
 		},
 		ValidArgsFunction: completeAppNames,
 		Args:              cobra.RangeArgs(0, 1),
@@ -112,7 +112,7 @@ $ tsuru app info -a myapp`,
 	return appInfoCmd
 }
 
-func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer) error {
+func printAppInfo(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
 	}
@@ -126,11 +126,11 @@ func printAppInfo(cmd *cobra.Command, args []string, apiClient *api.APIClient, o
 		appName = args[0]
 	}
 
-	request, err := apiClient.NewRequest("GET", "/apps/"+appName, nil)
+	request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName, nil)
 	if err != nil {
 		return err
 	}
-	httpResponse, err := apiClient.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
 	if err != nil {
 		return err
 	}

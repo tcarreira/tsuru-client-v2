@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"golang.org/x/net/websocket"
 	"golang.org/x/term"
 )
@@ -42,7 +42,7 @@ You can get the ID of the unit using the "app info" command.
 $ tsuru app shell myapp myapp-web-123def-456abc
 $ tsuru app shell myapp --isolated`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appShellCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout, os.Stdin)
+			return appShellCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout, os.Stdin)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -53,7 +53,7 @@ $ tsuru app shell myapp --isolated`,
 	return appShellCmd
 }
 
-func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient, out io.Writer, in *os.File) error {
+func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer, in *os.File) error {
 	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
@@ -71,7 +71,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 		qs.Set("term", term)
 	}
 
-	request, err := apiClient.NewRequest("GET", "/apps/"+appName+"/shell", nil)
+	request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName+"/shell", nil)
 	if err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, apiClient *api.APIClient,
 	if err != nil {
 		return err
 	}
-	config.Header = apiClient.DefaultHeaders()
+	config.Header = tsuruCtx.DefaultHeaders()
 	config.Dialer = &net.Dialer{}
 
 	/********* wetbsocket does not implement DialWithContext : */

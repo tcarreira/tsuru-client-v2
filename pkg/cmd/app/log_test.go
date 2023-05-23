@@ -16,8 +16,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/internal/printer"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestAppLogIsRegistered(t *testing.T) {
@@ -76,14 +76,14 @@ func TestV1AppLog(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(result)
 	}))
-	apiClient := api.APIClientWithConfig(
+	tsuruCtx := tsuructx.TsuruContextWithConfig(
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
-		&api.APIClientOpts{LocalTZ: time.UTC},
+		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -106,14 +106,14 @@ func TestV1AppLogWithUnparsableData(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, string(result)+"\nunparseable data")
 	}))
-	apiClient := api.APIClientWithConfig(
+	tsuruCtx := tsuructx.TsuruContextWithConfig(
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
-		&api.APIClientOpts{LocalTZ: time.UTC},
+		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -141,14 +141,14 @@ func TestV1AppLogWithoutTheFlag(t *testing.T) {
 		assert.Equal(t, "10", r.URL.Query().Get("lines"))
 		w.Write(result)
 	}))
-	apiClient := api.APIClientWithConfig(
+	tsuruCtx := tsuructx.TsuruContextWithConfig(
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
-		&api.APIClientOpts{LocalTZ: time.UTC},
+		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "hitthelights"})
-	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -160,11 +160,11 @@ func TestV1AppLogShouldReturnNilIfHasNoContent(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Write(nil)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err := appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 	assert.NoError(t, err)
 	assert.Equal(t, "", stdout.String())
 }
@@ -185,11 +185,11 @@ func TestV1AppLogBySource(t *testing.T) {
 		assert.Equal(t, "mysource", r.URL.Query().Get("source"))
 		w.Write(nil)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--source", "mysource"})
-	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
 	assert.NoError(t, err)
 }
 
@@ -200,11 +200,11 @@ func TestV1AppLogByUnit(t *testing.T) {
 		assert.Equal(t, "api", r.URL.Query().Get("unit"))
 		w.Write(nil)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--unit", "api"})
-	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
 	assert.NoError(t, err)
 }
 
@@ -215,11 +215,11 @@ func TestV1AppLogWithLines(t *testing.T) {
 		assert.Equal(t, "12", r.URL.Query().Get("lines"))
 		w.Write(nil)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12"})
-	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
 	assert.NoError(t, err)
 }
 
@@ -231,11 +231,11 @@ func TestV1AppLogWithFollow(t *testing.T) {
 		assert.Equal(t, "1", r.URL.Query().Get("follow"))
 		w.Write(nil)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f"})
-	err := appLogCmdRun(appLogCmd, []string{}, apiClient, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
 	assert.NoError(t, err)
 }
 
@@ -259,11 +259,11 @@ func TestV1AppLogWithNoDateAndNoSource(t *testing.T) {
 		assert.Equal(t, "1", r.URL.Query().Get("follow"))
 		w.Write(result)
 	}))
-	apiClient := api.APIClientWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-date", "--no-source"})
-	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -292,14 +292,14 @@ func TestV1AppLogWithNoSource(t *testing.T) {
 		assert.Equal(t, "1", r.URL.Query().Get("follow"))
 		w.Write(result)
 	}))
-	apiClient := api.APIClientWithConfig(
+	tsuruCtx := tsuructx.TsuruContextWithConfig(
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
-		&api.APIClientOpts{LocalTZ: time.UTC},
+		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-source"})
-	err = appLogCmdRun(appLogCmd, []string{}, apiClient, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())

@@ -15,7 +15,7 @@ import (
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/api"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	appTypes "github.com/tsuru/tsuru/types/app"
 	quotaTypes "github.com/tsuru/tsuru/types/quota"
 	volumeTypes "github.com/tsuru/tsuru/types/volume"
@@ -36,7 +36,7 @@ func NewAppCmd() *cobra.Command {
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	apps, _, err := api.APIClientSingleton().Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+	apps, _, err := tsuructx.GetTsuruContextSingleton().Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(true),
 		Name:       optional.NewString(toComplete),
 	})
