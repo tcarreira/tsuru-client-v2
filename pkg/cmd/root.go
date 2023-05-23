@@ -7,13 +7,13 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
+	"github.com/tsuru/tsuru-client/internal/config"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/cmd/app"
 	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
@@ -22,8 +22,7 @@ import (
 var (
 	Version string = "dev"
 
-	cfgFile    string
-	configPath string
+	cfgFile string
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -50,11 +49,6 @@ func Execute() {
 }
 
 func init() {
-	// Find home directory.
-	home, err := os.UserHomeDir()
-	cobra.CheckErr(err)
-	configPath = filepath.Join(home, ".tsuru")
-
 	cobra.OnInitialize(initConfig)
 
 	// Flags
@@ -75,7 +69,7 @@ func initConfig() {
 		viper.SetConfigFile(cfgFile)
 	} else {
 		// Search config in home directory with name ".tsuru-client" (without extension).
-		viper.AddConfigPath(configPath)
+		viper.AddConfigPath(config.ConfigPath)
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".tsuru-client")
 	}
@@ -98,11 +92,11 @@ func SetupTsuruClientSingleton() {
 	cfg := tsuru.NewConfiguration()
 	cfg.UserAgent = "tsuru-client:" + Version
 
-	target, err := GetTarget()
+	target, err := config.GetTarget()
 	cobra.CheckErr(err)
 	cfg.BasePath = target
 
-	token, err := GetToken()
+	token, err := config.GetToken()
 	cobra.CheckErr(err)
 	if token != "" {
 		cfg.AddDefaultHeader("Authorization", "bearer "+token)

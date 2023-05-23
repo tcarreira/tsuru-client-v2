@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-package cmd
+package config
 
 import (
 	"fmt"
@@ -27,8 +27,8 @@ func getTargets(fsys afero.Fs) (map[string]string, error) {
 	var targets = map[string]string{} // label->target
 
 	// legacyTargetsPath := JoinWithUserDir(".tsuru_targets") // XXX: remove legacy file
-	targetsPath := filepath.Join(configPath, "targets")
-	err := fsys.MkdirAll(configPath, 0700)
+	targetsPath := filepath.Join(ConfigPath, "targets")
+	err := fsys.MkdirAll(ConfigPath, 0700)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func getTarget(fsys afero.Fs) (target string, err error) {
 			}
 		}
 	} else {
-		targetPath := filepath.Join(configPath, "target")
+		targetPath := filepath.Join(ConfigPath, "target")
 		if f, err := fsys.Open(targetPath); err == nil {
 			defer f.Close()
 			if b, err := io.ReadAll(f); err == nil {
