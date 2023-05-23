@@ -112,5 +112,6 @@ func SetupTsuruClientSingleton() {
 		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
 		Verbosity:          viper.GetInt("verbosity"),
 		LocalTZ:            time.Local,
+		AuthScheme:         viper.GetString("auth-scheme"),
 	})
 }

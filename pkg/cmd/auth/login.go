@@ -5,11 +5,19 @@
 package auth
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
+
+type loginScheme struct {
+	Name string
+	Data map[string]string
+}
 
 func NewLoginCmd() *cobra.Command {
 	loginCmd := &cobra.Command{
@@ -38,5 +46,45 @@ $ tsuru login example@tsuru.local`,
 }
 
 func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
-	return fmt.Errorf("not implemented yet")
+	cmd.SilenceUsage = true
+	if viper.GetString("token") != "" {
+		return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
+	}
+
+	authScheme := &loginScheme{Name: tsuruCtx.AuthScheme}
+	if authScheme.Name == "" {
+		var err error
+		authScheme, err = getAuthScheme(tsuruCtx)
+		if err != nil {
+			return err
+		}
+	}
+
+	switch strings.ToLower(authScheme.Name) {
+	case "oauth":
+		return fmt.Errorf("login is not implemented for oauth auth. Please contact the tsuru team")
+	case "saml":
+		return fmt.Errorf("login is not implemented for saml auth. Please contact the tsuru team")
+	default:
+		return fmt.Errorf("login is not implemented for native auth. Please contact the tsuru team")
+	}
+}
+
+func getAuthScheme(tsuruCtx *tsuructx.TsuruContext) (*loginScheme, error) {
+	request, err := tsuruCtx.NewRequest("GET", "/auth/scheme", nil)
+	if err != nil {
+		return nil, err
+	}
+	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	if err != nil {
+		return nil, err
+	}
+	defer httpResponse.Body.Close()
+
+	info := loginScheme{}
+	err = json.NewDecoder(httpResponse.Body).Decode(&info)
+	if err != nil {
+		return nil, err
+	}
+	return &info, nil
 }

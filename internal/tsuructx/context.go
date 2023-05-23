@@ -37,6 +37,8 @@ type TsuruContextOpts struct {
 	InsecureSkipVerify bool
 	// LocalTZ is the local timezone
 	LocalTZ *time.Location
+	// AuthScheme is the protocol used for tsuru login. Overriden with TSURU_AUTH_SCHEME
+	AuthScheme string
 }
 
 type DescriptorReader interface {
