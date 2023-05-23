@@ -16,6 +16,7 @@ import (
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/api"
 	"github.com/tsuru/tsuru-client/pkg/cmd/app"
+	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
 )
 
 var (
@@ -64,6 +65,7 @@ func init() {
 
 	// Add subcommands
 	rootCmd.AddCommand(app.NewAppCmd())
+	rootCmd.AddCommand(auth.NewLoginCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
