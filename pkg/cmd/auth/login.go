@@ -7,11 +7,15 @@ package auth
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/url"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/tsuru/tsuru-client/internal/config"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"golang.org/x/term"
 )
 
 type loginScheme struct {
@@ -66,7 +70,7 @@ func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCont
 	case "saml":
 		return fmt.Errorf("login is not implemented for saml auth. Please contact the tsuru team")
 	default:
-		return fmt.Errorf("login is not implemented for native auth. Please contact the tsuru team")
+		return nativeLogin(cmd, args, tsuruCtx)
 	}
 }
 
@@ -87,4 +91,65 @@ func getAuthScheme(tsuruCtx *tsuructx.TsuruContext) (*loginScheme, error) {
 		return nil, err
 	}
 	return &info, nil
+}
+
+func nativeLogin(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+	var email string
+	if len(args) > 0 {
+		email = args[0]
+	} else {
+		fmt.Fprint(tsuruCtx.Stdout, "Email: ")
+		fmt.Fscanf(tsuruCtx.Stdin, "%s\n", &email)
+	}
+	fmt.Fprint(tsuruCtx.Stdout, "Password: ")
+	password, err := PasswordFromReader(tsuruCtx.Stdin)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(tsuruCtx.Stdout)
+
+	v := url.Values{}
+	v.Set("password", password)
+	b := strings.NewReader(v.Encode())
+	request, err := tsuruCtx.NewRequest("POST", "/users/"+email+"/tokens", b)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer httpResponse.Body.Close()
+	result, err := io.ReadAll(httpResponse.Body)
+	if err != nil {
+		return err
+	}
+	out := make(map[string]interface{})
+	err = json.Unmarshal(result, &out)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(tsuruCtx.Stdout, "Successfully logged in!")
+	return config.SaveToken(out["token"].(string))
+}
+
+func PasswordFromReader(reader io.Reader) (string, error) {
+	var (
+		password []byte
+		err      error
+	)
+	if desc, ok := reader.(tsuructx.DescriptorReader); ok && term.IsTerminal(int(desc.Fd())) {
+		password, err = term.ReadPassword(int(desc.Fd()))
+		if err != nil {
+			return "", err
+		}
+	} else {
+		fmt.Fscanf(reader, "%s\n", &password)
+	}
+	if len(password) == 0 {
+		return "", fmt.Errorf("empty password. You must provide the password")
+	}
+	return string(password), err
 }
