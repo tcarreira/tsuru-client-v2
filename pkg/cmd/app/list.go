@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"sort"
 	"strings"
 
@@ -31,7 +30,7 @@ Flags can be used to filter the list of applications.`,
 $ tsuru app list -n my
 $ tsuru app list --status error`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appListCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
+			return appListCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -50,7 +49,7 @@ $ tsuru app list --status error`,
 	return appListCmd
 }
 
-func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
+func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	cmd.SilenceUsage = true
 
 	qs := appListQueryString(cmd, tsuruCtx)
@@ -78,7 +77,7 @@ func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCo
 		format = "json"
 	}
 
-	return printAppList(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity, apps)
+	return printAppList(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity, apps)
 }
 
 func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []app) error {

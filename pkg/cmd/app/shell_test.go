@@ -55,10 +55,11 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
-	err := appShellCmdRun(appShellCmd, []string{}, tsuruCtx, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -76,10 +77,12 @@ func TestV1AppShellWithUnit(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
+	tsuruCtx.Stdin = nil
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
-	err := appShellCmdRun(appShellCmd, []string{"containerid"}, tsuruCtx, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"containerid"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -97,9 +100,11 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
+	tsuruCtx.Stdin = nil
 
 	appShellCmd := newAppShellCmd()
-	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, expected+"\n", stdout.String())
 }
@@ -108,10 +113,12 @@ func TestV1AppShellCmdConnectionRefused(t *testing.T) {
 	stdout := bytes.Buffer{}
 	mockServer := httptest.NewServer(nil)
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
+	tsuruCtx.Stdin = nil
 	mockServer.Close()
 
 	appShellCmd := newAppShellCmd()
-	err := appShellCmdRun(appShellCmd, []string{"myapp"}, tsuruCtx, &stdout, nil)
+	err := appShellCmdRun(appShellCmd, []string{"myapp"}, tsuruCtx)
 	assert.ErrorContains(t, err, "refused") // windows: connectex: No connection could be made because the target machine actively refused it.
 	// assert.ErrorContains(t, err, "connection refused") // unix: connect: connection refused
 }
@@ -157,9 +164,11 @@ func TestAppShellSendStdin(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
+	tsuruCtx.Stdin = stdin
 
 	appShellCmd := newAppShellCmd()
-	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx, &stdout, stdin)
+	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, strFromServer+"\n", stdout.String())
 }

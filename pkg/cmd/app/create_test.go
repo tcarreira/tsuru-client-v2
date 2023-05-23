@@ -22,6 +22,7 @@ Use app info to check the status of the app and its units.
 `
 
 func TestV1AppCreate(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -40,15 +41,16 @@ func TestV1AppCreate(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateEmptyPlatform(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -67,15 +69,16 @@ func TestV1AppCreateEmptyPlatform(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateTeamOwner(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -94,16 +97,17 @@ func TestV1AppCreateTeamOwner(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-t", "myteam"})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreatePlan(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -122,16 +126,17 @@ func TestV1AppCreatePlan(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-p", "myplan"})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreatePool(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -150,16 +155,17 @@ func TestV1AppCreatePool(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-o", "mypool"})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateRouterOpts(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -180,16 +186,17 @@ func TestV1AppCreateRouterOpts(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateNoRepository(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -208,29 +215,31 @@ func TestV1AppCreateNoRepository(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateWithInvalidFramework(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "")
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{}, tsuruCtx)
 	assert.Error(t, err)
 	assert.Equal(t, "", stdout.String())
 }
 
 func TestV1AppCreateWithTags(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -252,16 +261,17 @@ func TestV1AppCreateWithTags(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }
 
 func TestV1AppCreateWithEmptyTag(t *testing.T) {
+	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, http.MethodPost, r.Method)
 		assert.Equal(t, "application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -283,11 +293,11 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", ""})
-	var stdout bytes.Buffer
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx, &stdout)
+	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), stdout.String())
 }

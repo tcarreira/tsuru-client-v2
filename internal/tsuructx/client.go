@@ -20,7 +20,7 @@ import (
 type ClientHTTPTransportOpts struct {
 	InsecureSkipVerify bool
 	Verbosity          int
-	VerboseOutput      io.Writer
+	VerboseOutput      *io.Writer
 }
 
 type TsuruClientHTTPTransport struct {
@@ -47,32 +47,32 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	// Verbosity level=1: log request
 	if t.Verbosity >= 1 {
 		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.Verbosity))
-		fmt.Fprintf(t.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(*t.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
 		requestDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Fprint(t.VerboseOutput, string(requestDump))
+		fmt.Fprint(*t.VerboseOutput, string(requestDump))
 		if requestDump[len(requestDump)-1] != '\n' {
-			fmt.Fprintln(t.VerboseOutput)
+			fmt.Fprintln(*t.VerboseOutput)
 		}
-		fmt.Fprintf(t.VerboseOutput, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(*t.VerboseOutput, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
 	}
 
 	response, err := t.t.RoundTrip(req)
 
 	// Verbosity level=2: log response
 	if t.Verbosity >= 2 && response != nil {
-		fmt.Fprintf(t.VerboseOutput, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(*t.VerboseOutput, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
 		responseDump, errDump := httputil.DumpResponse(response, true)
 		if errDump != nil {
 			return nil, errDump
 		}
-		fmt.Fprint(t.VerboseOutput, string(responseDump))
+		fmt.Fprint(*t.VerboseOutput, string(responseDump))
 		if responseDump[len(responseDump)-1] != '\n' {
-			fmt.Fprintln(t.VerboseOutput)
+			fmt.Fprintln(*t.VerboseOutput)
 		}
-		fmt.Fprintf(t.VerboseOutput, "*************************** </Response uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(*t.VerboseOutput, "*************************** </Response uri=%q> **********************************\n", req.URL.RequestURI())
 	}
 
 	return response, err

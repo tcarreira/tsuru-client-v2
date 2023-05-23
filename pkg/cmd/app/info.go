@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -100,7 +99,7 @@ You need to be a member of a team that has access to the app to be able to see i
 		Example: `$ tsuru app info myapp
 $ tsuru app info -a myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return printAppInfo(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
+			return printAppInfo(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		ValidArgsFunction: completeAppNames,
 		Args:              cobra.RangeArgs(0, 1),
@@ -112,7 +111,7 @@ $ tsuru app info -a myapp`,
 	return appInfoCmd
 }
 
-func printAppInfo(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
+func printAppInfo(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
 	}
@@ -149,7 +148,7 @@ func printAppInfo(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCon
 	if v, _ := cmd.Flags().GetBool("json"); v {
 		format = "json"
 	}
-	return a.PrintInfo(out, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true")
+	return a.PrintInfo(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true")
 }
 
 func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified bool) error {

@@ -42,7 +42,7 @@ You can get the ID of the unit using the "app info" command.
 $ tsuru app shell myapp myapp-web-123def-456abc
 $ tsuru app shell myapp --isolated`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appShellCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout, os.Stdin)
+			return appShellCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -53,7 +53,7 @@ $ tsuru app shell myapp --isolated`,
 	return appShellCmd
 }
 
-func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer, in *os.File) error {
+func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
@@ -64,7 +64,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 	qs.Set("isolated", cmd.Flag("isolated").Value.String())
 	qs.Set("unit", unitID)
 	qs.Set("container_id", unitID)
-	width, height := getStdinSize(in)
+	width, height := getStdinSize(tsuruCtx.Stdin)
 	qs.Set("width", strconv.Itoa(width))
 	qs.Set("height", strconv.Itoa(height))
 	if term := os.Getenv("TERM"); term != "" {
@@ -107,7 +107,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 	}
 	close(dialerCancelChan)
 	defer ws.Close()
-	restoreStdin, err := setupRawStdin(in)
+	restoreStdin, err := setupRawStdin(tsuruCtx.Stdin)
 	if err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 	go func() { // read from ws and write to stdout
 		defer wg.Done()
 
-		_, err1 := copyWithContext(ctx, out, ws)
+		_, err1 := copyWithContext(ctx, tsuruCtx.Stdout, ws)
 		if err1 != nil {
 			errChan <- err1
 			return
@@ -154,7 +154,7 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 			cancelCtx()
 		}()
 
-		_, err1 := copyWithContext(ctx, ws, in)
+		_, err1 := copyWithContext(ctx, ws, tsuruCtx.Stdin)
 		if err1 != nil {
 			errChan <- err1
 			return
@@ -169,8 +169,9 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 		errs = append(errs, e)
 	}
 
-	fmt.Fprintln(out)
-	return errors.Join(errs...)
+	fmt.Fprintln(tsuruCtx.Stdout)
+	o := errors.Join(errs...)
+	return o
 }
 
 func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) {
@@ -202,7 +203,10 @@ func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName
 	return
 }
 
-func getStdinSize(in *os.File) (width, height int) {
+func getStdinSize(in tsuructx.DescriptorReader) (width, height int) {
+	if in == nil || reflect.ValueOf(in).IsNil() {
+		return
+	}
 	fd := int(in.Fd())
 	if term.IsTerminal(fd) {
 		width, height, _ = term.GetSize(fd)
@@ -210,9 +214,13 @@ func getStdinSize(in *os.File) (width, height int) {
 	return
 }
 
-func setupRawStdin(in *os.File) (restoreStdin func(), err error) {
-	fd := int(in.Fd())
+func setupRawStdin(in tsuructx.DescriptorReader) (restoreStdin func(), err error) {
 	restoreStdin = func() {}
+	if in == nil || reflect.ValueOf(in).IsNil() {
+		return
+	}
+
+	fd := int(in.Fd())
 	if term.IsTerminal(fd) {
 		var oldState *term.State
 		oldState, err = term.MakeRaw(fd)
@@ -231,7 +239,7 @@ type readerFunc func(p []byte) (n int, err error)
 func (rf readerFunc) Read(p []byte) (n int, err error) { return rf(p) }
 
 func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) {
-	if reflect.ValueOf(src).IsNil() {
+	if src == nil || reflect.ValueOf(src).IsNil() {
 		return 0, nil
 	}
 	return io.Copy(dst, readerFunc(func(p []byte) (int, error) {

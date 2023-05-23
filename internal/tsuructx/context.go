@@ -1,3 +1,7 @@
+// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package tsuructx
 
 import (
@@ -23,7 +27,7 @@ type TsuruContext struct {
 
 	Stdout io.Writer
 	Stderr io.Writer
-	Stdin  descriptorReader
+	Stdin  DescriptorReader
 }
 
 type TsuruContextOpts struct {
@@ -35,7 +39,7 @@ type TsuruContextOpts struct {
 	LocalTZ *time.Location
 }
 
-type descriptorReader interface {
+type DescriptorReader interface {
 	Read(p []byte) (n int, err error)
 	Fd() uintptr
 }
@@ -82,7 +86,7 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 	transportOpts := &ClientHTTPTransportOpts{
 		InsecureSkipVerify: opts.InsecureSkipVerify,
 		Verbosity:          opts.Verbosity,
-		VerboseOutput:      tsuruCtx.Stdout,
+		VerboseOutput:      &tsuruCtx.Stdout,
 	}
 	tsuruCtx.Config.HTTPClient.Transport = httpTransportWrapper(cfg, transportOpts, cfg.HTTPClient.Transport)
 

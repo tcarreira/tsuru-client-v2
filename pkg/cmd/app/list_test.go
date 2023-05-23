@@ -31,9 +31,10 @@ func TestV1AppList(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -54,9 +55,10 @@ func TestV1AppListDisplayAppsInAlphabeticalOrder(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -75,9 +77,10 @@ func TestV1AppListUnitIsntAvailable(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -96,9 +99,10 @@ func TestV1AppListErrorFetchingUnits(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -114,10 +118,10 @@ func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
 		&tsuructx.TsuruContextOpts{Verbosity: 1},
 	)
-	tsuruCtx.Config.HTTPClient.Transport.(*tsuructx.TsuruClientHTTPTransport).VerboseOutput = &stdout
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	expected := "*************************** <Request uri=\"/1.0/apps\"> **********************************\n" +
 		"GET /1.0/apps HTTP/1.1\r\n" +
@@ -151,9 +155,10 @@ func TestV1AppListUnitWithoutID(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -173,9 +178,10 @@ func TestAppListCName(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -206,11 +212,12 @@ func TestV1AppListFiltering(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-p", "python", "--locked", "--user", "glenda@tsuru.io", "-t", "tsuru", "--name", "myapp", "--pool", "pool", "--status", "started", "--tag", "tag a", "--tag", "tag b"})
 
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -240,11 +247,12 @@ func TestV1AppListFilteringMe(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-u", "me"})
 
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -276,11 +284,12 @@ func TestV1AppListSortByCountAndStatus(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-u", "me"})
 
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -298,11 +307,12 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-q"})
 
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -323,11 +333,12 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-p", "python", "-q"})
 
-	err := appListCmdRun(appListCmd, []string{}, tsuruCtx, &stdout)
+	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -70,7 +69,7 @@ $ tsuru app create myapp go
 $ tsuru app create myapp python --plan small --team myteam
 $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appCreateRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
+			return appCreateRun(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -88,7 +87,7 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 	return appCreateCmd
 }
 
-func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
+func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	var appName, platform string
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name")
@@ -157,7 +156,7 @@ func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCon
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(out, "App %q has been created!\n", appName)
-	fmt.Fprintln(out, "Use app info to check the status of the app and its units.")
+	fmt.Fprintf(tsuruCtx.Stdout, "App %q has been created!\n", appName)
+	fmt.Fprintln(tsuruCtx.Stdout, "Use app info to check the status of the app and its units.")
 	return nil
 }

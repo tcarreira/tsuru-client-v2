@@ -1,9 +1,11 @@
+// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
 package auth
 
 import (
 	"fmt"
-	"io"
-	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
@@ -27,7 +29,7 @@ and [[tsuru version]]).
 		Example: `$ tsuru login
 $ tsuru login example@tsuru.local`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return loginCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
+			return loginCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		Args: cobra.RangeArgs(0, 1),
 	}
@@ -35,6 +37,6 @@ $ tsuru login example@tsuru.local`,
 	return loginCmd
 }
 
-func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
+func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	return fmt.Errorf("not implemented yet")
 }

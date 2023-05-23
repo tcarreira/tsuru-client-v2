@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 	"time"
 
@@ -49,7 +48,7 @@ information, useful to very dense logs.
 		Example: `$ tsuru app log myapp
 $ tsuru app log -l 50 -f myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appLogCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton(), os.Stdout)
+			return appLogCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -65,7 +64,7 @@ $ tsuru app log -l 50 -f myapp`,
 	return appLogCmd
 }
 
-func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext, out io.Writer) error {
+func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
@@ -105,10 +104,10 @@ func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCon
 	}
 	dec := json.NewDecoder(httpResponse.Body)
 	for {
-		err = formatter.Format(out, dec)
+		err = formatter.Format(tsuruCtx.Stdout, dec)
 		if err != nil {
 			if err != io.EOF {
-				fmt.Fprintf(out, "Error: %v", err)
+				fmt.Fprintf(tsuruCtx.Stdout, "Error: %v", err)
 			}
 			break
 		}

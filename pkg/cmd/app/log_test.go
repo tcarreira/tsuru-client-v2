@@ -80,10 +80,11 @@ func TestV1AppLog(t *testing.T) {
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
 		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -110,10 +111,11 @@ func TestV1AppLogWithUnparsableData(t *testing.T) {
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
 		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -145,10 +147,11 @@ func TestV1AppLogWithoutTheFlag(t *testing.T) {
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
 		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "hitthelights"})
-	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -161,10 +164,11 @@ func TestV1AppLogShouldReturnNilIfHasNoContent(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
-	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, "", stdout.String())
 }
@@ -189,7 +193,7 @@ func TestV1AppLogBySource(t *testing.T) {
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--source", "mysource"})
-	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 }
 
@@ -204,7 +208,7 @@ func TestV1AppLogByUnit(t *testing.T) {
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--unit", "api"})
-	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 }
 
@@ -219,7 +223,7 @@ func TestV1AppLogWithLines(t *testing.T) {
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12"})
-	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 }
 
@@ -235,7 +239,7 @@ func TestV1AppLogWithFollow(t *testing.T) {
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f"})
-	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx, nil)
+	err := appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
 }
 
@@ -260,10 +264,11 @@ func TestV1AppLogWithNoDateAndNoSource(t *testing.T) {
 		w.Write(result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-date", "--no-source"})
-	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
@@ -296,10 +301,11 @@ func TestV1AppLogWithNoSource(t *testing.T) {
 		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
 		&tsuructx.TsuruContextOpts{LocalTZ: time.UTC},
 	)
+	tsuruCtx.Stdout = &stdout
 
 	appLogCmd := newAppLogCmd()
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-source"})
-	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx, &stdout)
+	err = appLogCmdRun(appLogCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, stdout.String())
