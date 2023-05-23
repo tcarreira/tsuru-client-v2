@@ -29,6 +29,7 @@ $ tsuru login example@tsuru.local`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return loginCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
+		Args: cobra.RangeArgs(0, 1),
 	}
 
 	return loginCmd

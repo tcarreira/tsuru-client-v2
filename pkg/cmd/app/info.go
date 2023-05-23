@@ -103,6 +103,7 @@ $ tsuru app info -a myapp`,
 			return printAppInfo(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
 		ValidArgsFunction: completeAppNames,
+		Args:              cobra.RangeArgs(0, 1),
 	}
 
 	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")

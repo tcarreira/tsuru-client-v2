@@ -51,6 +51,7 @@ $ tsuru app log -l 50 -f myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return appLogCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
+		Args: cobra.RangeArgs(0, 2),
 	}
 
 	appLogCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")

@@ -33,6 +33,7 @@ $ tsuru app list --status error`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return appListCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
+		Args: cobra.ExactArgs(0),
 	}
 
 	appListCmd.Flags().StringP("name", "n", "", "filter applications by name")

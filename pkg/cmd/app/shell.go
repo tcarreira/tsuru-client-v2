@@ -44,6 +44,7 @@ $ tsuru app shell myapp --isolated`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return appShellCmdRun(cmd, args, api.APIClientSingleton(), os.Stdout, os.Stdin)
 		},
+		Args: cobra.RangeArgs(0, 2),
 	}
 
 	appShellCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")

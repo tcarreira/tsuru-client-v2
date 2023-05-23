@@ -72,7 +72,7 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return appCreateRun(cmd, args, api.APIClientSingleton(), os.Stdout)
 		},
-		Args: cobra.RangeArgs(1, 2),
+		Args: cobra.RangeArgs(0, 2),
 	}
 
 	appCreateCmd.Flags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru (may be passed as argument)")
