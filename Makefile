@@ -17,7 +17,7 @@ WHITE  := $(shell tput -Txterm setaf 7)
 CYAN   := $(shell tput -Txterm setaf 6)
 RESET  := $(shell tput -Txterm sgr0)
 
-.PHONY: all test build coverage
+.PHONY: all test build coverage contributors scripts
 
 default: help
 
@@ -47,6 +47,9 @@ ifeq (, $(shell which addlicense))
 endif
 	addlicense -f LICENSE-HEADER .
 
+contributors: ## Update CONTRIBUTORS file
+	./scripts/contributors_file.sh > CONTRIBUTORS
+
 ## Test:
 test: ## Run the tests of the project (fastest)
 	$(GOVET) ./...
@@ -69,7 +72,7 @@ coverage: test-coverage  ## Run test-coverage and open coverage in your browser
 	$(GOCMD) tool cover -html=coverage/coverage.out
 
 ## Lint:
-lint: lint-license-header lint-go ## Run all available linters
+lint: lint-license-header lint-go check-contributors ## Run all available linters
 
 lint-go: ## Use gofmt and staticcheck on your project
 ifneq (, $(shell $(GOFMT) -l . ))
@@ -90,6 +93,12 @@ endif
 	@echo "addlicense -check -f LICENSE-HEADER ."
 	@addlicense -check -f LICENSE-HEADER . \
 		|| (echo "Some files are missing the license header, please run '$(CYAN)make addlicense$(RESET)' to add it" && exit 1)
+
+check-contributors: ## Check if all contributors are listed on the CONTRIBUTORS file
+	@echo "check CONTRIBUTORS"
+ifneq (, $(shell ./scripts/contributors_file.sh | diff CONTRIBUTORS - ))
+	@echo "Some contributors are missing from the CONTRIBUTORS file, please run '$(CYAN)make contributors$(RESET)' to add them" && exit 1
+endif
 
 ## Help:
 help: ## Show this help.
