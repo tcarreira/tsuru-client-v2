@@ -24,7 +24,7 @@ const tLogFmt = "2006-01-02 15:04:05 -0700"
 
 func newAppLogCmd() *cobra.Command {
 	appLogCmd := &cobra.Command{
-		Use:   "log [FLAGS] APP [UNIT]",
+		Use:   "log APP [UNIT]",
 		Short: "shows log entries for an application",
 		Long: `Shows log entries for an application. These logs include everything the
 application send to stdout and stderr, alongside with logs from tsuru server

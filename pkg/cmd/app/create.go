@@ -19,7 +19,7 @@ import (
 
 func newAppCreateCmd() *cobra.Command {
 	appCreateCmd := &cobra.Command{
-		Use:   "create [FLAGS] APP [PLATFORM]",
+		Use:   "create APP [PLATFORM]",
 		Short: "creates a new app",
 		Long: `Creates a new app using the given name and platform. For tsuru,
 a platform is provisioner dependent. To check the available platforms, use the
@@ -75,8 +75,8 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 		Args: cobra.RangeArgs(1, 2),
 	}
 
-	appCreateCmd.Flags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru")
-	appCreateCmd.Flags().String("platform", "", "the platform for the app (can be changed later)")
+	appCreateCmd.Flags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru (may be passed as argument)")
+	appCreateCmd.Flags().String("platform", "", "the platform for the app (can be changed later) (may be passed as argument)")
 	appCreateCmd.Flags().StringP("description", "d", "", "app description")
 	appCreateCmd.Flags().StringP("plan", "p", "", "the plan used to create the app")
 	appCreateCmd.Flags().StringP("router", "r", "", "the router used by the app")

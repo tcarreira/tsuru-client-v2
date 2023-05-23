@@ -32,7 +32,7 @@ var httpRegexp = regexp.MustCompile(`^http`)
 // ShellToContainerCmd
 func newAppShellCmd() *cobra.Command {
 	appShellCmd := &cobra.Command{
-		Use:   "shell [FLAGS] APP [UNIT]",
+		Use:   "shell APP [UNIT]",
 		Short: "run shell inside an app unit",
 		Long: `Opens a remote shell inside a unit, using the API server as a proxy. You
 can access an app unit just giving app name, or specifying the id of the unit.
