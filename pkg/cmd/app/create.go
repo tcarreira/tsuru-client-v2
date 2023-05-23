@@ -19,7 +19,7 @@ import (
 
 func newAppCreateCmd() *cobra.Command {
 	appCreateCmd := &cobra.Command{
-		Use:   "create [flags] app [platform]",
+		Use:   "create [FLAGS] APP [PLATFORM]",
 		Short: "creates a new app",
 		Long: `Creates a new app using the given name and platform. For tsuru,
 a platform is provisioner dependent. To check the available platforms, use the

@@ -91,7 +91,7 @@ Quota: {{ .QuotaString }}
 
 func newAppInfoCmd() *cobra.Command {
 	appInfoCmd := &cobra.Command{
-		Use:   "info [flags] [app]",
+		Use:   "info [FLAGS] [APP]",
 		Short: "shows information about a specific app",
 		Long: `shows information about a specific app.
 Its name, platform, state (and its units), address, etc.

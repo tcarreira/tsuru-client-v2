@@ -22,7 +22,7 @@ import (
 
 func newAppListCmd() *cobra.Command {
 	appListCmd := &cobra.Command{
-		Use:   "list [flags]",
+		Use:   "list [FLAGS]",
 		Short: "list apps",
 		Long: `Lists all apps that you have access to. App access is controlled by teams.
 If your team has access to an app, then you have access to it.
