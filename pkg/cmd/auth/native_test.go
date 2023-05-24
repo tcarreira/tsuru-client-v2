@@ -11,12 +11,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestNativeLogin(t *testing.T) {
+	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
 	result := `{"token": "sometoken", "is_admin": true}`
 	expected := "Password: \nSuccessfully logged in!\n"
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

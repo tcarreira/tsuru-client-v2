@@ -21,7 +21,7 @@ func TestNewLoginCmd(t *testing.T) {
 }
 
 func TestLoginCmdRunErr(t *testing.T) {
-	viper.Set("token", "xxx")
+	viper.Set("token", "xxx") // concurrent with TestNativeLogin
 	err := loginCmdRun(nil, nil, nil)
 	assert.EqualError(t, err, "this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 }

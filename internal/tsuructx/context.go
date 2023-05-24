@@ -72,7 +72,7 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 
 		Stdout: &strings.Builder{},
 		Stderr: &strings.Builder{},
-		Stdin:  &FakeStdin{},
+		Stdin:  &FakeStdin{strings.NewReader("")},
 	}
 }
 
