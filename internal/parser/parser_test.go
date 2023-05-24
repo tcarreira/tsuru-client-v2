@@ -115,3 +115,26 @@ func TestSliceToMapFlags(t *testing.T) {
 		assert.Equal(t, test.out, got)
 	}
 }
+
+func TestTranslateTimestampSince(t *testing.T) {
+	now := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	for i, test := range []struct {
+		given    time.Time
+		expected string
+	}{
+		{time.Time{}, ""},
+		{time.Date(2023, 12, 31, 23, 59, 59, 999, time.UTC), ""},
+		{time.Date(2022, 12, 31, 23, 0, 0, 0, time.UTC), "60m"},
+		{time.Date(2022, 12, 31, 22, 0, 0, 0, time.UTC), "120m"},
+		// {time.Date(2022, 12, 31, 22, 0, 0, 0, time.UTC), "2h"}, // fails
+		{time.Date(2022, 12, 31, 20, 0, 0, 0, time.UTC), "4h"},
+		{time.Date(2022, 12, 31, 12, 0, 0, 0, time.UTC), "12h"},
+		{time.Date(2022, 12, 31, 0, 0, 0, 0, time.UTC), "24h"},
+		{time.Date(2022, 12, 30, 0, 0, 0, 0, time.UTC), "2d"},
+	} {
+		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
+			got := TranslateDuration(test.given, now)
+			assert.Equal(t, test.expected, got)
+		})
+	}
+}

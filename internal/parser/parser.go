@@ -45,12 +45,15 @@ func DurationFromTimeWithoutSeconds(createdAt time.Time, defaultOnError string) 
 	return fmt.Sprintf("%dm", age/time.Minute)
 }
 
-func TranslateTimestampSince(timestamp *time.Time) string {
-	if timestamp == nil || timestamp.IsZero() {
+func TranslateDuration(since, to time.Time) string {
+	if since.IsZero() {
+		return ""
+	}
+	if to.Before(since) {
 		return ""
 	}
 
-	return duration.HumanDuration(time.Since(*timestamp))
+	return duration.HumanDuration(to.Sub(since))
 }
 
 // CPUValue parses CPU as Quantity and returns a the percentage of a CPU core (as string).

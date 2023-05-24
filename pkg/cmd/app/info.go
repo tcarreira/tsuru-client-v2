@@ -395,7 +395,7 @@ func renderUnits(buf *bytes.Buffer, units []unit, metrics []unitMetrics, provisi
 					unit.Host(),
 					unit.ReadyAndStatus(),
 					parser.IntValue(unit.Restarts),
-					parser.TranslateTimestampSince(unit.CreatedAt),
+					parser.TranslateDuration(*unit.CreatedAt, time.Now()),
 					parser.CPUValue(mapUnitMetrics[unit.ID].CPU),
 					memoryValue(mapUnitMetrics[unit.ID].Memory),
 				}
