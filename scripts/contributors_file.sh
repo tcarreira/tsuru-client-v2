@@ -4,6 +4,7 @@
 # license that can be found in the LICENSE file.
 
 set -eu
+LANG=utf8
 
 git_authors="$(git shortlog -se)"
 git_authors="$(echo "${git_authors}" | sed -E "s/[[:space:]]+/ /g" | cut -d' ' -f3- | sort)"

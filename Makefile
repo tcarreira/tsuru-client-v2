@@ -97,6 +97,7 @@ endif
 check-contributors: ## Check if all contributors are listed on the CONTRIBUTORS file
 	@echo "check CONTRIBUTORS"
 ifneq (, $(shell ./scripts/contributors_file.sh | diff CONTRIBUTORS - ))
+	./scripts/contributors_file.sh | diff CONTRIBUTORS -
 	@echo "Some contributors are missing from the CONTRIBUTORS file, please run '$(CYAN)make contributors$(RESET)' to add them" && exit 1
 endif
 
