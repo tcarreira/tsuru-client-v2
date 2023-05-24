@@ -72,7 +72,7 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 
 		Stdout: &strings.Builder{},
 		Stderr: &strings.Builder{},
-		Stdin:  nil,
+		Stdin:  &FakeStdin{},
 	}
 }
 
@@ -106,4 +106,17 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 	tsuruCtx.Config.HTTPClient.Transport = httpTransportWrapper(cfg, transportOpts, cfg.HTTPClient.Transport)
 
 	return tsuruCtx
+}
+
+var _ DescriptorReader = &FakeStdin{}
+
+type FakeStdin struct {
+	Reader io.Reader
+}
+
+func (f *FakeStdin) Read(p []byte) (n int, err error) {
+	return f.Reader.Read(p)
+}
+func (f *FakeStdin) Fd() uintptr {
+	return 0
 }

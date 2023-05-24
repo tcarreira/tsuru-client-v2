@@ -6,7 +6,7 @@ package auth
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -44,7 +44,7 @@ func TestCallbackHandler(t *testing.T) {
 	assert.Equal(t, fmt.Sprintf(callbackPage, successMarkup), recorder.Body.String())
 	file, err := tsuruCtx.Fs.Open(filepath.Join(config.ConfigPath, "token"))
 	assert.NoError(t, err)
-	data, err := ioutil.ReadAll(file)
+	data, err := io.ReadAll(file)
 	assert.NoError(t, err)
 	assert.Equal(t, "xpto", string(data))
 }
