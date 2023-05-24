@@ -117,6 +117,7 @@ func TestSliceToMapFlags(t *testing.T) {
 }
 
 func TestTranslateTimestampSince(t *testing.T) {
+	t.Parallel()
 	now := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 	for i, test := range []struct {
 		given    time.Time
@@ -140,6 +141,7 @@ func TestTranslateTimestampSince(t *testing.T) {
 }
 
 func TestCPUValue(t *testing.T) {
+	t.Parallel()
 	for i, test := range []struct {
 		given    string
 		expected string
@@ -151,6 +153,26 @@ func TestCPUValue(t *testing.T) {
 	} {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
 			assert.Equal(t, test.expected, CPUValue(test.given))
+		})
+	}
+}
+
+func TestMemoryValue(t *testing.T) {
+	t.Parallel()
+	for i, test := range []struct {
+		given    string
+		expected string
+	}{
+		{"256", "256"},
+		{"1024", "1Ki"},
+		{"16384", "16Ki"},
+		{"134217728", "128Mi"},
+		{"2147483648", "2Gi"},
+		{"2684354560", "2Gi"}, // 2.5Gi shown as 2Gi
+		{"3113851290", "2Gi"}, // 2.9Gi shown as 2Gi
+	} {
+		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
+			assert.Equal(t, test.expected, MemoryValue(test.given))
 		})
 	}
 }
