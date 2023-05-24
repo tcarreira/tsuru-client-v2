@@ -66,7 +66,7 @@ func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCont
 
 	switch strings.ToLower(authScheme.Name) {
 	case "oauth":
-		return fmt.Errorf("login is not implemented for oauth auth. Please contact the tsuru team")
+		return oauthLogin(tsuruCtx, authScheme)
 	case "saml":
 		return fmt.Errorf("login is not implemented for saml auth. Please contact the tsuru team")
 	default:
