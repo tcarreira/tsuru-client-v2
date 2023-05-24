@@ -35,3 +35,53 @@ func TestFakeExecCommand(t *testing.T) {
 		assert.Equal(t, fakeE.outStderr, stderr.String())
 	})
 }
+
+func TestOsExec(t *testing.T) {
+	t.Parallel()
+	t.Run("err no command", func(t *testing.T) {
+		ex := OsExec{}
+		err := ex.Command(ExecuteOptions{})
+		assert.Error(t, err)
+	})
+
+	t.Run("empty echo", func(t *testing.T) {
+		ex := OsExec{}
+		stdout, stderr := bytes.Buffer{}, bytes.Buffer{}
+		err := ex.Command(ExecuteOptions{
+			Cmd:    "echo",
+			Stdout: &stdout,
+			Stderr: &stderr,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "\n", stdout.String())
+		assert.Equal(t, "", stderr.String())
+	})
+
+	t.Run("echo 123 456", func(t *testing.T) {
+		ex := OsExec{}
+		stdout, stderr := bytes.Buffer{}, bytes.Buffer{}
+		err := ex.Command(ExecuteOptions{
+			Cmd:    "echo",
+			Args:   []string{"123", "456"},
+			Stdout: &stdout,
+			Stderr: &stderr,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "123 456\n", stdout.String())
+		assert.Equal(t, "", stderr.String())
+	})
+
+	t.Run("echo 123\\n456", func(t *testing.T) {
+		ex := OsExec{}
+		stdout, stderr := bytes.Buffer{}, bytes.Buffer{}
+		err := ex.Command(ExecuteOptions{
+			Cmd:    "echo",
+			Args:   []string{"123\\n456"},
+			Stdout: &stdout,
+			Stderr: &stderr,
+		})
+		assert.NoError(t, err)
+		assert.Equal(t, "123\\n456\n", stdout.String())
+		assert.Equal(t, "", stderr.String())
+	})
+}

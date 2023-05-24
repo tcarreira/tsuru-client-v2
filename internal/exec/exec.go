@@ -23,7 +23,7 @@ type ExecuteOptions struct {
 	Stderr io.Writer
 }
 
-var _ Executor = OsExec{}
+var _ Executor = &OsExec{}
 
 type Executor interface {
 	// Command executes the specified command.
@@ -32,7 +32,7 @@ type Executor interface {
 
 type OsExec struct{}
 
-func (OsExec) Command(opts ExecuteOptions) error {
+func (*OsExec) Command(opts ExecuteOptions) error {
 	c := exec.Command(opts.Cmd, opts.Args...)
 	c.Stdin = opts.Stdin
 	c.Stdout = opts.Stdout
@@ -42,20 +42,22 @@ func (OsExec) Command(opts ExecuteOptions) error {
 	return c.Run()
 }
 
-var _ Executor = FakeExec{}
+var _ Executor = &FakeExec{}
 
 type FakeExec struct {
-	outStderr string
-	outStdout string
-	outErr    error
+	outStderr  string
+	outStdout  string
+	outErr     error
+	calledOpts ExecuteOptions
 }
 
-func (e FakeExec) Command(opts ExecuteOptions) error {
+func (e *FakeExec) Command(opts ExecuteOptions) error {
 	if opts.Stdout != nil {
 		fmt.Fprint(opts.Stdout, e.outStdout)
 	}
 	if opts.Stderr != nil {
 		fmt.Fprint(opts.Stderr, e.outStderr)
 	}
+	e.calledOpts = opts
 	return e.outErr
 }

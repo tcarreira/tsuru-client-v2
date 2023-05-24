@@ -77,7 +77,7 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 		}
 	}
 	if opts.Executor == nil {
-		opts.Executor = exec.OsExec{}
+		opts.Executor = &exec.OsExec{}
 	}
 
 	tsuruCtx := &TsuruContext{
