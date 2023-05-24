@@ -138,3 +138,19 @@ func TestTranslateTimestampSince(t *testing.T) {
 		})
 	}
 }
+
+func TestCPUValue(t *testing.T) {
+	for i, test := range []struct {
+		given    string
+		expected string
+	}{
+		{"10m", "1%"},
+		{"100m", "10%"},
+		{"1000m", "100%"},
+		{"2000m", "200%"},
+	} {
+		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
+			assert.Equal(t, test.expected, CPUValue(test.given))
+		})
+	}
+}
