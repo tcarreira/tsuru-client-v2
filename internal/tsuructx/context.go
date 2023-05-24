@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
+	"github.com/tsuru/tsuru-client/internal/exec"
 )
 
 var tsuruContextSingleton *TsuruContext
@@ -39,6 +40,8 @@ type TsuruContextOpts struct {
 	LocalTZ *time.Location
 	// AuthScheme is the protocol used for tsuru login. Overriden with TSURU_AUTH_SCHEME
 	AuthScheme string
+	// Executor is an instance of an interface for exec.Command()
+	Executor exec.Executor
 }
 
 type DescriptorReader interface {
@@ -72,6 +75,9 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 		opts = &TsuruContextOpts{
 			LocalTZ: time.Local,
 		}
+	}
+	if opts.Executor == nil {
+		opts.Executor = exec.OsExec{}
 	}
 
 	tsuruCtx := &TsuruContext{
