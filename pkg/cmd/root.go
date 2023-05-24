@@ -105,11 +105,14 @@ func SetupTsuruClientSingleton() {
 	}
 
 	tsuructx.SetupTsuruContextSingleton(cfg, &tsuructx.TsuruContextOpts{
-		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
 		Verbosity:          viper.GetInt("verbosity"),
+		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
 		LocalTZ:            time.Local,
 		AuthScheme:         viper.GetString("auth-scheme"),
-		Fs:                 afero.NewOsFs(),
 		Executor:           &exec.OsExec{},
+		Fs:                 afero.NewOsFs(),
+		Stdout:             os.Stdout,
+		Stderr:             os.Stderr,
+		Stdin:              os.Stdin,
 	})
 }

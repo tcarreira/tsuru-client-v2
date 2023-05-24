@@ -18,8 +18,8 @@ import (
 )
 
 type ClientHTTPTransportOpts struct {
-	InsecureSkipVerify bool
-	Verbosity          int
+	InsecureSkipVerify *bool
+	Verbosity          *int
 	VerboseOutput      *io.Writer
 }
 
@@ -35,7 +35,7 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 		req.Header.Set(k, v)
 	}
 
-	if t.InsecureSkipVerify {
+	if t.InsecureSkipVerify != nil && *t.InsecureSkipVerify {
 		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
@@ -45,8 +45,8 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 
 	req.Header.Set("X-Tsuru-Verbosity", "0")
 	// Verbosity level=1: log request
-	if t.Verbosity >= 1 {
-		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.Verbosity))
+	if t.Verbosity != nil && *t.Verbosity >= 1 {
+		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(*t.Verbosity))
 		fmt.Fprintf(*t.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
 		requestDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
@@ -62,7 +62,7 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	response, err := t.t.RoundTrip(req)
 
 	// Verbosity level=2: log response
-	if t.Verbosity >= 2 && response != nil {
+	if t.Verbosity != nil && *t.Verbosity >= 2 && response != nil {
 		fmt.Fprintf(*t.VerboseOutput, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
 		responseDump, errDump := httputil.DumpResponse(response, true)
 		if errDump != nil {

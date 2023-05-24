@@ -5,7 +5,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +18,6 @@ import (
 )
 
 func TestV1AppInfo(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started","Address":{"Host": "10.8.7.6:3333"}}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started","Address":{"Host": "10.8.7.6:3323"}}, {"Ip":"","ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -46,17 +44,15 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoSimplified(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","pool": "dev-a", "provisioner": "kubernetes", "cluster": "mycluster", "teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started","ProcessName": "web","Address":{"Host": "10.8.7.6:3333"}, "ready": true, "routable": true}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started","ProcessName": "web","Address":{"Host": "10.8.7.6:3323"}, "ready": true, "routable": true}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "plan":{"name": "test",  "memory": 536870912, "cpumilli": 100, "default": false}}`
 	expected := `Application: app1
 Created by: myapp_owner
@@ -78,17 +74,15 @@ Units: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoKubernetes(t *testing.T) {
-	var stdout bytes.Buffer
 	t0 := time.Now().UTC().Format(time.RFC3339)
 	t1 := time.Now().Add(time.Hour * -1).UTC().Format(time.RFC3339)
 	t2 := time.Now().Add(time.Hour * -1 * 24 * 30).UTC().Format(time.RFC3339)
@@ -144,18 +138,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoMultipleAddresses(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started","Address":{"Host": "10.8.7.6:3333"},"Addresses":[{"Host": "10.8.7.6:3333"}, {"Host": "10.8.7.6:4444"}]}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started","Address":{"Host": "10.8.7.6:3323"}}, {"Ip":"","ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -181,18 +173,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoMultipleRouters(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `
 {
 	"name": "app1",
@@ -276,18 +266,16 @@ Routers:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithDescription(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "description": "My app", "router": "planb"}`
 	expected := `Application: app1
 Description: My app
@@ -314,18 +302,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithTags(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started"}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "tags": ["tag 1", "tag 2", "tag 3"], "router": "planb"}`
 	expected := `Application: app1
 Tags: tag 1, tag 2, tag 3
@@ -352,18 +338,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithRouterOpts(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "routeropts": {"opt1": "val1", "opt2": "val2"}, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -389,18 +373,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithQuota(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "quota": {"inUse": 3, "limit": 40}}`
 	expected := `Application: app1
 Platform: php
@@ -426,18 +408,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoLock(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "lock": {"locked": true, "owner": "admin@example.com", "reason": "DELETE /apps/rbsample/units", "acquiredate": "2012-04-01T10:32:00Z"}, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -467,18 +447,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoManyProcesses(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{
   "name": "app1",
   "teamowner": "myteam",
@@ -547,18 +525,16 @@ Units [process worker]: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoManyVersions(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{
   "name": "app1",
   "teamowner": "myteam",
@@ -658,18 +634,16 @@ Units [process worker] [version 2] [routable]: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithAutoScale(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{
   "name": "app1",
   "teamowner": "myteam",
@@ -754,18 +728,16 @@ Auto Scale:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoNoUnits(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","ip":"app1.tsuru.io","teamowner":"myteam","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -783,18 +755,16 @@ Quota: 0/0 units
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoEmptyUnit(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"x","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"Name":"","Status":""}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -812,18 +782,16 @@ Quota: 0/0 units
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithoutArgs(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"secret","teamowner":"myteam","ip":"secret.tsuru.io","platform":"ruby","repository":"git@git.com:php.git","state":"dead","units":[{"Ip":"","ID":"secret/0","Status":"started"}, {"Ip":"","ID":"secret/1","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "quota": {"inUse": 0, "limit": -1}}`
 	expected := `Application: secret
 Platform: ruby
@@ -851,18 +819,16 @@ Units: 2
 		}
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoCName(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","cname":["yourapp.tsuru.io"],"platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -889,18 +855,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithServices(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "serviceInstanceBinds": [{"service": "redisapi", "instance": "myredisapi"}]}`
 	expected := `Application: app1
 Platform: php
@@ -934,18 +898,16 @@ Service instances: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithServicesTwoService(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started"}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "serviceInstanceBinds": [{"service": "redisapi", "instance": "myredisapi"}, {"service": "mongodb", "instance": "mongoapi"}]}`
 	expected := `Application: app1
 Platform: php
@@ -980,18 +942,16 @@ Service instances: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithPlan(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","cname":[""],"ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead", "units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"ID":"app1/2","Status":"pending"}],"teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "plan":{"name": "test",  "memory": 536870912, "cpumilli": 100, "default": false}, "router": "planb"}`
 	expected := `Application: app1
 Platform: php
@@ -1025,18 +985,16 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithServicesAndPlan(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7,"plan":{"name": "test",  "memory": 536870912, "cpumilli": 100, "default": false}, "router": "planb", "serviceInstanceBinds": [{"service": "redisapi", "instance": "myredisapi"}]}`
 	expected := `Application: app1
 Platform: php
@@ -1076,18 +1034,16 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithServicesAndPlanAssociated(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"ID":"app1/0","Status":"started"}, {"ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7,"plan":{"name": "test",  "memory": 536870912, "cpumilli": 100, "default": false}, "router": "planb", "serviceInstanceBinds": [{"service": "redisapi", "instance": "myredisapi", "plan": "test"}]}`
 	expected := `Application: app1
 Platform: php
@@ -1127,18 +1083,16 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoShortensHexIDs(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{
 		"name": "app1",
 		"teamowner": "myteam",
@@ -1192,18 +1146,16 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithInternalAddresses(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"powerapp","teamowner":"powerteam","cname":[""],"ip":"monster.tsuru.io","platform":"assembly","repository":"git@git.com:app.git","state":"dead", "units":[{"Ip":"9.9.9.9","ID":"app1/1","Status":"started","Address":{"Host": "10.8.7.6:3323"}}],"teams":["tsuruzers"], "owner": "myapp_owner", "deploys": 7, "router": "", "internalAddresses":[{"domain":"test.cluster.com","port":80,"protocol":"TCP","process": "web","version":"2"}, {"domain":"test.cluster.com","port":443,"protocol":"TCP","process":"jobs","version":"3"}]}`
 	expected := `Application: powerapp
 Platform: assembly
@@ -1236,18 +1188,16 @@ Cluster internal addresses:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoWithVolume(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `{"name":"app1","teamowner":"myteam","ip":"myapp.tsuru.io","platform":"php","repository":"git@git.com:php.git","state":"dead","units":[{"Ip":"10.10.10.10","ID":"app1/0","Status":"started"}, {"Ip":"9.9.9.9","ID":"app1/1","Status":"started"}, {"Ip":"","ID":"app1/2","Status":"pending"}],"Teams":["tsuruteam","crane"], "owner": "myapp_owner", "deploys": 7, "router": "planb", "quota": {"limit":40, "inUse":3}, "volumeBinds": [{"ID":{"App":"app1","MountPoint":"/vol1","Volume":"vol1"},"ReadOnly":false}], "serviceInstanceBinds": [{"service": "redisapi", "instance": "myredisapi", "plan": "test"}]}`
 	expected := `Application: app1
 Platform: php
@@ -1288,36 +1238,32 @@ Volumes: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestAppInfoAppNotFound(t *testing.T) {
-	var stdout bytes.Buffer
-
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		fmt.Fprintln(w, "App myapp not found")
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.Flags().Parse([]string{"-a", "myapp"})
 
 	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
 	assert.ErrorContains(t, err, `app "myapp" not found`)
-	assert.Equal(t, "", stdout.String())
+	assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoInfo(t *testing.T) {
-	var stdout bytes.Buffer
+	var stdout strings.Builder
 	appInfoCmd := newAppInfoCmd()
 	appInfoCmd.SetOutput(&stdout)
 	err := appInfoCmd.Help()

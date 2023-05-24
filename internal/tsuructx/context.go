@@ -7,7 +7,7 @@ package tsuructx
 import (
 	"io"
 	"net/http"
-	"os"
+	"strings"
 	"time"
 
 	"github.com/spf13/afero"
@@ -26,10 +26,6 @@ type TsuruContext struct {
 	Config *tsuru.Configuration
 	// RawHTTPClient is the raw http client for REST calls
 	RawHTTPClient *http.Client
-
-	Stdout io.Writer
-	Stderr io.Writer
-	Stdin  DescriptorReader
 }
 
 type TsuruContextOpts struct {
@@ -45,6 +41,10 @@ type TsuruContextOpts struct {
 	Executor exec.Executor
 	//Fs is the filesystem used by the client
 	Fs afero.Fs
+
+	Stdout io.Writer
+	Stderr io.Writer
+	Stdin  DescriptorReader
 }
 
 type DescriptorReader interface {
@@ -64,6 +64,18 @@ func SetupTsuruContextSingleton(cfg *tsuru.Configuration, opts *TsuruContextOpts
 	tsuruContextSingleton = TsuruContextWithConfig(cfg, opts)
 }
 
+func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
+	return &TsuruContextOpts{
+		LocalTZ:  time.UTC,
+		Fs:       afero.NewMemMapFs(),
+		Executor: &exec.FakeExec{},
+
+		Stdout: &strings.Builder{},
+		Stderr: &strings.Builder{},
+		Stdin:  nil,
+	}
+}
+
 // TsuruContextWithConfig returns a new TsuruContext with the given configuration.
 func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *TsuruContext {
 	if cfg == nil {
@@ -76,11 +88,7 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 
 	if opts == nil {
 		// defaults for testing
-		opts = &TsuruContextOpts{
-			LocalTZ:  time.UTC,
-			Fs:       afero.NewMemMapFs(),
-			Executor: &exec.FakeExec{},
-		}
+		opts = DefaultTestingTsuruContextOptions()
 	}
 
 	tsuruCtx := &TsuruContext{
@@ -88,15 +96,11 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 		RawHTTPClient:    cfg.HTTPClient,
 		Config:           cfg,
 		TsuruContextOpts: *opts,
-
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Stdin:  os.Stdin,
 	}
 
 	transportOpts := &ClientHTTPTransportOpts{
-		InsecureSkipVerify: opts.InsecureSkipVerify,
-		Verbosity:          opts.Verbosity,
+		InsecureSkipVerify: &tsuruCtx.InsecureSkipVerify,
+		Verbosity:          &tsuruCtx.Verbosity,
 		VerboseOutput:      &tsuruCtx.Stdout,
 	}
 	tsuruCtx.Config.HTTPClient.Transport = httpTransportWrapper(cfg, transportOpts, cfg.HTTPClient.Transport)

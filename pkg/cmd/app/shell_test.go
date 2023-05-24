@@ -5,7 +5,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"net/http/httptest"
 	"os"
@@ -19,7 +18,7 @@ import (
 )
 
 func TestAppShellInfo(t *testing.T) {
-	var stdout bytes.Buffer
+	stdout := strings.Builder{}
 	appShellCmd := newAppShellCmd()
 	appShellCmd.SetOutput(&stdout)
 	err := appShellCmd.Help()
@@ -44,7 +43,6 @@ func TestAppShellIsRegistered(t *testing.T) {
 }
 
 func TestV1AppShellRunWithApp(t *testing.T) {
-	stdout := bytes.Buffer{}
 	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
@@ -55,17 +53,15 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
 	err := appShellCmdRun(appShellCmd, []string{}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected+"\n", stdout.String())
+	assert.Equal(t, expected+"\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppShellWithUnit(t *testing.T) {
-	stdout := bytes.Buffer{}
 	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
@@ -77,18 +73,17 @@ func TestV1AppShellWithUnit(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
+
 	tsuruCtx.Stdin = nil
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
 	err := appShellCmdRun(appShellCmd, []string{"containerid"}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected+"\n", stdout.String())
+	assert.Equal(t, expected+"\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestAppShellWithUnitAppFromArgs(t *testing.T) {
-	stdout := bytes.Buffer{}
 	expected := "hello my friend\nglad to see you here"
 	mockServer := httptest.NewServer(websocket.Handler(func(ws *websocket.Conn) {
 		req := ws.Request()
@@ -100,20 +95,19 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
+
 	tsuruCtx.Stdin = nil
 
 	appShellCmd := newAppShellCmd()
 	err := appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, expected+"\n", stdout.String())
+	assert.Equal(t, expected+"\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppShellCmdConnectionRefused(t *testing.T) {
-	stdout := bytes.Buffer{}
 	mockServer := httptest.NewServer(nil)
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
+
 	tsuruCtx.Stdin = nil
 	mockServer.Close()
 
@@ -139,7 +133,6 @@ func newFileWithContent(content []byte) (stdin *os.File, deferFn func(), err err
 }
 
 func TestAppShellSendStdin(t *testing.T) {
-	stdout := bytes.Buffer{}
 	strFromStdin := "hello my friend"
 	strFromServer := "from websocket server"
 	stdin, deferFn, err := newFileWithContent([]byte(strFromStdin))
@@ -164,11 +157,10 @@ func TestAppShellSendStdin(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 	tsuruCtx.Stdin = stdin
 
 	appShellCmd := newAppShellCmd()
 	err = appShellCmdRun(appShellCmd, []string{"myapp", "containerid"}, tsuruCtx)
 	assert.NoError(t, err)
-	assert.Equal(t, strFromServer+"\n", stdout.String())
+	assert.Equal(t, strFromServer+"\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }

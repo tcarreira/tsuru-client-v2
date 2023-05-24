@@ -5,7 +5,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +18,6 @@ import (
 )
 
 func TestV1AppList(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
 	expected := `+-------------+-----------+-------------+
 | Application | Units     | Address     |
@@ -31,17 +29,15 @@ func TestV1AppList(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListDisplayAppsInAlphabeticalOrder(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.11","name":"sapp","units":[{"ID":"sapp1/0","Status":"started"}]},{"ip":"10.10.10.10","name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
 	expected := `+-------------+-----------+-------------+
 | Application | Units     | Address     |
@@ -55,17 +51,15 @@ func TestV1AppListDisplayAppsInAlphabeticalOrder(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListUnitIsntAvailable(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"app1/0","Status":"pending"}]}]`
 	expected := `+-------------+-----------+-------------+
 | Application | Units     | Address     |
@@ -77,17 +71,15 @@ func TestV1AppListUnitIsntAvailable(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListErrorFetchingUnits(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[],"Error": "timeout"}]`
 	expected := `+-------------+----------------------+-------------+
 | Application | Units                | Address     |
@@ -99,26 +91,21 @@ func TestV1AppListErrorFetchingUnits(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[],"Error": "timeout"}]`
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, result)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(
-		&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()},
-		&tsuructx.TsuruContextOpts{Verbosity: 1},
-	)
-	tsuruCtx.Stdout = &stdout
+	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx.Verbosity = 1
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
@@ -139,11 +126,10 @@ func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
 		"+-------------+-------------------------------+-------------+\n"
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListUnitWithoutID(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"","Status":"pending"}, {"ID":"unit2","Status":"stopped"}]}]`
 	expected := `+-------------+-----------+-------------+
 | Application | Units     | Address     |
@@ -155,17 +141,15 @@ func TestV1AppListUnitWithoutID(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestAppListCName(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
 	expected := `+-------------+-----------+-----------------------+
 | Application | Units     | Address               |
@@ -178,17 +162,15 @@ func TestAppListCName(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListFiltering(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
 	expected := `+-------------+-----------+-----------------------+
 | Application | Units     | Address               |
@@ -212,7 +194,6 @@ func TestV1AppListFiltering(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-p", "python", "--locked", "--user", "glenda@tsuru.io", "-t", "tsuru", "--name", "myapp", "--pool", "pool", "--status", "started", "--tag", "tag a", "--tag", "tag b"})
@@ -220,11 +201,10 @@ func TestV1AppListFiltering(t *testing.T) {
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListFilteringMe(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"started"}]}]`
 	expected := `+-------------+-----------+-----------------------+
 | Application | Units     | Address               |
@@ -247,7 +227,6 @@ func TestV1AppListFilteringMe(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-u", "me"})
@@ -255,11 +234,10 @@ func TestV1AppListFilteringMe(t *testing.T) {
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListSortByCountAndStatus(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","cname":["app1.tsuru.io"],"name":"app1","units":[{"ID":"app1/0","Status":"starting"},{"ID":"app1/1","Status":"stopped"},{"ID":"app1/2","Status":"asleep"},{"ID":"app1/3","Status":"started"},{"ID":"app1/4","Status":"started"},{"ID":"app1/5","Status":"stopped"}]}]`
 	expected := `+-------------+------------+-----------------------+
 | Application | Units      | Address               |
@@ -284,7 +262,6 @@ func TestV1AppListSortByCountAndStatus(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-u", "me"})
@@ -292,11 +269,10 @@ func TestV1AppListSortByCountAndStatus(t *testing.T) {
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListWithFlagQ(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"ip":"10.10.10.10","name":"app1","units":[{"ID":"app1/0","Status":"started"}]},{"ip":"10.10.10.11","name":"app2","units":[{"ID":"app2/0","Status":"started"}]},{"ip":"10.10.10.12","cname":["app3.tsuru.io"],"name":"app3","units":[{"ID":"app3/0","Status":"started"}]}]`
 	expected := `app1
 app2
@@ -307,7 +283,6 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-q"})
@@ -315,11 +290,10 @@ app3
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppListWithFlags(t *testing.T) {
-	var stdout bytes.Buffer
 	result := `[{"name":"app1","platform":"python","pool":"pool2"},{"name":"app2","platform":"python","pool":"pool2"},{"name":"app3","platform":"go","pool":"pool1"}]`
 	expected := `app1
 app2
@@ -333,7 +307,6 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	appListCmd := newAppListCmd()
 	appListCmd.Flags().Parse([]string{"-p", "python", "-q"})
@@ -341,7 +314,7 @@ app3
 	err := appListCmdRun(appListCmd, []string{}, tsuruCtx)
 
 	assert.NoError(t, err)
-	assert.Equal(t, expected, stdout.String())
+	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestAppListFlags(t *testing.T) {
@@ -400,7 +373,7 @@ func TestAppListFlags(t *testing.T) {
 }
 
 func TestV1AppListInfo(t *testing.T) {
-	var stdout bytes.Buffer
+	stdout := strings.Builder{}
 	appListCmd := newAppListCmd()
 	appListCmd.SetOutput(&stdout)
 	err := appListCmd.Help()

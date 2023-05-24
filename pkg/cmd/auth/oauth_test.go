@@ -5,7 +5,6 @@
 package auth
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -26,7 +25,6 @@ func TestPort(t *testing.T) {
 }
 
 func TestCallbackHandler(t *testing.T) {
-	var stdout bytes.Buffer
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, `{"token": "xpto"}`)
 	}))
@@ -35,7 +33,6 @@ func TestCallbackHandler(t *testing.T) {
 	redirectURL := "someurl"
 	finish := make(chan bool, 1)
 	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
-	tsuruCtx.Stdout = &stdout
 
 	callbackHandler := callback(tsuruCtx, redirectURL, finish)
 	request, err := http.NewRequest("GET", "/", strings.NewReader(`{"code":"xpto"}`))
@@ -50,5 +47,4 @@ func TestCallbackHandler(t *testing.T) {
 	data, err := ioutil.ReadAll(file)
 	assert.NoError(t, err)
 	assert.Equal(t, "xpto", string(data))
-
 }
