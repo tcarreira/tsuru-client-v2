@@ -10,10 +10,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/config"
+	"github.com/tsuru/tsuru-client/internal/exec"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/cmd/app"
 	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
@@ -107,5 +109,7 @@ func SetupTsuruClientSingleton() {
 		Verbosity:          viper.GetInt("verbosity"),
 		LocalTZ:            time.Local,
 		AuthScheme:         viper.GetString("auth-scheme"),
+		Fs:                 afero.NewOsFs(),
+		Executor:           &exec.OsExec{},
 	})
 }

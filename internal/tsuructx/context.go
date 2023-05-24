@@ -10,6 +10,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/spf13/afero"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/exec"
 )
@@ -42,6 +43,8 @@ type TsuruContextOpts struct {
 	AuthScheme string
 	// Executor is an instance of an interface for exec.Command()
 	Executor exec.Executor
+	//Fs is the filesystem used by the client
+	Fs afero.Fs
 }
 
 type DescriptorReader interface {
@@ -72,12 +75,12 @@ func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *T
 	cfg.DefaultHeader = tsuruDefaultHeadersFromConfig(cfg)
 
 	if opts == nil {
+		// defaults for testing
 		opts = &TsuruContextOpts{
-			LocalTZ: time.Local,
+			LocalTZ:  time.UTC,
+			Fs:       afero.NewMemMapFs(),
+			Executor: &exec.FakeExec{},
 		}
-	}
-	if opts.Executor == nil {
-		opts.Executor = &exec.OsExec{}
 	}
 
 	tsuruCtx := &TsuruContext{

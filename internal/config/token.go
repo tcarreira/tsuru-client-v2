@@ -50,7 +50,9 @@ func GetToken() (string, error) {
 	return getToken(afero.NewOsFs())
 }
 
-func saveToken(token string, fsys afero.Fs) error {
+// SaveToken returns the token for the current target,
+// as defined in the TSURU_TOKEN environment variable or in the token file.
+func SaveToken(fsys afero.Fs, token string) error {
 	tokenPaths := []string{filepath.Join(ConfigPath, "token")}
 	targetLabel, err := getTargetLabel(fsys)
 	if err == nil {
@@ -75,10 +77,4 @@ func saveToken(token string, fsys afero.Fs) error {
 		}
 	}
 	return nil
-}
-
-// SaveToken returns the token for the current target,
-// as defined in the TSURU_TOKEN environment variable or in the token file.
-func SaveToken(token string) error {
-	return saveToken(token, afero.NewOsFs())
 }

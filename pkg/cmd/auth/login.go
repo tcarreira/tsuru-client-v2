@@ -132,7 +132,7 @@ func nativeLogin(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCont
 		return err
 	}
 	fmt.Fprintln(tsuruCtx.Stdout, "Successfully logged in!")
-	return config.SaveToken(out["token"].(string))
+	return config.SaveToken(tsuruCtx.Fs, out["token"].(string))
 }
 
 func PasswordFromReader(reader io.Reader) (string, error) {
