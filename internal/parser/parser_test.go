@@ -136,3 +136,9 @@ func TestMemoryValue(t *testing.T) {
 		})
 	}
 }
+
+func TestIntValue(t *testing.T) {
+	assert.Equal(t, "", IntValue(nil))
+	i := 1
+	assert.Equal(t, "1", IntValue(&i))
+}
