@@ -15,6 +15,10 @@ import (
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
+func TestNewLoginCmd(t *testing.T) {
+	assert.NotNil(t, NewLoginCmd())
+}
+
 func TestGetAuthScheme(t *testing.T) {
 	result := "{\"name\":\"oauth\",\"data\":{\"authorizeUrl\":\"https://auth.tsuru.local/authorize?client_id=xpto\\u0026redirect_uri=__redirect_url__\\u0026response_type=code\\u0026scope=user\",\"port\":\"12345\"}}\n"
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
