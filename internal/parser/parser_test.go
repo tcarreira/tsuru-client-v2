@@ -110,6 +110,7 @@ func TestCPUValue(t *testing.T) {
 		{"100m", "10%"},
 		{"1000m", "100%"},
 		{"2000m", "200%"},
+		{"invalid", ""},
 	} {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
 			assert.Equal(t, test.expected, CPUValue(test.given))
@@ -130,6 +131,7 @@ func TestMemoryValue(t *testing.T) {
 		{"2147483648", "2Gi"},
 		{"2684354560", "2Gi"}, // 2.5Gi shown as 2Gi
 		{"3113851290", "2Gi"}, // 2.9Gi shown as 2Gi
+		{"invalid", ""},
 	} {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
 			assert.Equal(t, test.expected, MemoryValue(test.given))
@@ -141,4 +143,11 @@ func TestIntValue(t *testing.T) {
 	assert.Equal(t, "", IntValue(nil))
 	i := 1
 	assert.Equal(t, "1", IntValue(&i))
+}
+
+func TestShortID(t *testing.T) {
+	assert.Equal(t, "", ShortID(""))
+	assert.Equal(t, "xpto", ShortID("xpto"))
+	assert.Equal(t, "moreThan12CharsNonHex", ShortID("moreThan12CharsNonHex"))
+	assert.Equal(t, "abcdef012345", ShortID("abcdef01234567890"))
 }
