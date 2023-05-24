@@ -82,18 +82,6 @@ func MemoryValue(q string) string {
 	return fmt.Sprintf("%d", m)
 }
 
-// CPUMilliToPercent returns a string representing the percentage of a CPU core.
-// eg: 1000 = 100%, 200 = 20%
-func CPUMilliToPercent(milli int32) string {
-	return fmt.Sprintf("%d%%", milli/10)
-}
-
-// MemoryToHuman returns a string representing the memory in a human readable format.
-// eg: 1024 = 1Ki, 1024*1024 = 1Mi, 1024*1024*1024 = 1Gi
-func MemoryToHuman(memory int64) string {
-	return resource.NewQuantity(memory, resource.BinarySI).String()
-}
-
 func IntValue(i *int) string {
 	if i == nil {
 		return ""

@@ -52,46 +52,6 @@ func TestDurationFromTimeWithoutSeconds_OnError(t *testing.T) {
 	}
 }
 
-func TestCPUMillisToPercent(t *testing.T) {
-	for _, test := range []struct {
-		milli    int32
-		expected string
-	}{
-		{0, "0%"},
-		{1, "0%"},
-		{5, "0%"},
-		{10, "1%"},
-		{99, "9%"},
-		{100, "10%"},
-		{1000, "100%"},
-		{2000, "200%"},
-		{10000, "1000%"},
-	} {
-		got := CPUMilliToPercent(test.milli)
-		assert.Equal(t, test.expected, got)
-	}
-}
-
-func TestMemoryToHuman(t *testing.T) {
-	for _, test := range []struct {
-		memory   int64
-		expected string
-	}{
-		{0, "0"},
-		{1, "1"},
-		{1023, "1023"},
-		{1024, "1Ki"},
-		{1025, "1025"},
-		{1024 * 1024, "1Mi"},
-		{1024 * 1024 * 1024, "1Gi"},
-		{2 * 1024 * 1024 * 1024, "2Gi"},
-		{1024 * 1024 * 1024 * 1024, "1Ti"},
-	} {
-		got := MemoryToHuman(test.memory)
-		assert.Equal(t, test.expected, got)
-	}
-}
-
 func TestSliceToMapFlags(t *testing.T) {
 	invalidErrorMsg := "invalid flag %q. Must be on the form \"key=value\""
 	for _, test := range []struct {
