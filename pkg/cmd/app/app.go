@@ -279,3 +279,34 @@ func (l *lock) String() string {
  Running: %s`
 	return fmt.Sprintf(format, l.AcquireDate, l.Owner, l.Reason)
 }
+
+// AppNameAndUnitIDFromArgsOrFlags returns the appName and unitID parsed from the
+// command line arguments or flags.
+// If the appName is specified with the "app" flag, the first arg is considered
+// to be the unitID. Otherwise, it is parsed as: COMMAND <appName> <unitID>.
+func AppNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) {
+	appName = cmd.Flag("app").Value.String()
+	unitID = cmd.Flag("unit").Value.String()
+	switch len(args) {
+	case 0:
+		return
+	case 1:
+		if appName == "" {
+			appName = args[0]
+		} else {
+			if unitID != "" {
+				return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
+			}
+			unitID = args[0]
+		}
+	case 2:
+		if appName != "" || unitID != "" {
+			return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
+		}
+		appName = args[0]
+		unitID = args[1]
+	default:
+		return "", "", fmt.Errorf("too many arguments")
+	}
+	return
+}

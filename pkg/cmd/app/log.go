@@ -65,9 +65,12 @@ $ tsuru app log -l 50 -f myapp`,
 }
 
 func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
-	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
+	appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
+	}
+	if appName == "" {
+		return fmt.Errorf("app name is required")
 	}
 	cmd.SilenceUsage = true
 

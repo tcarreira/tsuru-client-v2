@@ -54,9 +54,12 @@ $ tsuru app shell myapp --isolated`,
 }
 
 func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
-	appName, unitID, err := appNameAndUnitIDFromArgsOrFlags(cmd, args)
+	appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err
+	}
+	if appName == "" {
+		return fmt.Errorf("app name is required")
 	}
 	cmd.SilenceUsage = true
 
@@ -172,35 +175,6 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 	fmt.Fprintln(tsuruCtx.Stdout)
 	o := errors.Join(errs...)
 	return o
-}
-
-func appNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) {
-	appName = cmd.Flag("app").Value.String()
-	unitID = cmd.Flag("unit").Value.String()
-	switch len(args) {
-	case 0:
-		if appName == "" {
-			return "", "", fmt.Errorf("app name is required")
-		}
-	case 1:
-		if appName == "" {
-			appName = args[0]
-		} else {
-			if unitID != "" {
-				return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
-			}
-			unitID = args[0]
-		}
-	case 2:
-		if appName != "" || unitID != "" {
-			return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
-		}
-		appName = args[0]
-		unitID = args[1]
-	default:
-		return "", "", fmt.Errorf("too many arguments")
-	}
-	return
 }
 
 func getStdinSize(in tsuructx.DescriptorReader) (width, height int) {
