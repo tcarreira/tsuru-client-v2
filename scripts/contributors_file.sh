@@ -6,7 +6,7 @@
 set -eu
 LANG=utf8
 
-git_authors="$(git shortlog -se)"
+git_authors="$(git log HEAD origin/main | git shortlog -se)"
 git_authors="$(echo "${git_authors}" | sed -E "s/[[:space:]]+/ /g" | cut -d' ' -f3- | sort)"
 contributors=$(echo "${git_authors}" \
   | awk 'BEGIN { FS="<"}
