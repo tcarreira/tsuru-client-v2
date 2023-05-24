@@ -7,10 +7,13 @@ package exec
 import (
 	"bytes"
 	"fmt"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var endLine = "\n"
 
 func TestFakeExecCommand(t *testing.T) {
 	t.Run("empty fake exec", func(t *testing.T) {
@@ -53,7 +56,7 @@ func TestOsExec(t *testing.T) {
 			Stderr: &stderr,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "\n", stdout.String())
+		assert.Equal(t, endLine, stdout.String())
 		assert.Equal(t, "", stderr.String())
 	})
 
@@ -67,7 +70,7 @@ func TestOsExec(t *testing.T) {
 			Stderr: &stderr,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "123 456\n", stdout.String())
+		assert.Equal(t, "123 456"+endLine, stdout.String())
 		assert.Equal(t, "", stderr.String())
 	})
 
@@ -81,7 +84,13 @@ func TestOsExec(t *testing.T) {
 			Stderr: &stderr,
 		})
 		assert.NoError(t, err)
-		assert.Equal(t, "123\\n456\n", stdout.String())
+		assert.Equal(t, "123\\n456"+endLine, stdout.String())
 		assert.Equal(t, "", stderr.String())
 	})
+}
+
+func init() {
+	if runtime.GOOS == "windows" {
+		endLine = "\r\n"
+	}
 }
