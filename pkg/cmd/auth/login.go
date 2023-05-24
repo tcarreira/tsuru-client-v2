@@ -50,10 +50,10 @@ $ tsuru login example@tsuru.local`,
 }
 
 func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
-	cmd.SilenceUsage = true
 	if viper.GetString("token") != "" {
 		return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 	}
+	cmd.SilenceUsage = true
 
 	authScheme := &loginScheme{Name: tsuruCtx.AuthScheme}
 	if authScheme.Name == "" {
