@@ -6,10 +6,13 @@ package cmd
 
 import (
 	"io"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/assert"
 )
 
 func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []string, cmdPathChan chan []string) {
@@ -47,4 +50,65 @@ func TestOverridingFlags(t *testing.T) {
 			rootCmd.Execute()
 		})
 	}
+}
+
+func TestParseEnvVariables(t *testing.T) {
+	initConfig() // singleton! do not call on other tests.
+
+	t.Run("string envs", func(t *testing.T) {
+		for _, test := range []struct {
+			viperEnvName string
+			envName      string
+		}{
+			{"token", "TSURU_TOKEN"},
+			{"target", "TSURU_TARGET"},
+			{"auth-schema", "TSURU_AUTH_SCHEMA"},
+		} {
+			func() {
+				if oldEnv, ok := os.LookupEnv(test.envName); ok {
+					defer os.Setenv(test.envName, oldEnv)
+				}
+				os.Setenv(test.envName, "ABCDEFGH")
+				assert.Equal(t, "ABCDEFGH", viper.GetString(test.viperEnvName))
+				os.Unsetenv(test.envName)
+			}()
+		}
+	})
+
+	t.Run("Int envs", func(t *testing.T) {
+		for _, test := range []struct {
+			viperEnvName string
+			envName      string
+		}{
+			{"verbosity", "TSURU_VERBOSITY"},
+		} {
+			func() {
+				if oldEnv, ok := os.LookupEnv(test.envName); ok {
+					defer os.Setenv(test.envName, oldEnv)
+				}
+				os.Setenv(test.envName, "123")
+				assert.Equal(t, 123, viper.GetInt(test.viperEnvName))
+				os.Unsetenv(test.envName)
+			}()
+		}
+	})
+
+	t.Run("Bool envs", func(t *testing.T) {
+		for _, test := range []struct {
+			viperEnvName string
+			envName      string
+		}{
+			{"insecure-skip-verify", "TSURU_INSECURE_SKIP_VERIFY"},
+		} {
+			func() {
+				if oldEnv, ok := os.LookupEnv(test.envName); ok {
+					defer os.Setenv(test.envName, oldEnv)
+				}
+				os.Setenv(test.envName, "t")
+				assert.Equal(t, true, viper.GetBool(test.viperEnvName))
+				os.Unsetenv(test.envName)
+			}()
+		}
+	})
+
 }
