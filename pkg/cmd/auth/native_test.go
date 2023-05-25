@@ -60,3 +60,14 @@ func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
+
+func TestNativeLoginNoPasswordError(t *testing.T) {
+	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
+
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil, nil)
+	tsuruCtx.AuthScheme = "native"
+
+	cmd := NewLoginCmd()
+	err := loginCmdRun(cmd, []string{"foo@foo.com"}, tsuruCtx)
+	assert.Equal(t, fmt.Errorf("empty password. You must provide the password"), err)
+}
