@@ -19,10 +19,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tablecli"
 	"github.com/tsuru/tsuru-client/internal/parser"
-	"github.com/tsuru/tsuru-client/internal/printer"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/cmd/plan"
 	"github.com/tsuru/tsuru-client/pkg/cmd/router"
+	"github.com/tsuru/tsuru-client/pkg/printer"
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	appTypes "github.com/tsuru/tsuru/types/app"

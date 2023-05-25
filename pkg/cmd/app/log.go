@@ -15,8 +15,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tsuru/tsuru-client/internal/printer"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/pkg/printer"
 )
 
 const tLogFmt = "2006-01-02 15:04:05 -0700"

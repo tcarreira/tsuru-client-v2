@@ -15,8 +15,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/tsuru/tablecli"
-	"github.com/tsuru/tsuru-client/internal/printer"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/pkg/printer"
 )
 
 func newAppListCmd() *cobra.Command {
