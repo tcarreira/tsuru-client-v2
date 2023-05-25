@@ -65,16 +65,6 @@ func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
-func TestNativeLoginNoPasswordError(t *testing.T) {
-	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.Token = ""
-	tsuruCtx.AuthScheme = "native"
-
-	cmd := NewLoginCmd()
-	err := loginCmdRun(cmd, []string{"foo@foo.com"}, tsuruCtx)
-	assert.Equal(t, fmt.Errorf("empty password. You must provide the password"), err)
-}
-
 func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
 	result := `{"token": "sometoken", "is_admin": true}`
 	expected := "Password: \nSuccessfully logged in!\n"
@@ -103,4 +93,14 @@ func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
 	err = loginCmdRun(cmd, []string{"foo@foo.com"}, tsuruCtx)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
+}
+
+func TestNativeLoginNoPasswordError(t *testing.T) {
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.Token = ""
+	tsuruCtx.AuthScheme = "native"
+
+	cmd := NewLoginCmd()
+	err := loginCmdRun(cmd, []string{"foo@foo.com"}, tsuruCtx)
+	assert.Equal(t, fmt.Errorf("empty password. You must provide the password"), err)
 }

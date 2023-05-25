@@ -38,3 +38,17 @@ func TestGetAuthScheme(t *testing.T) {
 	assert.Equal(t, "oauth", authScheme.Name)
 	assert.Equal(t, "12345", authScheme.Data["port"])
 }
+
+func TestLoginGetSchemeInvalidData(t *testing.T) {
+	result := `{"name": "oauth", "data": {"x": 9, "z": "w"}}`
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, result)
+	}))
+
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
+	authScheme, err := getAuthScheme(tsuruCtx)
+	assert.Error(t, err)
+	assert.Nil(t, authScheme)
+}
