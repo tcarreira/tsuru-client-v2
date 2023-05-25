@@ -46,7 +46,11 @@ func TestPrintInfo_Switch(t *testing.T) {
 		format := OutputType(enum)
 		err := PrintInfo(io.Discard, format, "", nil)
 		assert.NoError(t, err)
+		err = PrintInfo(io.Discard, format, testingPrintableType(), nil)
+		assert.NoError(t, err)
 	}
 	err = PrintInfo(io.Discard, "invalid", "", nil)
+	assert.NoError(t, err)
+	err = PrintInfo(io.Discard, "invalid", testingPrintableType(), nil)
 	assert.NoError(t, err)
 }

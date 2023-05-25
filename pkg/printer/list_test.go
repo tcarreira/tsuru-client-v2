@@ -44,9 +44,9 @@ func TestPrintList_Switch(t *testing.T) {
 	// for coverage
 	for _, enum := range outputTypeEnums {
 		format := OutputType(enum)
-		err := PrintInfo(io.Discard, format, "", nil)
+		err := PrintList(io.Discard, format, []string{""}, nil)
 		assert.NoError(t, err)
 	}
-	err = PrintInfo(io.Discard, "invalid", "", nil)
+	err = PrintList(io.Discard, "invalid", []string{""}, nil)
 	assert.NoError(t, err)
 }
