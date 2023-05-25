@@ -140,6 +140,11 @@ func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruC
 	wg.Add(1)
 	go func() { // read from ws and write to stdout
 		defer wg.Done()
+		defer func() {
+			// most important for testing. In real life, this is irrelevant
+			time.Sleep(100 * time.Millisecond)
+			cancelCtx()
+		}()
 
 		_, err1 := copyWithContext(ctx, tsuruCtx.Stdout, ws)
 		if err1 != nil {
