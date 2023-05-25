@@ -90,8 +90,8 @@ lint-license-header: ## Check if all files have the license header
 ifeq (, $(shell which addlicense))
 	go install github.com/google/addlicense@latest
 endif
-	@echo "addlicense -check -f LICENSE-HEADER ."
-	@addlicense -check -f LICENSE-HEADER . \
+	@echo "addlicense -check -f LICENSE-HEADER -ignore coverage/** ."
+	@addlicense -check -f LICENSE-HEADER -ignore coverage/** . \
 		|| (echo "Some files are missing the license header, please run '$(CYAN)make addlicense$(RESET)' to add it" && exit 1)
 
 check-contributors: ## Check if all contributors are listed on the CONTRIBUTORS file
