@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
@@ -38,7 +37,8 @@ func TestV1AppCreate(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
@@ -64,7 +64,8 @@ func TestV1AppCreateEmptyPlatform(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	err := appCreateRun(appCreateCmd, []string{"ble"}, tsuruCtx)
@@ -90,7 +91,8 @@ func TestV1AppCreateTeamOwner(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-t", "myteam"})
@@ -117,7 +119,8 @@ func TestV1AppCreatePlan(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-p", "myplan"})
@@ -144,7 +147,8 @@ func TestV1AppCreatePool(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"-o", "mypool"})
@@ -173,7 +177,8 @@ func TestV1AppCreateRouterOpts(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
@@ -200,7 +205,8 @@ func TestV1AppCreateNoRepository(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
@@ -213,7 +219,8 @@ func TestV1AppCreateWithInvalidFramework(t *testing.T) {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintln(w, "")
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	err := appCreateRun(appCreateCmd, []string{}, tsuruCtx)
@@ -242,7 +249,8 @@ func TestV1AppCreateWithTags(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
@@ -272,7 +280,8 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 
 		fmt.Fprintln(w, `{"status":"success", "repository_url":"git@tsuru.plataformas.glb.com:ble.git"}`)
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appCreateCmd := newAppCreateCmd()
 	appCreateCmd.Flags().Parse([]string{"--tag", ""})

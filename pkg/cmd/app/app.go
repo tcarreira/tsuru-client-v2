@@ -36,7 +36,7 @@ func NewAppCmd() *cobra.Command {
 }
 
 func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	apps, _, err := tsuructx.GetTsuruContextSingleton().Client.AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+	apps, _, err := tsuructx.GetTsuruContextSingleton().Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(true),
 		Name:       optional.NewString(toComplete),
 	})

@@ -10,9 +10,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
@@ -21,8 +19,8 @@ func TestNewLoginCmd(t *testing.T) {
 }
 
 func TestLoginCmdRunErr(t *testing.T) {
-	viper.Set("token", "xxx") // concurrent with TestNativeLogin
-	err := loginCmdRun(nil, nil, nil)
+	tsuructx := tsuructx.TsuruContextWithConfig(nil)
+	err := loginCmdRun(nil, nil, tsuructx)
 	assert.EqualError(t, err, "this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 }
 
@@ -32,7 +30,8 @@ func TestGetAuthScheme(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	authScheme, err := getAuthScheme(tsuruCtx)
 	assert.NoError(t, err)

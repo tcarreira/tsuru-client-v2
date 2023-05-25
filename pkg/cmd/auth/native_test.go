@@ -12,15 +12,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/config"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestNativeLogin(t *testing.T) {
-	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
 	result := `{"token": "sometoken", "is_admin": true}`
 	expected := "Email: Password: \nSuccessfully logged in!\n"
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -31,7 +28,10 @@ func TestNativeLogin(t *testing.T) {
 		fmt.Fprint(w, result)
 	}))
 
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
+	tsuruCtx.Token = ""
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("foo@foo.com\nchico\n")}
 
@@ -42,7 +42,6 @@ func TestNativeLogin(t *testing.T) {
 }
 
 func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
-	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
 	result := `{"token": "sometoken", "is_admin": true}`
 	expected := "Password: \nSuccessfully logged in!\n"
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +52,10 @@ func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
 		fmt.Fprint(w, result)
 	}))
 
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
+	tsuruCtx.Token = ""
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("chico\n")}
 
@@ -64,9 +66,8 @@ func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
 }
 
 func TestNativeLoginNoPasswordError(t *testing.T) {
-	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
-
-	tsuruCtx := tsuructx.TsuruContextWithConfig(nil, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.Token = ""
 	tsuruCtx.AuthScheme = "native"
 
 	cmd := NewLoginCmd()
@@ -75,7 +76,6 @@ func TestNativeLoginNoPasswordError(t *testing.T) {
 }
 
 func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
-	viper.Set("token", "") // concurrent with TestLoginCmdRunErr
 	result := `{"token": "sometoken", "is_admin": true}`
 	expected := "Password: \nSuccessfully logged in!\n"
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,10 @@ func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
 		fmt.Fprint(w, result)
 	}))
 
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
+	tsuruCtx.Token = ""
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("chico\n")}
 

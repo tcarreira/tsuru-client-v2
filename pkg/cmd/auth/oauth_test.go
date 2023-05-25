@@ -14,7 +14,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/config"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
@@ -32,7 +31,8 @@ func TestCallbackHandler(t *testing.T) {
 
 	redirectURL := "someurl"
 	finish := make(chan bool, 1)
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	callbackHandler := callback(tsuruCtx, redirectURL, finish)
 	request, err := http.NewRequest("GET", "/", strings.NewReader(`{"code":"xpto"}`))

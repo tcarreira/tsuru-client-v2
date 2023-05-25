@@ -90,7 +90,7 @@ func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCon
 		qs.Set("follow", "1")
 	}
 	request.URL.RawQuery = qs.Encode()
-	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return err
 	}

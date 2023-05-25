@@ -41,7 +41,7 @@ func nativeLogin(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCont
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return err
 	}

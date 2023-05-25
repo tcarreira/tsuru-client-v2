@@ -13,7 +13,6 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/config"
 	"github.com/tsuru/tsuru-client/internal/exec"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
@@ -91,28 +90,43 @@ func initConfig() {
 }
 
 func SetupTsuruClientSingleton() {
-	cfg := tsuru.NewConfiguration()
-	cfg.UserAgent = "tsuru-client:" + Version
+	osFs := afero.NewOsFs()
+	var err error
 
-	target, err := config.GetTarget()
+	// Get target
+	target := viper.GetString("target")
+	if target == "" {
+		target, err = config.GetCurrentTargetFromFs(osFs)
+		cobra.CheckErr(err)
+	}
+	target, err = config.GetTargetURL(osFs, target)
 	cobra.CheckErr(err)
-	cfg.BasePath = target
 
-	token, err := config.GetToken()
-	cobra.CheckErr(err)
-	if token != "" {
-		cfg.AddDefaultHeader("Authorization", "bearer "+token)
+	// Get token
+	token := viper.GetString("token")
+	if token == "" {
+		token, err = config.GetTokenFromFs(osFs)
+		cobra.CheckErr(err)
 	}
 
-	tsuructx.SetupTsuruContextSingleton(cfg, &tsuructx.TsuruContextOpts{
+	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target))
+}
+
+func productionOpts(fs afero.Fs, token, target string) *tsuructx.TsuruContextOpts {
+	return &tsuructx.TsuruContextOpts{
 		Verbosity:          viper.GetInt("verbosity"),
 		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
 		LocalTZ:            time.Local,
 		AuthScheme:         viper.GetString("auth-scheme"),
 		Executor:           &exec.OsExec{},
-		Fs:                 afero.NewOsFs(),
-		Stdout:             os.Stdout,
-		Stderr:             os.Stderr,
-		Stdin:              os.Stdin,
-	})
+		Fs:                 fs,
+
+		UserAgent: "tsuru-client:" + Version,
+		TargetURL: target,
+		Token:     token,
+
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Stdin:  os.Stdin,
+	}
 }

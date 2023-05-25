@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
@@ -46,7 +45,7 @@ $ tsuru login example@tsuru.local`,
 }
 
 func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
-	if viper.GetString("token") != "" {
+	if tsuruCtx.Token != "" {
 		return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 	}
 	cmd.SilenceUsage = true
@@ -75,7 +74,7 @@ func getAuthScheme(tsuruCtx *tsuructx.TsuruContext) (*loginScheme, error) {
 	if err != nil {
 		return nil, err
 	}
-	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return nil, err
 	}

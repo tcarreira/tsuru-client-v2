@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"golang.org/x/net/websocket"
 )
@@ -52,7 +51,8 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	appShellCmd := newAppShellCmd()
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
@@ -72,7 +72,8 @@ func TestV1AppShellWithUnit(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	tsuruCtx.Stdin = nil
 
@@ -94,7 +95,8 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 		fmt.Fprint(ws, expected)
 		ws.Close()
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	tsuruCtx.Stdin = nil
 
@@ -106,7 +108,8 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 
 func TestV1AppShellCmdConnectionRefused(t *testing.T) {
 	mockServer := httptest.NewServer(nil)
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
 
 	tsuruCtx.Stdin = nil
 	mockServer.Close()
@@ -156,7 +159,9 @@ func TestAppShellSendStdin(t *testing.T) {
 
 		ws.Close()
 	}))
-	tsuruCtx := tsuructx.TsuruContextWithConfig(&tsuru.Configuration{BasePath: mockServer.URL, HTTPClient: mockServer.Client()}, nil)
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
 	tsuruCtx.Stdin = stdin
 
 	appShellCmd := newAppShellCmd()

@@ -141,7 +141,7 @@ func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCon
 	}
 
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	response, err := tsuruCtx.RawHTTPClient.Do(request)
+	response, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return err
 	}

@@ -13,30 +13,20 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 )
 
-type ClientHTTPTransportOpts struct {
-	InsecureSkipVerify *bool
-	Verbosity          *int
-	VerboseOutput      *io.Writer
-}
-
 type TsuruClientHTTPTransport struct {
-	ClientHTTPTransportOpts
-
-	t   http.RoundTripper
-	cfg *tsuru.Configuration
+	transport http.RoundTripper
+	tsuruCtx  *TsuruContext
 }
 
 func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	for k, v := range t.cfg.DefaultHeader {
+	for k, v := range tsuruDefaultHeadersFromContext(t.tsuruCtx) {
 		req.Header.Set(k, v)
 	}
 
-	if t.InsecureSkipVerify != nil && *t.InsecureSkipVerify {
-		t.t.(*http.Transport).TLSClientConfig = &tls.Config{
+	if t.tsuruCtx.InsecureSkipVerify {
+		t.transport.(*http.Transport).TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
 	}
@@ -45,62 +35,58 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 
 	req.Header.Set("X-Tsuru-Verbosity", "0")
 	// Verbosity level=1: log request
-	if t.Verbosity != nil && *t.Verbosity >= 1 {
-		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(*t.Verbosity))
-		fmt.Fprintf(*t.VerboseOutput, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
+	if t.tsuruCtx.Verbosity >= 1 {
+		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.tsuruCtx.Verbosity))
+		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
 		requestDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
 			return nil, err
 		}
-		fmt.Fprint(*t.VerboseOutput, string(requestDump))
+		fmt.Fprint(t.tsuruCtx.Stdout, string(requestDump))
 		if requestDump[len(requestDump)-1] != '\n' {
-			fmt.Fprintln(*t.VerboseOutput)
+			fmt.Fprintln(t.tsuruCtx.Stdout)
 		}
-		fmt.Fprintf(*t.VerboseOutput, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** </Request uri=%q> **********************************\n", req.URL.RequestURI())
 	}
 
-	response, err := t.t.RoundTrip(req)
+	response, err := t.transport.RoundTrip(req)
 
 	// Verbosity level=2: log response
-	if t.Verbosity != nil && *t.Verbosity >= 2 && response != nil {
-		fmt.Fprintf(*t.VerboseOutput, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
+	if t.tsuruCtx.Verbosity >= 2 && response != nil {
+		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
 		responseDump, errDump := httputil.DumpResponse(response, true)
 		if errDump != nil {
 			return nil, errDump
 		}
-		fmt.Fprint(*t.VerboseOutput, string(responseDump))
+		fmt.Fprint(t.tsuruCtx.Stdout, string(responseDump))
 		if responseDump[len(responseDump)-1] != '\n' {
-			fmt.Fprintln(*t.VerboseOutput)
+			fmt.Fprintln(t.tsuruCtx.Stdout)
 		}
-		fmt.Fprintf(*t.VerboseOutput, "*************************** </Response uri=%q> **********************************\n", req.URL.RequestURI())
+		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** </Response uri=%q> **********************************\n", req.URL.RequestURI())
 	}
 
 	return response, err
 }
 
-func httpTransportWrapper(cfg *tsuru.Configuration, opts *ClientHTTPTransportOpts, roundTripper http.RoundTripper) *TsuruClientHTTPTransport {
+func (c *TsuruContext) httpTransportWrapper(roundTripper http.RoundTripper) *TsuruClientHTTPTransport {
+	t := &TsuruClientHTTPTransport{
+		transport: roundTripper,
+		tsuruCtx:  c,
+	}
 	if roundTripper == nil {
-		roundTripper = http.DefaultTransport
+		t.transport = http.DefaultTransport
 	}
-	return &TsuruClientHTTPTransport{
-		t:                       roundTripper,
-		cfg:                     cfg,
-		ClientHTTPTransportOpts: *opts,
-	}
+	return t
 }
 
-func tsuruDefaultHeadersFromConfig(cfg *tsuru.Configuration) map[string]string {
+func tsuruDefaultHeadersFromContext(tsuruCtx *TsuruContext) map[string]string {
 	result := map[string]string{}
-	for k, v := range cfg.DefaultHeader {
-		result[k] = v
-	}
-
-	result["User-Agent"] = cfg.UserAgent
+	result["User-Agent"] = tsuruCtx.UserAgent
 	if result["User-Agent"] == "" {
 		result["User-Agent"] = "tsuru-client"
 	}
 	if result["Authorization"] == "" {
-		result["Authorization"] = "bearer sometoken"
+		result["Authorization"] = "bearer " + tsuruCtx.Token
 	}
 	if result["Accept"] == "" {
 		result["Accept"] = "application/json"
@@ -110,21 +96,21 @@ func tsuruDefaultHeadersFromConfig(cfg *tsuru.Configuration) map[string]string {
 
 // NewRequest creates a new http.Request with the correct base path.
 func (tc *TsuruContext) NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
-	if !strings.HasPrefix(url, tc.Config.BasePath) {
+	if !strings.HasPrefix(url, tc.TargetURL) {
 		if !strings.HasPrefix(url, "/") {
 			url = "/" + url
 		}
 		if !regexp.MustCompile(`^/[0-9]+\.[0-9]+/`).MatchString(url) {
 			url = "/1.0" + url
 		}
-		url = strings.TrimRight(tc.Config.BasePath, "/") + url
+		url = strings.TrimRight(tc.TargetURL, "/") + url
 	}
 	return http.NewRequest(method, url, body)
 }
 
 func (tc *TsuruContext) DefaultHeaders() http.Header {
 	headers := make(http.Header)
-	for k, v := range tc.Config.DefaultHeader {
+	for k, v := range tc.Config().DefaultHeader {
 		headers.Add(k, v)
 	}
 	return headers

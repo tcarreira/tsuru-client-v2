@@ -19,13 +19,6 @@ var tsuruContextSingleton *TsuruContext
 
 type TsuruContext struct {
 	TsuruContextOpts
-
-	// Client is the tsuru client implementated by go-tsuruclient
-	Client *tsuru.APIClient
-	// Config is the tsuru client configuration
-	Config *tsuru.Configuration
-	// RawHTTPClient is the raw http client for REST calls
-	RawHTTPClient *http.Client
 }
 
 type TsuruContextOpts struct {
@@ -42,9 +35,35 @@ type TsuruContextOpts struct {
 	//Fs is the filesystem used by the client
 	Fs afero.Fs
 
+	UserAgent string
+	TargetURL string
+	Token     string
+
 	Stdout io.Writer
 	Stderr io.Writer
 	Stdin  DescriptorReader
+}
+
+// Config is the tsuru client configuration
+func (c *TsuruContext) Config() *tsuru.Configuration {
+	cfg := tsuru.NewConfiguration()
+	if cfg.HTTPClient == nil {
+		cfg.HTTPClient = http.DefaultClient
+	}
+	cfg.BasePath = c.TargetURL
+	cfg.UserAgent = c.UserAgent
+	cfg.HTTPClient.Transport = c.httpTransportWrapper(cfg.HTTPClient.Transport)
+	return cfg
+}
+
+// Client is the tsuru client implementated by go-tsuruclient
+func (c *TsuruContext) Client() *tsuru.APIClient {
+	return tsuru.NewAPIClient(c.Config())
+}
+
+// RawHTTPClient is the raw http client for REST calls
+func (c *TsuruContext) RawHTTPClient() *http.Client {
+	return c.Config().HTTPClient
 }
 
 type DescriptorReader interface {
@@ -54,21 +73,28 @@ type DescriptorReader interface {
 
 func GetTsuruContextSingleton() *TsuruContext {
 	if tsuruContextSingleton == nil {
-		SetupTsuruContextSingleton(nil, nil)
+		SetupTsuruContextSingleton(nil)
 	}
 	return tsuruContextSingleton
 }
 
 // SetupTsuruContextSingleton configures the tsuruContext to be returned by GetTsuruContextSingleton().
-func SetupTsuruContextSingleton(cfg *tsuru.Configuration, opts *TsuruContextOpts) {
-	tsuruContextSingleton = TsuruContextWithConfig(cfg, opts)
+func SetupTsuruContextSingleton(opts *TsuruContextOpts) {
+	tsuruContextSingleton = TsuruContextWithConfig(opts)
 }
 
 func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 	return &TsuruContextOpts{
-		LocalTZ:  time.UTC,
-		Fs:       afero.NewMemMapFs(),
-		Executor: &exec.FakeExec{},
+		Verbosity:          0,
+		InsecureSkipVerify: false,
+		LocalTZ:            time.UTC,
+		AuthScheme:         "",
+		Executor:           &exec.FakeExec{},
+		Fs:                 afero.NewMemMapFs(),
+
+		UserAgent: "tsuru-client:testing",
+		TargetURL: "",
+		Token:     "sometoken",
 
 		Stdout: &strings.Builder{},
 		Stderr: &strings.Builder{},
@@ -77,33 +103,15 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 }
 
 // TsuruContextWithConfig returns a new TsuruContext with the given configuration.
-func TsuruContextWithConfig(cfg *tsuru.Configuration, opts *TsuruContextOpts) *TsuruContext {
-	if cfg == nil {
-		cfg = tsuru.NewConfiguration()
-	}
-	if cfg.HTTPClient == nil {
-		cfg.HTTPClient = http.DefaultClient
-	}
-	cfg.DefaultHeader = tsuruDefaultHeadersFromConfig(cfg)
-
+func TsuruContextWithConfig(opts *TsuruContextOpts) *TsuruContext {
 	if opts == nil {
 		// defaults for testing
 		opts = DefaultTestingTsuruContextOptions()
 	}
 
 	tsuruCtx := &TsuruContext{
-		Client:           tsuru.NewAPIClient(cfg),
-		RawHTTPClient:    cfg.HTTPClient,
-		Config:           cfg,
 		TsuruContextOpts: *opts,
 	}
-
-	transportOpts := &ClientHTTPTransportOpts{
-		InsecureSkipVerify: &tsuruCtx.InsecureSkipVerify,
-		Verbosity:          &tsuruCtx.Verbosity,
-		VerboseOutput:      &tsuruCtx.Stdout,
-	}
-	tsuruCtx.Config.HTTPClient.Transport = httpTransportWrapper(cfg, transportOpts, cfg.HTTPClient.Transport)
 
 	return tsuruCtx
 }

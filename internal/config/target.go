@@ -13,7 +13,6 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
 var (
@@ -51,7 +50,7 @@ func getTargets(fsys afero.Fs) (map[string]string, error) {
 }
 
 func getTargetLabel(fsys afero.Fs) (string, error) {
-	target, err := getTarget(fsys)
+	target, err := GetCurrentTargetFromFs(fsys)
 	if err != nil {
 		return "", err
 	}
@@ -73,23 +72,13 @@ func getTargetLabel(fsys afero.Fs) (string, error) {
 
 }
 
-// getTarget returns the current target,
-// as defined in the TSURU_TARGET environment variable or in the target file.
-func getTarget(fsys afero.Fs) (target string, err error) {
-	if target = viper.GetString("target"); target != "" {
-		targets, err := getTargets(fsys)
-		if err == nil {
-			if val, ok := targets[target]; ok {
-				target = val
-			}
-		}
-	} else {
-		targetPath := filepath.Join(ConfigPath, "target")
-		if f, err := fsys.Open(targetPath); err == nil {
-			defer f.Close()
-			if b, err := io.ReadAll(f); err == nil {
-				target = strings.TrimSpace(string(b))
-			}
+// GetCurrentTargetFromFs returns the current target (from filesystem .tsuru/target)
+func GetCurrentTargetFromFs(fsys afero.Fs) (target string, err error) {
+	targetPath := filepath.Join(ConfigPath, "target")
+	if f, err := fsys.Open(targetPath); err == nil {
+		defer f.Close()
+		if b, err := io.ReadAll(f); err == nil {
+			target = strings.TrimSpace(string(b))
 		}
 	}
 
@@ -97,15 +86,26 @@ func getTarget(fsys afero.Fs) (target string, err error) {
 		return "", errUndefinedTarget
 	}
 
-	var prefix string
 	if m, _ := regexp.MatchString("^https?://", target); !m {
-		prefix = "http://"
+		target = "http://" + target
 	}
-	return prefix + target, nil
+	return target, nil
 }
 
-// GetTarget returns the current target,
-// as defined in the TSURU_TARGET environment variable or in the target file.
-func GetTarget() (string, error) {
-	return getTarget(afero.NewOsFs())
+// GetTargetURL returns the target URL from a given alias. If the alias is not
+// found, it returns the alias itself (as it may already be the correct URL).
+func GetTargetURL(fsys afero.Fs, target string) (string, error) {
+	targetURL := target
+	targets, err := getTargets(fsys)
+	if err != nil {
+		return "", err
+	}
+	if val, ok := targets[target]; ok {
+		targetURL = val
+	}
+
+	if m, _ := regexp.MatchString("^https?://", targetURL); !m {
+		targetURL = "http://" + targetURL
+	}
+	return targetURL, nil
 }

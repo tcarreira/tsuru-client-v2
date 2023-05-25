@@ -58,7 +58,7 @@ func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCo
 		return err
 	}
 	request.URL.RawQuery = qs.Encode()
-	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func appListQueryString(cmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) url
 		userFlag := cmd.Flag("user").Value.String()
 		result.Set("owner", userFlag)
 		if userFlag == "me" {
-			user, _, err := tsuruCtx.Client.UserApi.UserGet(cmd.Context())
+			user, _, err := tsuruCtx.Client().UserApi.UserGet(cmd.Context())
 			if err == nil {
 				result.Set("owner", user.Email)
 			}

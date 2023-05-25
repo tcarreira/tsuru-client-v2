@@ -66,7 +66,7 @@ func getToken(tsuruCtx *tsuructx.TsuruContext, code, redirectURL string) (token 
 	}
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	httpResponse, err := tsuruCtx.RawHTTPClient.Do(request)
+	httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
 	if err != nil {
 		return token, errors.Wrap(err, "error during login post")
 	}

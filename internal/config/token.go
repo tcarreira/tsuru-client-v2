@@ -12,14 +12,10 @@ import (
 	"strings"
 
 	"github.com/spf13/afero"
-	"github.com/spf13/viper"
 )
 
-func getToken(fsys afero.Fs) (string, error) {
-	if token := viper.GetString("token"); token != "" {
-		return token, nil
-	}
-
+// GetTokenFromFs returns the token for the current target.
+func GetTokenFromFs(fsys afero.Fs) (string, error) {
 	tokenPaths := []string{filepath.Join(ConfigPath, "token")}
 	if targetLabel, err := getTargetLabel(fsys); err == nil {
 		tokenPaths = append([]string{filepath.Join(ConfigPath, "token.d", targetLabel)}, tokenPaths...)
@@ -44,14 +40,7 @@ func getToken(fsys afero.Fs) (string, error) {
 	return "", err
 }
 
-// GetToken returns the token for the current target,
-// as defined in the TSURU_TOKEN environment variable or in the token file.
-func GetToken() (string, error) {
-	return getToken(afero.NewOsFs())
-}
-
-// SaveToken returns the token for the current target,
-// as defined in the TSURU_TOKEN environment variable or in the token file.
+// SaveToken saves the token on the filesystem for future use.
 func SaveToken(fsys afero.Fs, token string) error {
 	tokenPaths := []string{filepath.Join(ConfigPath, "token")}
 	targetLabel, err := getTargetLabel(fsys)
