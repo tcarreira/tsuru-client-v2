@@ -5,6 +5,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -66,4 +67,20 @@ func SaveToken(fsys afero.Fs, token string) error {
 		}
 	}
 	return nil
+}
+
+// RemoveCurrentTokensFromFs removes the token for the current target and alias.
+func RemoveCurrentTokensFromFs(fsys afero.Fs) error {
+	tokenPaths := []string{filepath.Join(ConfigPath, "token")}
+	if targetLabel, err := getTargetLabel(fsys); err == nil {
+		tokenPaths = append([]string{filepath.Join(ConfigPath, "token.d", targetLabel)}, tokenPaths...)
+	}
+
+	errs := []error{}
+	for _, tokenPath := range tokenPaths {
+		if err := fsys.Remove(tokenPath); err != nil && !os.IsNotExist(err) {
+			errs = append(errs, err)
+		}
+	}
+	return errors.Join(errs...)
 }

@@ -61,6 +61,7 @@ func init() {
 	// Add subcommands
 	rootCmd.AddCommand(app.NewAppCmd())
 	rootCmd.AddCommand(auth.NewLoginCmd())
+	rootCmd.AddCommand(auth.NewLogoutCmd())
 }
 
 // initConfig reads in config file and ENV variables if set.
