@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -133,6 +134,10 @@ type mockExec struct {
 }
 
 func (m *mockExec) Command(opts exec.ExecuteOptions) error {
-	http.Get(opts.Args[0])
+	url := opts.Args[0]
+	if runtime.GOOS == "windows" {
+		url = opts.Args[3]
+	}
+	http.Get(url)
 	return nil
 }
