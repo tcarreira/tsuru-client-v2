@@ -53,7 +53,15 @@ func TestOverridingFlags(t *testing.T) {
 }
 
 func TestParseEnvVariables(t *testing.T) {
-	initConfig() // singleton! do not call on other tests.
+	func() { // initConfig() needs some Target
+		envName := "TSURU_TARGET"
+		if oldEnv, ok := os.LookupEnv(envName); ok {
+			defer os.Setenv(envName, oldEnv)
+		}
+		os.Setenv(envName, "xxx")
+		initConfig() // singleton! do not call on other tests.
+		os.Unsetenv(envName)
+	}()
 
 	t.Run("string envs", func(t *testing.T) {
 		for _, test := range []struct {
