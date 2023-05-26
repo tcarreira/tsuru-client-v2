@@ -52,8 +52,9 @@ func TestCallbackHandler(t *testing.T) {
 
 func TestOauthLogin(t *testing.T) {
 	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req, _ := http.NewRequest("GET", r.URL.Query().Get("redirect_uri")+"/", nil)
-		go http.DefaultClient.Do(req) // this is blocking
+		resp, err := http.Get(r.URL.Query().Get("redirect_uri") + "/")
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		fmt.Fprintln(w, `{"code": "aRandomCode"}`)
 	}))
 
@@ -82,8 +83,9 @@ func TestOauthLogin(t *testing.T) {
 
 func TestOauthLoginSaveAlias(t *testing.T) {
 	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		req, _ := http.NewRequest("GET", r.URL.Query().Get("redirect_uri")+"/", nil)
-		go http.DefaultClient.Do(req) // this is blocking
+		resp, err := http.Get(r.URL.Query().Get("redirect_uri") + "/")
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		fmt.Fprintln(w, `{"code": "aRandomCode"}`)
 	}))
 
@@ -131,7 +133,6 @@ type mockExec struct {
 }
 
 func (m *mockExec) Command(opts exec.ExecuteOptions) error {
-	req, _ := http.NewRequest("GET", opts.Args[0], nil)
-	go http.DefaultClient.Do(req)
+	http.Get(opts.Args[0])
 	return nil
 }

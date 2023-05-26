@@ -119,7 +119,7 @@ func oauthLogin(tsuruCtx *tsuructx.TsuruContext, scheme *loginScheme) error {
 	}
 	redirectURL := fmt.Sprintf("http://127.0.0.1:%s", port)
 	authURL := strings.Replace(scheme.Data["authorizeUrl"], "__redirect_url__", redirectURL, 1)
-	finish := make(chan bool)
+	finish := make(chan bool, 1)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", callback(tsuruCtx, redirectURL, finish))
