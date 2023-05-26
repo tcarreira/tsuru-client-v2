@@ -109,7 +109,7 @@ func oauthLogin(tsuruCtx *tsuructx.TsuruContext, scheme *loginScheme) error {
 		return fmt.Errorf("missing authorizeUrl in scheme data")
 	}
 
-	l, err := net.Listen("tcp", port(scheme.Data))
+	l, err := net.Listen("tcp", port(scheme.Data)) // use low level net.Listen for random port with :0
 	if err != nil {
 		return err
 	}
@@ -120,15 +120,20 @@ func oauthLogin(tsuruCtx *tsuructx.TsuruContext, scheme *loginScheme) error {
 	redirectURL := fmt.Sprintf("http://127.0.0.1:%s", port)
 	authURL := strings.Replace(scheme.Data["authorizeUrl"], "__redirect_url__", redirectURL, 1)
 	finish := make(chan bool)
-	http.HandleFunc("/", callback(tsuruCtx, redirectURL, finish))
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", callback(tsuruCtx, redirectURL, finish))
 	server := &http.Server{}
+	server.Handler = mux
 	go server.Serve(l)
+
 	err = exec.Open(tsuruCtx.Executor, authURL)
 	if err != nil {
 		fmt.Fprintln(tsuruCtx.Stdout, "Failed to start your browser.")
 		fmt.Fprintf(tsuruCtx.Stdout, "Please open the following URL in your browser: %s\n", authURL)
 	}
 	<-finish
+
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	server.Shutdown(ctx)

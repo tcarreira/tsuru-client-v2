@@ -15,6 +15,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tsuru/tsuru-client/internal/config"
+	"github.com/tsuru/tsuru-client/internal/exec"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
@@ -47,4 +48,90 @@ func TestCallbackHandler(t *testing.T) {
 	data, err := io.ReadAll(file)
 	assert.NoError(t, err)
 	assert.Equal(t, "xpto", string(data))
+}
+
+func TestOauthLogin(t *testing.T) {
+	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req, _ := http.NewRequest("GET", r.URL.Query().Get("redirect_uri")+"/", nil)
+		go http.DefaultClient.Do(req) // this is blocking
+		fmt.Fprintln(w, `{"code": "aRandomCode"}`)
+	}))
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "POST", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/auth/login"))
+		fmt.Fprintln(w, `{"token": "mytoken"}`)
+	}))
+
+	ls := loginScheme{Name: "oauth", Data: map[string]string{
+		"authorizeUrl": authServer.URL + "/authorize?redirect_uri=__redirect_url__",
+	}}
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.Executor = &mockExec{url: authServer.URL}
+
+	err := oauthLogin(tsuruCtx, &ls)
+	assert.NoError(t, err)
+
+	f1, err := tsuruCtx.Fs.Open(filepath.Join(config.ConfigPath, "token"))
+	assert.NoError(t, err)
+	readToken, err := io.ReadAll(f1)
+	assert.NoError(t, err)
+	assert.Equal(t, "mytoken", string(readToken))
+}
+
+func TestOauthLoginSaveAlias(t *testing.T) {
+	authServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		req, _ := http.NewRequest("GET", r.URL.Query().Get("redirect_uri")+"/", nil)
+		go http.DefaultClient.Do(req) // this is blocking
+		fmt.Fprintln(w, `{"code": "aRandomCode"}`)
+	}))
+
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "POST", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/auth/login"))
+		fmt.Fprintln(w, `{"token": "mytoken"}`)
+	}))
+
+	ls := loginScheme{Name: "oauth", Data: map[string]string{
+		"authorizeUrl": authServer.URL + "/authorize?redirect_uri=__redirect_url__",
+	}}
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.Executor = &mockExec{url: authServer.URL}
+
+	// setup current fs state //////////////////////////////////////////////////
+	f, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "target"))
+	assert.NoError(t, err)
+	f.Write([]byte("http://localhost:8080"))
+	f.Close()
+	f, err = tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "targets"))
+	assert.NoError(t, err)
+	f.Write([]byte("default http://localhost:8080"))
+	f.Close()
+	////////////////////////////////////////////////////////////////////////////
+
+	err = oauthLogin(tsuruCtx, &ls)
+	assert.NoError(t, err)
+
+	f, err = tsuruCtx.Fs.Open(filepath.Join(config.ConfigPath, "token"))
+	assert.NoError(t, err)
+	readToken, err := io.ReadAll(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "mytoken", string(readToken))
+	f, err = tsuruCtx.Fs.Open(filepath.Join(config.ConfigPath, "token.d", "default"))
+	assert.NoError(t, err)
+	readToken, err = io.ReadAll(f)
+	assert.NoError(t, err)
+	assert.Equal(t, "mytoken", string(readToken))
+}
+
+type mockExec struct {
+	url string
+}
+
+func (m *mockExec) Command(opts exec.ExecuteOptions) error {
+	req, _ := http.NewRequest("GET", opts.Args[0], nil)
+	go http.DefaultClient.Do(req)
+	return nil
 }
