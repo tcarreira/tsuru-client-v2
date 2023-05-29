@@ -5,11 +5,52 @@
 package auth
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tsuru/tsuru-client/internal/config"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestNewLogoutCmd(t *testing.T) {
 	assert.NotNil(t, NewLogoutCmd())
+}
+
+func TestLogoutCmdRun(t *testing.T) {
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "DELETE", r.Method)
+		assert.True(t, strings.HasSuffix(r.URL.Path, "/users/tokens"))
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	tsuruCtx.TargetURL = mockServer.URL
+
+	// setup current fs state //////////////////////////////////////////////////
+	f, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "target"))
+	assert.NoError(t, err)
+	f.Write([]byte("http://localhost:8080"))
+	f.Close()
+	f, err = tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "targets"))
+	assert.NoError(t, err)
+	f.Write([]byte("default http://localhost:8080"))
+	f.Close()
+	f, err = tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "token"))
+	assert.NoError(t, err)
+	f.Write([]byte("sometoken"))
+	f.Close()
+	f, err = tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "token.d", "default"))
+	assert.NoError(t, err)
+	f.Write([]byte("sometoken"))
+	f.Close()
+	////////////////////////////////////////////////////////////////////////////
+
+	logoutCmd := NewLogoutCmd()
+	err = logoutCmdRun(logoutCmd, nil, tsuruCtx)
+	assert.NoError(t, err)
+	assert.Equal(t, "Successfully logged out!\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }
