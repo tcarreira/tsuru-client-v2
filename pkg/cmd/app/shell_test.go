@@ -38,7 +38,7 @@ func TestAppShellIsRegistered(t *testing.T) {
 			break
 		}
 	}
-	assert.True(t, found, "subcommand list not registered in appCmd")
+	assert.True(t, found, "subcommand shell not registered in appCmd")
 }
 
 func TestV1AppShellRunWithApp(t *testing.T) {
