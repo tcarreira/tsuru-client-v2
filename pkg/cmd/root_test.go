@@ -79,13 +79,16 @@ func TestProductionOptsNonZeroValues(t *testing.T) {
 }
 
 func TestParseEnvVariables(t *testing.T) {
-	func() { // initConfig() needs some Target
+	func() { // setupConfig() needs some Target
 		envName := "TSURU_TARGET"
 		if oldEnv, ok := os.LookupEnv(envName); ok {
 			defer os.Setenv(envName, oldEnv)
 		}
 		os.Setenv(envName, "xxx")
+
+		setupConfig(&cobra.Command{})
 		SetupTsuruContextSingleton(viper.GetViper())
+
 		os.Unsetenv(envName)
 	}()
 
