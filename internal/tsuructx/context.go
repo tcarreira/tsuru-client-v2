@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/spf13/afero"
+	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
 	"github.com/tsuru/tsuru-client/internal/exec"
 )
@@ -32,8 +33,10 @@ type TsuruContextOpts struct {
 	AuthScheme string
 	// Executor is an instance of an interface for exec.Command()
 	Executor exec.Executor
-	//Fs is the filesystem used by the client
+	// Fs is the filesystem used by the client
 	Fs afero.Fs
+	// Viper is an instance of the viper.Viper configuration
+	Viper *viper.Viper
 
 	UserAgent string
 	TargetURL string

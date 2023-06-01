@@ -83,7 +83,7 @@ func TestParseEnvVariables(t *testing.T) {
 			defer os.Setenv(envName, oldEnv)
 		}
 		os.Setenv(envName, "xxx")
-		SetupTsuruContextSingleton()
+		SetupTsuruContextSingleton(viper.GetViper())
 		os.Unsetenv(envName)
 	}()
 

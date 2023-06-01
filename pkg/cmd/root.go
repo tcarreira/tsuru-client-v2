@@ -34,7 +34,7 @@ func newRootCmd() *cobra.Command {
 
 	// Setup cli
 	setupConfig(rootCmd)
-	SetupTsuruContextSingleton()
+	SetupTsuruContextSingleton(viper.GetViper())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
 		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
 	}
@@ -49,10 +49,16 @@ func newRootCmd() *cobra.Command {
 
 func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	if len(args) == 0 {
-		cmd.SetOutput(tsuruCtx.Stdout)
-		cmd.Help()
-		return nil
+		cmd.SetOut(tsuruCtx.Stdout)
+		cmd.SetErr(tsuruCtx.Stderr)
+		return cmd.Help()
 	}
+
+	pluginName := args[0]
+	if viper.GetString("plugin-name") == pluginName {
+		return fmt.Errorf("command not found")
+	}
+
 	fmt.Fprintln(tsuruCtx.Stdout, "This would the tsuru-plugin: "+strings.Join(args[0:], " "))
 	fmt.Fprintln(tsuruCtx.Stdout, "Not implemented yet.")
 	return nil
@@ -97,12 +103,12 @@ func setupConfig(rootCmd *cobra.Command) {
 	}
 }
 
-func SetupTsuruContextSingleton() {
+func SetupTsuruContextSingleton(vip *viper.Viper) {
 	osFs := afero.NewOsFs()
 	var err error
 
 	// Get target
-	target := viper.GetString("target")
+	target := vip.GetString("target")
 	if target == "" {
 		target, err = config.GetCurrentTargetFromFs(osFs)
 		cobra.CheckErr(err)
@@ -111,13 +117,13 @@ func SetupTsuruContextSingleton() {
 	cobra.CheckErr(err)
 
 	// Get token
-	token := viper.GetString("token")
+	token := vip.GetString("token")
 	if token == "" {
 		token, err = config.GetTokenFromFs(osFs)
 		cobra.CheckErr(err)
 	}
 
-	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target, viper.GetViper()))
+	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target, vip))
 }
 
 func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuructx.TsuruContextOpts {
@@ -128,6 +134,7 @@ func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuruc
 		AuthScheme:         vip.GetString("auth-scheme"),
 		Executor:           &exec.OsExec{},
 		Fs:                 fs,
+		Viper:              vip,
 
 		UserAgent: "tsuru-client:" + Version,
 		TargetURL: target,
