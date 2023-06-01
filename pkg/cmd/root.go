@@ -39,18 +39,18 @@ func newRootCmd() *cobra.Command {
 	rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
 	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
 
-	// setupConfig (parse configFile and bind environment variables)
+	// Setup cli
 	setupConfig(rootCmd)
+	SetupTsuruContextSingleton()
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
+		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
+	}
 
 	// Add subcommands
 	rootCmd.AddCommand(app.NewAppCmd())
 	rootCmd.AddCommand(auth.NewLoginCmd())
 	rootCmd.AddCommand(auth.NewLogoutCmd())
 
-	SetupTsuruClientSingleton()
-	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
-		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
-	}
 	return rootCmd
 }
 
@@ -98,7 +98,7 @@ func setupConfig(rootCmd *cobra.Command) {
 	}
 }
 
-func SetupTsuruClientSingleton() {
+func SetupTsuruContextSingleton() {
 	osFs := afero.NewOsFs()
 	var err error
 
