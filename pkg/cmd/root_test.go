@@ -33,11 +33,13 @@ func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []stri
 }
 
 func TestOverridingFlags(t *testing.T) {
-	newRootCmd().SetOutput(io.Discard)
+	rootCmd := newRootCmd()
+	rootCmd.SetOut(io.Discard)
+	rootCmd.SetErr(io.Discard)
 
 	cmdPathChan := make(chan []string)
 	go func() {
-		iterateCmdTreeAndRemoveRun(t, newRootCmd(), []string{}, cmdPathChan)
+		iterateCmdTreeAndRemoveRun(t, rootCmd, []string{}, cmdPathChan)
 		close(cmdPathChan)
 	}()
 
@@ -49,8 +51,8 @@ func TestOverridingFlags(t *testing.T) {
 				}
 			}()
 
-			newRootCmd().SetArgs(cmdPath)
-			newRootCmd().Execute()
+			rootCmd.SetArgs(cmdPath)
+			rootCmd.Execute()
 		})
 	}
 }

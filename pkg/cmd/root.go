@@ -36,7 +36,7 @@ func newRootCmd() *cobra.Command {
 	setupConfig(rootCmd)
 	SetupTsuruContextSingleton(viper.GetViper())
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
-		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
+		return runRootCmd(cmd, args, tsuructx.GetTsuruContextSingleton())
 	}
 
 	// Add subcommands
@@ -47,7 +47,7 @@ func newRootCmd() *cobra.Command {
 	return rootCmd
 }
 
-func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func runRootCmd(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
 	if len(args) == 0 {
 		cmd.SetOut(tsuruCtx.Stdout)
 		cmd.SetErr(tsuruCtx.Stderr)

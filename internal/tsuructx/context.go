@@ -96,7 +96,7 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 		Fs:                 afero.NewMemMapFs(),
 
 		UserAgent: "tsuru-client:testing",
-		TargetURL: "",
+		TargetURL: "http://example.local:8080",
 		Token:     "sometoken",
 
 		Stdout: &strings.Builder{},
