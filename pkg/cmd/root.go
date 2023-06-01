@@ -56,12 +56,32 @@ func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.
 
 	pluginName := args[0]
 	if viper.GetString("plugin-name") == pluginName {
+		return fmt.Errorf("failing trying to run recursive plugin")
+	}
+
+	pluginPath := findExecutablePlugin(tsuruCtx, pluginName)
+	if pluginPath == "" {
 		return fmt.Errorf("command not found")
 	}
 
-	fmt.Fprintln(tsuruCtx.Stdout, "This would the tsuru-plugin: "+strings.Join(args[0:], " "))
-	fmt.Fprintln(tsuruCtx.Stdout, "Not implemented yet.")
-	return nil
+	envs := os.Environ()
+	tsuruEnvs := []string{
+		"TSURU_TARGET=" + tsuruCtx.TargetURL,
+		"TSURU_TOKEN=" + tsuruCtx.Token,
+		"TSURU_PLUGIN_NAME=" + pluginName,
+		"TSURU_VERBOSITY=" + fmt.Sprintf("%d", tsuruCtx.Verbosity),
+	}
+	envs = append(envs, tsuruEnvs...)
+
+	opts := exec.ExecuteOptions{
+		Cmd:    pluginPath,
+		Args:   args[1:],
+		Stdout: tsuruCtx.Stdout,
+		Stderr: tsuruCtx.Stderr,
+		Stdin:  tsuruCtx.Stdin,
+		Envs:   envs,
+	}
+	return tsuruCtx.Executor.Command(opts)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
