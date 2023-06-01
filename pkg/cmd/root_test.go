@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []string, cmdPathChan chan []string) {
@@ -118,5 +119,24 @@ func TestParseEnvVariables(t *testing.T) {
 			}()
 		}
 	})
+}
 
+func TestRunTsuruPluginOrHelp(t *testing.T) {
+	t.Run("with no args", func(t *testing.T) {
+		cmd := rootCmd
+		args := []string{}
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		err := runTsuruPluginOrHelp(cmd, args, tsuruCtx)
+		assert.NoError(t, err)
+		assert.Contains(t, tsuruCtx.Stdout.(*strings.Builder).String(), "A command-line interface for interacting with tsuru")
+	})
+
+	t.Run("with args", func(t *testing.T) {
+		cmd := &cobra.Command{}
+		args := []string{"arg1", "arg2"}
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		err := runTsuruPluginOrHelp(cmd, args, tsuruCtx)
+		assert.NoError(t, err)
+		assert.Equal(t, "This would the tsuru-plugin: arg1 arg2\nNot implemented yet.\n", tsuruCtx.Stdout.(*strings.Builder).String())
+	})
 }

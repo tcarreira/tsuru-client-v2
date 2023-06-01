@@ -30,14 +30,20 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "tsuru",
 	Short: "A command-line interface for interacting with tsuru",
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			cmd.Help()
-			return
-		}
-		fmt.Println("This would the tsuru-plugin: " + args[0])
-		fmt.Println("Not implemented yet.")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
 	},
+}
+
+func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+	if len(args) == 0 {
+		cmd.SetOutput(tsuruCtx.Stdout)
+		cmd.Help()
+		return nil
+	}
+	fmt.Fprintln(tsuruCtx.Stdout, "This would the tsuru-plugin: "+strings.Join(args[0:], " "))
+	fmt.Fprintln(tsuruCtx.Stdout, "Not implemented yet.")
+	return nil
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
