@@ -7,9 +7,11 @@ package cmd
 import (
 	"io"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -50,6 +52,27 @@ func TestOverridingFlags(t *testing.T) {
 			newRootCmd().SetArgs(cmdPath)
 			newRootCmd().Execute()
 		})
+	}
+}
+
+func TestProductionOptsNonZeroValues(t *testing.T) {
+	vip := viper.New()
+	vip.Set("verbosity", 1)
+	vip.Set("insecure-skip-verify", true)
+	vip.Set("auth-scheme", true)
+
+	opts := productionOpts(afero.NewMemMapFs(), "abc", "target", vip)
+	value := reflect.ValueOf(opts).Elem()
+	errCount := 0
+	for i := 0; i < value.NumField(); i++ {
+		field := value.Field(i)
+		if field.IsZero() {
+			errCount++
+			t.Errorf("field %s has %q", value.Type().Field(i).Name, field.Interface())
+		}
+	}
+	if errCount > 0 {
+		t.Log("productionOpts() must declare ALL fields of TsuruContextOpts")
 	}
 }
 

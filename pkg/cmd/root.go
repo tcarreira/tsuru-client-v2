@@ -30,6 +30,7 @@ func newRootCmd() *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "tsuru",
 		Short: "A command-line interface for interacting with tsuru",
+		RunE:  func(cmd *cobra.Command, args []string) error { return fmt.Errorf("placeholder") },
 	}
 
 	// Flags
@@ -117,15 +118,15 @@ func SetupTsuruClientSingleton() {
 		cobra.CheckErr(err)
 	}
 
-	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target))
+	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target, viper.GetViper()))
 }
 
-func productionOpts(fs afero.Fs, token, target string) *tsuructx.TsuruContextOpts {
+func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuructx.TsuruContextOpts {
 	return &tsuructx.TsuruContextOpts{
-		Verbosity:          viper.GetInt("verbosity"),
-		InsecureSkipVerify: viper.GetBool("insecure-skip-verify"),
+		Verbosity:          vip.GetInt("verbosity"),
+		InsecureSkipVerify: vip.GetBool("insecure-skip-verify"),
 		LocalTZ:            time.Local,
-		AuthScheme:         viper.GetString("auth-scheme"),
+		AuthScheme:         vip.GetString("auth-scheme"),
 		Executor:           &exec.OsExec{},
 		Fs:                 fs,
 
