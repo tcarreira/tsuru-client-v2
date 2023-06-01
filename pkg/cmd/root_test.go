@@ -31,11 +31,11 @@ func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []stri
 }
 
 func TestOverridingFlags(t *testing.T) {
-	rootCmd.SetOutput(io.Discard)
+	newRootCmd().SetOutput(io.Discard)
 
 	cmdPathChan := make(chan []string)
 	go func() {
-		iterateCmdTreeAndRemoveRun(t, rootCmd, []string{}, cmdPathChan)
+		iterateCmdTreeAndRemoveRun(t, newRootCmd(), []string{}, cmdPathChan)
 		close(cmdPathChan)
 	}()
 
@@ -47,8 +47,8 @@ func TestOverridingFlags(t *testing.T) {
 				}
 			}()
 
-			rootCmd.SetArgs(cmdPath)
-			rootCmd.Execute()
+			newRootCmd().SetArgs(cmdPath)
+			newRootCmd().Execute()
 		})
 	}
 }
@@ -60,7 +60,7 @@ func TestParseEnvVariables(t *testing.T) {
 			defer os.Setenv(envName, oldEnv)
 		}
 		os.Setenv(envName, "xxx")
-		initConfig() // singleton! do not call on other tests.
+		SetupTsuruClientSingleton()
 		os.Unsetenv(envName)
 	}()
 
@@ -123,7 +123,7 @@ func TestParseEnvVariables(t *testing.T) {
 
 func TestRunTsuruPluginOrHelp(t *testing.T) {
 	t.Run("with no args", func(t *testing.T) {
-		cmd := rootCmd
+		cmd := newRootCmd()
 		args := []string{}
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 		err := runTsuruPluginOrHelp(cmd, args, tsuruCtx)

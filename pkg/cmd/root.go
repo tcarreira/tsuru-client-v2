@@ -22,17 +22,35 @@ import (
 
 var (
 	Version string = "dev"
-
 	cfgFile string
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "tsuru",
-	Short: "A command-line interface for interacting with tsuru",
-	RunE: func(cmd *cobra.Command, args []string) error {
+func newRootCmd() *cobra.Command {
+	// rootCmd represents the base command when called without any subcommands
+	rootCmd := &cobra.Command{
+		Use:   "tsuru",
+		Short: "A command-line interface for interacting with tsuru",
+	}
+
+	// Flags
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
+	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
+	rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
+	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
+
+	// setupConfig (parse configFile and bind environment variables)
+	setupConfig(rootCmd)
+
+	// Add subcommands
+	rootCmd.AddCommand(app.NewAppCmd())
+	rootCmd.AddCommand(auth.NewLoginCmd())
+	rootCmd.AddCommand(auth.NewLogoutCmd())
+
+	SetupTsuruClientSingleton()
+	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
 		return runTsuruPluginOrHelp(cmd, args, tsuructx.GetTsuruContextSingleton())
-	},
+	}
+	return rootCmd
 }
 
 func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
@@ -49,29 +67,14 @@ func runTsuruPluginOrHelp(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := rootCmd.Execute()
+	err := newRootCmd().Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
-func init() {
-	cobra.OnInitialize(initConfig)
-
-	// Flags
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
-	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
-	rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
-	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
-
-	// Add subcommands
-	rootCmd.AddCommand(app.NewAppCmd())
-	rootCmd.AddCommand(auth.NewLoginCmd())
-	rootCmd.AddCommand(auth.NewLogoutCmd())
-}
-
-// initConfig reads in config file and ENV variables if set.
-func initConfig() {
+// setupConfig reads in config file and ENV variables if set.
+func setupConfig(rootCmd *cobra.Command) {
 	if cfgFile != "" {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
@@ -92,8 +95,6 @@ func initConfig() {
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed()) // TODO: handle this better
 	}
-
-	SetupTsuruClientSingleton()
 }
 
 func SetupTsuruClientSingleton() {
