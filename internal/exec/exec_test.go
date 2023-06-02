@@ -24,18 +24,18 @@ func TestFakeExecCommand(t *testing.T) {
 
 	t.Run("fake exec with output", func(t *testing.T) {
 		fakeE := FakeExec{
-			outStderr: "error output",
-			outStdout: "standard output",
-			outErr:    fmt.Errorf("error"),
+			OutStderr: "error output",
+			OutStdout: "standard output",
+			OutErr:    fmt.Errorf("error"),
 		}
 		stderr, stdout := bytes.Buffer{}, bytes.Buffer{}
 		err := fakeE.Command(ExecuteOptions{
 			Stdout: &stdout,
 			Stderr: &stderr,
 		})
-		assert.ErrorIs(t, err, fakeE.outErr)
-		assert.Equal(t, fakeE.outStdout, stdout.String())
-		assert.Equal(t, fakeE.outStderr, stderr.String())
+		assert.ErrorIs(t, err, fakeE.OutErr)
+		assert.Equal(t, fakeE.OutStdout, stdout.String())
+		assert.Equal(t, fakeE.OutStderr, stderr.String())
 	})
 }
 

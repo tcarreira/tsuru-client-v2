@@ -17,13 +17,13 @@ func TestOpen(t *testing.T) {
 	assert.NoError(t, err)
 	switch runtime.GOOS {
 	case "darwin":
-		assert.Equal(t, "open", fEx.calledOpts.Cmd)
-		assert.EqualValues(t, []string{"http://localhost?a=1&b=2"}, fEx.calledOpts.Args)
+		assert.Equal(t, "open", fEx.CalledOpts.Cmd)
+		assert.EqualValues(t, []string{"http://localhost?a=1&b=2"}, fEx.CalledOpts.Args)
 	case "windows":
-		assert.Equal(t, "cmd", fEx.calledOpts.Cmd)
-		assert.Equal(t, []string{"/c", "start", "", "http://localhost?a=1^&b=2"}, fEx.calledOpts.Args)
+		assert.Equal(t, "cmd", fEx.CalledOpts.Cmd)
+		assert.Equal(t, []string{"/c", "start", "", "http://localhost?a=1^&b=2"}, fEx.CalledOpts.Args)
 	default:
-		assert.Equal(t, "xdg-open", fEx.calledOpts.Cmd)
-		assert.Equal(t, []string{"http://localhost?a=1&b=2"}, fEx.calledOpts.Args)
+		assert.Equal(t, "xdg-open", fEx.CalledOpts.Cmd)
+		assert.Equal(t, []string{"http://localhost?a=1&b=2"}, fEx.CalledOpts.Args)
 	}
 }

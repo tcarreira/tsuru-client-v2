@@ -45,19 +45,19 @@ func (*OsExec) Command(opts ExecuteOptions) error {
 var _ Executor = &FakeExec{}
 
 type FakeExec struct {
-	outStderr  string
-	outStdout  string
-	outErr     error
-	calledOpts ExecuteOptions
+	OutStderr  string
+	OutStdout  string
+	OutErr     error
+	CalledOpts ExecuteOptions
 }
 
 func (e *FakeExec) Command(opts ExecuteOptions) error {
 	if opts.Stdout != nil {
-		fmt.Fprint(opts.Stdout, e.outStdout)
+		fmt.Fprint(opts.Stdout, e.OutStdout)
 	}
 	if opts.Stderr != nil {
-		fmt.Fprint(opts.Stderr, e.outStderr)
+		fmt.Fprint(opts.Stderr, e.OutStderr)
 	}
-	e.calledOpts = opts
-	return e.outErr
+	e.CalledOpts = opts
+	return e.OutErr
 }
