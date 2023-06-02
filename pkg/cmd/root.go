@@ -32,20 +32,21 @@ func newRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runRootCmd(tsuruCtx, cmd, args)
 		},
+		PersistentPreRun: rootPersistentPreRun(tsuruCtx),
+		FParseErrWhitelist: cobra.FParseErrWhitelist{
+			UnknownFlags: true,
+		},
+		DisableFlagParsing: true,
 	}
 	rootCmd.SetIn(tsuruCtx.Stdin)
 	rootCmd.SetOut(tsuruCtx.Stdout)
 	rootCmd.SetErr(tsuruCtx.Stderr)
 
-	// Add subcommands
-	rootCmd.AddCommand(app.NewAppCmd(tsuruCtx))
-	rootCmd.AddCommand(auth.NewLoginCmd(tsuruCtx))
-	rootCmd.AddCommand(auth.NewLogoutCmd(tsuruCtx))
-
 	return rootCmd
 }
 
 func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
+	cmd.SilenceUsage = true
 	if len(args) == 0 {
 		cmd.SetOut(tsuruCtx.Stdout)
 		cmd.SetErr(tsuruCtx.Stderr)
@@ -82,13 +83,27 @@ func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []stri
 	return tsuruCtx.Executor.Command(opts)
 }
 
+func rootPersistentPreRun(tsuruCtx *tsuructx.TsuruContext) func(cmd *cobra.Command, args []string) {
+	return func(cmd *cobra.Command, args []string) {
+		if cmd.Flags().Lookup("token") != nil {
+			tsuruCtx.SetToken(cmd.Flag("token").Value.String())
+		}
+		if cmd.Flags().Lookup("target") != nil {
+			tsuruCtx.SetTargetURL(cmd.Flag("target").Value.String())
+		}
+		if v, err := cmd.Flags().GetInt("verbosity"); err != nil {
+			tsuruCtx.SetVerbosity(v)
+		}
+	}
+}
+
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	vip := preSetupViper(viper.GetViper())
 	tsuruCtx := NewProductionTsuruContext(vip, afero.NewOsFs())
 	rootCmd := newRootCmd(tsuruCtx)
-	setupConfig(rootCmd, vip)
+	setupConfig(rootCmd, tsuruCtx)
 
 	err := rootCmd.Execute()
 	if err != nil {
@@ -105,30 +120,37 @@ func preSetupViper(vip *viper.Viper) *viper.Viper {
 }
 
 // setupConfig reads in config file and ENV variables if set.
-func setupConfig(rootCmd *cobra.Command, vip *viper.Viper) {
-	// Persistent Flags
+func setupConfig(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) {
+	// Persistent Flags.
+	// !!! Double bind them inside PersistentPreRun() !!!
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
-	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
+	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)") // TODO: add to PersistentPreRun()
 	rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
 	rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 => print HTTP requests; 2 => print HTTP requests/responses")
 
 	if cfgFile != "" {
 		// Use config file from the flag.
-		vip.SetConfigFile(cfgFile)
+		tsuruCtx.Viper.SetConfigFile(cfgFile)
 	} else {
 		// Search config in home directory with name ".tsuru-client" (without extension).
-		vip.AddConfigPath(config.ConfigPath)
-		vip.SetConfigType("yaml")
-		vip.SetConfigName(".tsuru-client")
+		tsuruCtx.Viper.AddConfigPath(config.ConfigPath)
+		tsuruCtx.Viper.SetConfigType("yaml")
+		tsuruCtx.Viper.SetConfigName(".tsuru-client")
 	}
 
-	vip.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
-	vip.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
+	tsuruCtx.Viper.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
+	tsuruCtx.Viper.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
 
 	// If a config file is found, read it in.
-	if err := vip.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", vip.ConfigFileUsed()) // TODO: handle this better
+	if err := tsuruCtx.Viper.ReadInConfig(); err == nil {
+		fmt.Fprintln(os.Stderr, "Using config file:", tsuruCtx.Viper.ConfigFileUsed()) // TODO: handle this better
 	}
+
+	// Add subcommands
+	rootCmd.AddCommand(app.NewAppCmd(tsuruCtx))
+	rootCmd.AddCommand(auth.NewLoginCmd(tsuruCtx))
+	rootCmd.AddCommand(auth.NewLogoutCmd(tsuruCtx))
+
 }
 
 func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {

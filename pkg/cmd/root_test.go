@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -14,6 +15,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"github.com/tsuru/tsuru-client/internal/config"
+	"github.com/tsuru/tsuru-client/internal/exec"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
@@ -58,7 +61,7 @@ func TestNoFlagRedeclarationOnSubCommands(t *testing.T) {
 func TestPersistentFlagsGetPassedToSubCommand(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	rootCmd := newRootCmd(tsuruCtx)
-	setupConfig(rootCmd, tsuruCtx.Viper)
+	setupConfig(rootCmd, tsuruCtx)
 
 	called := false
 	newCmd := &cobra.Command{
@@ -68,7 +71,9 @@ func TestPersistentFlagsGetPassedToSubCommand(t *testing.T) {
 			if cmd.Flags().Lookup("target") == nil {
 				assert.FailNow(t, "flag target not found from subcommand")
 			}
-			assert.Equal(t, "myNewTarget", cmd.Flag("target").Value.String())
+			assert.Equal(t, "myNewTarget", cmd.Flag("target").Value.String(), "target from cmd.Flag")
+			assert.Equal(t, "myNewTarget", tsuruCtx.Viper.GetString("target"), "target from tsuruCtx.Viper")
+			assert.Equal(t, "myNewTarget", tsuruCtx.TargetURL(), "target from tsuruCtx.TargetURL()")
 		},
 	}
 	rootCmd.AddCommand(newCmd)
@@ -176,5 +181,51 @@ func TestRunRootCmd(t *testing.T) {
 		err := runRootCmd(tsuruCtx, cmd, args)
 		assert.ErrorContains(t, err, "command not found")
 		assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
+	})
+}
+
+func TestRunRootCmdPlugin(t *testing.T) {
+	t.Run("simple_call_plugin", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		_, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
+		assert.NoError(t, err)
+
+		cmd := newRootCmd(tsuruCtx)
+		cmd.SetArgs([]string{"myplugin"})
+		err = cmd.Execute()
+		assert.NoError(t, err)
+
+		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.Equal(t, []string{}, executedOpts.Args)
+	})
+
+	t.Run("call_plugin_with_args", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		_, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
+		assert.NoError(t, err)
+
+		cmd := newRootCmd(tsuruCtx)
+		cmd.SetArgs([]string{"myplugin", "arg1", "arg2"})
+		err = cmd.Execute()
+		assert.NoError(t, err)
+
+		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.Equal(t, []string{"arg1", "arg2"}, executedOpts.Args)
+	})
+
+	t.Run("call_plugin_with_args_and_flags", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
+
+		cmd := newRootCmd(tsuruCtx)
+		cmd.SetArgs([]string{"myplugin", "arg1", "arg2", "-n", "flag1"})
+		err := cmd.Execute()
+		assert.NoError(t, err)
+
+		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.Equal(t, []string{"arg1", "arg2", "-n", "flag1"}, executedOpts.Args)
 	})
 }
