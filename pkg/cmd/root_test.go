@@ -195,7 +195,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		assert.NoError(t, err)
 
 		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
-		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, filepath.Join(".tsuru", "plugins", "myplugin")))
 		assert.Equal(t, []string{}, executedOpts.Args)
 	})
 
@@ -210,7 +210,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		assert.NoError(t, err)
 
 		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
-		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, filepath.Join(".tsuru", "plugins", "myplugin")))
 		assert.Equal(t, []string{"arg1", "arg2"}, executedOpts.Args)
 	})
 
@@ -224,7 +224,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		assert.NoError(t, err)
 
 		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
-		assert.True(t, strings.HasSuffix(executedOpts.Cmd, ".tsuru/plugins/myplugin"))
+		assert.True(t, strings.HasSuffix(executedOpts.Cmd, filepath.Join(".tsuru", "plugins", "myplugin")))
 		assert.Equal(t, []string{"arg1", "arg2", "-n", "flag1"}, executedOpts.Args)
 	})
 }
