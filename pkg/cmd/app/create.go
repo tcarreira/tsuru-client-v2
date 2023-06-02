@@ -16,7 +16,7 @@ import (
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
-func newAppCreateCmd() *cobra.Command {
+func newAppCreateCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appCreateCmd := &cobra.Command{
 		Use:   "create APP [PLATFORM]",
 		Short: "creates a new app",
@@ -69,7 +69,7 @@ $ tsuru app create myapp go
 $ tsuru app create myapp python --plan small --team myteam
 $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appCreateRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return appCreateRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -87,7 +87,7 @@ $ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2
 	return appCreateCmd
 }
 
-func appCreateRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func appCreateRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	var appName, platform string
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name")

@@ -18,7 +18,7 @@ type loginScheme struct {
 	Data map[string]string
 }
 
-func NewLoginCmd() *cobra.Command {
+func NewLoginCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	loginCmd := &cobra.Command{
 		Use:   "login [EMAIL]",
 		Short: "initiates a new tsuru session for a user",
@@ -36,7 +36,7 @@ and [[tsuru version]]).
 		Example: `$ tsuru login
 $ tsuru login example@tsuru.local`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return loginCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return loginCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.RangeArgs(0, 1),
 	}
@@ -44,7 +44,7 @@ $ tsuru login example@tsuru.local`,
 	return loginCmd
 }
 
-func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func loginCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	if tsuruCtx.Token != "" {
 		return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 	}
@@ -65,7 +65,7 @@ func loginCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruCont
 	case "saml":
 		return fmt.Errorf("login is not implemented for saml auth. Please contact the tsuru team")
 	default:
-		return nativeLogin(cmd, args, tsuruCtx)
+		return nativeLogin(tsuruCtx, cmd, args)
 	}
 }
 

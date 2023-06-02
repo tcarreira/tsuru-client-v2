@@ -14,7 +14,7 @@ import (
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
-func newAppDeployCmd() *cobra.Command {
+func newAppDeployCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appDeployCmd := &cobra.Command{
 		Use:   "deploy APP [file-or-dir ...]",
 		Short: "deploy the source code and/or configurations to the application on Tsuru",
@@ -45,7 +45,7 @@ To deploy using container file ("docker build" mode):
     $ tsuru app deploy -a <APP> --dockerfile ./Dockerfile.other ./other/
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appDeployCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return appDeployCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.MinimumNArgs(0),
 	}
@@ -60,7 +60,7 @@ To deploy using container file ("docker build" mode):
 	return appDeployCmd
 }
 
-func appDeployCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func appDeployCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	appName := cmd.Flag("app").Value.String()
 	if appName == "" && len(args) > 0 {
 		appName = args[0]

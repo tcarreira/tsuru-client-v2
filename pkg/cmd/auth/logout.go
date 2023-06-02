@@ -13,7 +13,7 @@ import (
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
-func NewLogoutCmd() *cobra.Command {
+func NewLogoutCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	loginCmd := &cobra.Command{
 		Use:   "logout",
 		Short: "logout will terminate the session with the tsuru server",
@@ -22,7 +22,7 @@ and cleanup the token from the local machine.
 `,
 		Example: `$ tsuru logout`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return logoutCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return logoutCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -30,7 +30,7 @@ and cleanup the token from the local machine.
 	return loginCmd
 }
 
-func logoutCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func logoutCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 	errs := []error{}
 	if tsuruCtx.Token != "" {

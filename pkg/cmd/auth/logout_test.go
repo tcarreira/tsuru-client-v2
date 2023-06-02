@@ -17,7 +17,7 @@ import (
 )
 
 func TestNewLogoutCmd(t *testing.T) {
-	assert.NotNil(t, NewLogoutCmd())
+	assert.NotNil(t, NewLogoutCmd(tsuructx.TsuruContextWithConfig(nil)))
 }
 
 func TestLogoutCmdRun(t *testing.T) {
@@ -49,8 +49,8 @@ func TestLogoutCmdRun(t *testing.T) {
 	f.Close()
 	////////////////////////////////////////////////////////////////////////////
 
-	logoutCmd := NewLogoutCmd()
-	err = logoutCmdRun(logoutCmd, nil, tsuruCtx)
+	logoutCmd := NewLogoutCmd(tsuruCtx)
+	err = logoutCmdRun(tsuruCtx, logoutCmd, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, "Successfully logged out!\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -65,8 +65,8 @@ func TestLogoutCmdRunServerError(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	logoutCmd := NewLogoutCmd()
-	err := logoutCmdRun(logoutCmd, nil, tsuruCtx)
+	logoutCmd := NewLogoutCmd(tsuruCtx)
+	err := logoutCmdRun(tsuruCtx, logoutCmd, nil)
 	assert.ErrorContains(t, err, "unexpected response from server: 403: 403 Forbidden")
 	assert.Equal(t, "Logged out, but some errors occurred:\n", tsuruCtx.Stdout.(*strings.Builder).String())
 }

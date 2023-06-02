@@ -88,7 +88,7 @@ Quota: {{ .QuotaString }}
 `
 )
 
-func newAppInfoCmd() *cobra.Command {
+func newAppInfoCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appInfoCmd := &cobra.Command{
 		Use:   "info [APP]",
 		Short: "shows information about a specific app",
@@ -99,10 +99,12 @@ You need to be a member of a team that has access to the app to be able to see i
 		Example: `$ tsuru app info myapp
 $ tsuru app info -a myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return printAppInfo(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return printAppInfo(tsuruCtx, cmd, args)
 		},
-		ValidArgsFunction: completeAppNames,
-		Args:              cobra.RangeArgs(0, 1),
+		ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+			return completeAppNames(tsuruCtx, cmd, args, toComplete)
+		},
+		Args: cobra.RangeArgs(0, 1),
 	}
 
 	appInfoCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
@@ -111,7 +113,7 @@ $ tsuru app info -a myapp`,
 	return appInfoCmd
 }
 
-func printAppInfo(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func printAppInfo(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 && cmd.Flag("app").Value.String() == "" {
 		return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
 	}

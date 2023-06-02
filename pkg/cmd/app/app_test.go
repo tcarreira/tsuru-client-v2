@@ -10,11 +10,12 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestAppNameAndUnitIDFromArgsOrFlags(t *testing.T) {
 	t.Parallel()
-	newCmd := func() *cobra.Command {
+	newCmd := func(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 		newCmd := &cobra.Command{
 			Args: cobra.RangeArgs(0, 2),
 		}
@@ -45,7 +46,7 @@ func TestAppNameAndUnitIDFromArgsOrFlags(t *testing.T) {
 		{[]string{}, []string{"myapp", "myunit", "tooMany"}, "", "", fmt.Errorf("too many arguments")},
 	} {
 		t.Run(fmt.Sprintf("test %d", i), func(t *testing.T) {
-			cmd := newCmd()
+			cmd := newCmd(tsuructx.TsuruContextWithConfig(nil))
 			cmd.ParseFlags(test.flags)
 			app, unit, err := AppNameAndUnitIDFromArgsOrFlags(cmd, test.args)
 			assert.Equal(t, test.err, err)

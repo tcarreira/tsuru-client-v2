@@ -22,22 +22,22 @@ import (
 	"k8s.io/apimachinery/pkg/api/resource"
 )
 
-func NewAppCmd() *cobra.Command {
+func NewAppCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appCmd := &cobra.Command{
 		Use:   "app",
 		Short: "app is a runnable application running on Tsuru",
 	}
-	appCmd.AddCommand(newAppInfoCmd())
-	appCmd.AddCommand(newAppCreateCmd())
-	appCmd.AddCommand(newAppListCmd())
-	appCmd.AddCommand(newAppShellCmd())
-	appCmd.AddCommand(newAppLogCmd())
-	appCmd.AddCommand(newAppDeployCmd())
+	appCmd.AddCommand(newAppInfoCmd(tsuruCtx))
+	appCmd.AddCommand(newAppCreateCmd(tsuruCtx))
+	appCmd.AddCommand(newAppListCmd(tsuruCtx))
+	appCmd.AddCommand(newAppShellCmd(tsuruCtx))
+	appCmd.AddCommand(newAppLogCmd(tsuruCtx))
+	appCmd.AddCommand(newAppDeployCmd(tsuruCtx))
 	return appCmd
 }
 
-func completeAppNames(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
-	apps, _, err := tsuructx.GetTsuruContextSingleton().Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
+func completeAppNames(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) {
+	apps, _, err := tsuruCtx.Client().AppApi.AppList(cmd.Context(), &tsuru.AppListOpts{
 		Simplified: optional.NewBool(true),
 		Name:       optional.NewString(toComplete),
 	})

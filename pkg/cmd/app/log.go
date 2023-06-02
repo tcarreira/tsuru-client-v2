@@ -21,7 +21,7 @@ import (
 
 const tLogFmt = "2006-01-02 15:04:05 -0700"
 
-func newAppLogCmd() *cobra.Command {
+func newAppLogCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appLogCmd := &cobra.Command{
 		Use:   "log APP [UNIT]",
 		Short: "shows log entries for an application",
@@ -48,7 +48,7 @@ information, useful to very dense logs.
 		Example: `$ tsuru app log myapp
 $ tsuru app log -l 50 -f myapp`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appLogCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return appLogCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -64,7 +64,7 @@ $ tsuru app log -l 50 -f myapp`,
 	return appLogCmd
 }
 
-func appLogCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func appLogCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err

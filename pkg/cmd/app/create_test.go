@@ -40,8 +40,8 @@ func TestV1AppCreate(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -67,8 +67,8 @@ func TestV1AppCreateEmptyPlatform(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
-	err := appCreateRun(appCreateCmd, []string{"ble"}, tsuruCtx)
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -94,9 +94,9 @@ func TestV1AppCreateTeamOwner(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"-t", "myteam"})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -122,9 +122,9 @@ func TestV1AppCreatePlan(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"-p", "myplan"})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -150,9 +150,9 @@ func TestV1AppCreatePool(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"-o", "mypool"})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -180,9 +180,9 @@ func TestV1AppCreateRouterOpts(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"--router-opts", "a=1", "--router-opts", "b=2"})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -208,8 +208,8 @@ func TestV1AppCreateNoRepository(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -222,8 +222,8 @@ func TestV1AppCreateWithInvalidFramework(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
-	err := appCreateRun(appCreateCmd, []string{}, tsuruCtx)
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{})
 	assert.Error(t, err)
 	assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -252,9 +252,9 @@ func TestV1AppCreateWithTags(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"--tag", "tag1", "--tag", "tag2"})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -283,16 +283,16 @@ func TestV1AppCreateWithEmptyTag(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuruCtx)
 	appCreateCmd.Flags().Parse([]string{"--tag", ""})
-	err := appCreateRun(appCreateCmd, []string{"ble", "django"}, tsuruCtx)
+	err := appCreateRun(tsuruCtx, appCreateCmd, []string{"ble", "django"})
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf(expectedFmt, "ble"), tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppCreateInfo(t *testing.T) {
 	var stdout strings.Builder
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuructx.TsuruContextWithConfig(nil))
 	appCreateCmd.SetOutput(&stdout)
 	err := appCreateCmd.Help()
 	assert.NoError(t, err)
@@ -300,7 +300,7 @@ func TestV1AppCreateInfo(t *testing.T) {
 }
 
 func TestV1AppCreateFlags(t *testing.T) {
-	appCreateCmd := newAppCreateCmd()
+	appCreateCmd := newAppCreateCmd(tsuructx.TsuruContextWithConfig(nil))
 	flagset := appCreateCmd.Flags()
 	assert.NotNil(t, flagset)
 
@@ -348,7 +348,7 @@ func TestV1AppCreateFlags(t *testing.T) {
 }
 
 func TestAppCreateIsRegistered(t *testing.T) {
-	appCmd := NewAppCmd()
+	appCmd := NewAppCmd(tsuructx.TsuruContextWithConfig(nil))
 	assert.NotNil(t, appCmd)
 	subCommands := appCmd.Commands()
 	assert.NotNil(t, subCommands)

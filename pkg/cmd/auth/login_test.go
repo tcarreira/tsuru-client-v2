@@ -15,12 +15,11 @@ import (
 )
 
 func TestNewLoginCmd(t *testing.T) {
-	assert.NotNil(t, NewLoginCmd())
+	assert.NotNil(t, NewLoginCmd(tsuructx.TsuruContextWithConfig(nil)))
 }
 
 func TestLoginCmdRunErr(t *testing.T) {
-	tsuructx := tsuructx.TsuruContextWithConfig(nil)
-	err := loginCmdRun(nil, nil, tsuructx)
+	err := loginCmdRun(tsuructx.TsuruContextWithConfig(nil), nil, nil)
 	assert.EqualError(t, err, "this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 }
 

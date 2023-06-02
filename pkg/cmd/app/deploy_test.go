@@ -9,11 +9,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
 
 func TestAppDeployInfo(t *testing.T) {
 	stdout := strings.Builder{}
-	appDeployCmd := newAppDeployCmd()
+	appDeployCmd := newAppDeployCmd(tsuructx.TsuruContextWithConfig(nil))
 	appDeployCmd.SetOutput(&stdout)
 	err := appDeployCmd.Help()
 	assert.NoError(t, err)
@@ -21,7 +22,7 @@ func TestAppDeployInfo(t *testing.T) {
 }
 
 func TestAppDeployIsRegistered(t *testing.T) {
-	appCmd := NewAppCmd()
+	appCmd := NewAppCmd(tsuructx.TsuruContextWithConfig(nil))
 	assert.NotNil(t, appCmd)
 	subCommands := appCmd.Commands()
 	assert.NotNil(t, subCommands)

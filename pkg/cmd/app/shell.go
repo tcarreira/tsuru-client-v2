@@ -30,7 +30,7 @@ import (
 var httpRegexp = regexp.MustCompile(`^http`)
 
 // ShellToContainerCmd
-func newAppShellCmd() *cobra.Command {
+func newAppShellCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appShellCmd := &cobra.Command{
 		Use:   "shell APP [UNIT]",
 		Short: "run shell inside an app unit",
@@ -42,7 +42,7 @@ You can get the ID of the unit using the "app info" command.
 $ tsuru app shell myapp myapp-web-123def-456abc
 $ tsuru app shell myapp --isolated`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appShellCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return appShellCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.RangeArgs(0, 2),
 	}
@@ -53,7 +53,7 @@ $ tsuru app shell myapp --isolated`,
 	return appShellCmd
 }
 
-func appShellCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func appShellCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
 	if err != nil {
 		return err

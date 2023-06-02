@@ -19,7 +19,7 @@ import (
 	"github.com/tsuru/tsuru-client/pkg/printer"
 )
 
-func newAppListCmd() *cobra.Command {
+func newAppListCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	appListCmd := &cobra.Command{
 		Use:   "list",
 		Short: "list apps",
@@ -30,7 +30,7 @@ Flags can be used to filter the list of applications.`,
 $ tsuru app list -n my
 $ tsuru app list --status error`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return appListCmdRun(cmd, args, tsuructx.GetTsuruContextSingleton())
+			return appListCmdRun(tsuruCtx, cmd, args)
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -49,7 +49,7 @@ $ tsuru app list --status error`,
 	return appListCmd
 }
 
-func appListCmdRun(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func appListCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 
 	qs := appListQueryString(cmd, tsuruCtx)

@@ -33,7 +33,8 @@ func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []stri
 }
 
 func TestOverridingFlags(t *testing.T) {
-	rootCmd := newRootCmd()
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	rootCmd := newRootCmd(tsuruCtx)
 	rootCmd.SetOut(io.Discard)
 	rootCmd.SetErr(io.Discard)
 
@@ -79,18 +80,7 @@ func TestProductionOptsNonZeroValues(t *testing.T) {
 }
 
 func TestParseEnvVariables(t *testing.T) {
-	func() { // setupConfig() needs some Target
-		envName := "TSURU_TARGET"
-		if oldEnv, ok := os.LookupEnv(envName); ok {
-			defer os.Setenv(envName, oldEnv)
-		}
-		os.Setenv(envName, "xxx")
-
-		setupConfig(&cobra.Command{})
-		SetupTsuruContextSingleton(viper.GetViper())
-
-		os.Unsetenv(envName)
-	}()
+	vip := preSetupViper(viper.GetViper()) // use global viper here
 
 	t.Run("string envs", func(t *testing.T) {
 		for _, test := range []struct {
@@ -106,7 +96,7 @@ func TestParseEnvVariables(t *testing.T) {
 					defer os.Setenv(test.envName, oldEnv)
 				}
 				os.Setenv(test.envName, "ABCDEFGH")
-				assert.Equal(t, "ABCDEFGH", viper.GetString(test.viperEnvName))
+				assert.Equal(t, "ABCDEFGH", vip.GetString(test.viperEnvName))
 				os.Unsetenv(test.envName)
 			}()
 		}
@@ -124,7 +114,7 @@ func TestParseEnvVariables(t *testing.T) {
 					defer os.Setenv(test.envName, oldEnv)
 				}
 				os.Setenv(test.envName, "123")
-				assert.Equal(t, 123, viper.GetInt(test.viperEnvName))
+				assert.Equal(t, 123, vip.GetInt(test.viperEnvName))
 				os.Unsetenv(test.envName)
 			}()
 		}
@@ -142,7 +132,7 @@ func TestParseEnvVariables(t *testing.T) {
 					defer os.Setenv(test.envName, oldEnv)
 				}
 				os.Setenv(test.envName, "t")
-				assert.Equal(t, true, viper.GetBool(test.viperEnvName))
+				assert.Equal(t, true, vip.GetBool(test.viperEnvName))
 				os.Unsetenv(test.envName)
 			}()
 		}
@@ -151,10 +141,10 @@ func TestParseEnvVariables(t *testing.T) {
 
 func TestRunRootCmd(t *testing.T) {
 	t.Run("with no args", func(t *testing.T) {
-		cmd := newRootCmd()
-		args := []string{}
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-		err := runRootCmd(cmd, args, tsuruCtx)
+		cmd := newRootCmd(tsuruCtx)
+		args := []string{}
+		err := runRootCmd(tsuruCtx, cmd, args)
 		assert.NoError(t, err)
 		assert.Contains(t, tsuruCtx.Stdout.(*strings.Builder).String(), "A command-line interface for interacting with tsuru")
 	})
@@ -163,7 +153,7 @@ func TestRunRootCmd(t *testing.T) {
 		cmd := &cobra.Command{}
 		args := []string{"plugin", "arg2"}
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-		err := runRootCmd(cmd, args, tsuruCtx)
+		err := runRootCmd(tsuruCtx, cmd, args)
 		assert.ErrorContains(t, err, "command not found")
 		assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
 	})

@@ -25,29 +25,24 @@ var (
 	cfgFile string
 )
 
-func newRootCmd() *cobra.Command {
+func newRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	rootCmd := &cobra.Command{
 		Use:   "tsuru",
 		Short: "A command-line interface for interacting with tsuru",
-		RunE:  func(cmd *cobra.Command, args []string) error { return fmt.Errorf("placeholder") },
-	}
-
-	// Setup cli
-	setupConfig(rootCmd)
-	SetupTsuruContextSingleton(viper.GetViper())
-	rootCmd.RunE = func(cmd *cobra.Command, args []string) error { // only after SetupTsuruClientSingleton()
-		return runRootCmd(cmd, args, tsuructx.GetTsuruContextSingleton())
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runRootCmd(tsuruCtx, cmd, args)
+		},
 	}
 
 	// Add subcommands
-	rootCmd.AddCommand(app.NewAppCmd())
-	rootCmd.AddCommand(auth.NewLoginCmd())
-	rootCmd.AddCommand(auth.NewLogoutCmd())
+	rootCmd.AddCommand(app.NewAppCmd(tsuruCtx))
+	rootCmd.AddCommand(auth.NewLoginCmd(tsuruCtx))
+	rootCmd.AddCommand(auth.NewLogoutCmd(tsuruCtx))
 
 	return rootCmd
 }
 
-func runRootCmd(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	if len(args) == 0 {
 		cmd.SetOut(tsuruCtx.Stdout)
 		cmd.SetErr(tsuruCtx.Stderr)
@@ -55,7 +50,7 @@ func runRootCmd(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruConte
 	}
 
 	pluginName := args[0]
-	if viper.GetString("plugin-name") == pluginName {
+	if tsuruCtx.Viper.GetString("plugin-name") == pluginName {
 		return fmt.Errorf("failing trying to run recursive plugin")
 	}
 
@@ -87,14 +82,27 @@ func runRootCmd(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruConte
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	err := newRootCmd().Execute()
+	vip := preSetupViper(viper.GetViper())
+	tsuruCtx := NewProductionTsuruContext(vip, afero.NewOsFs())
+	rootCmd := newRootCmd(tsuruCtx)
+	setupConfig(rootCmd, vip)
+
+	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
+// preSetupViper is supposed to be called before NewProductionTsuruContext()
+func preSetupViper(vip *viper.Viper) *viper.Viper {
+	vip.SetEnvPrefix("tsuru")
+	vip.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	vip.AutomaticEnv() // read in environment variables that match
+	return vip
+}
+
 // setupConfig reads in config file and ENV variables if set.
-func setupConfig(rootCmd *cobra.Command) {
+func setupConfig(rootCmd *cobra.Command, vip *viper.Viper) {
 	// Persistent Flags
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
 	rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)")
@@ -103,47 +111,43 @@ func setupConfig(rootCmd *cobra.Command) {
 
 	if cfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		vip.SetConfigFile(cfgFile)
 	} else {
 		// Search config in home directory with name ".tsuru-client" (without extension).
-		viper.AddConfigPath(config.ConfigPath)
-		viper.SetConfigType("yaml")
-		viper.SetConfigName(".tsuru-client")
+		vip.AddConfigPath(config.ConfigPath)
+		vip.SetConfigType("yaml")
+		vip.SetConfigName(".tsuru-client")
 	}
 
-	viper.SetEnvPrefix("tsuru")
-	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
-	viper.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
-	viper.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
-	viper.AutomaticEnv() // read in environment variables that match
+	vip.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
+	vip.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err == nil {
+	if err := vip.ReadInConfig(); err == nil {
 		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed()) // TODO: handle this better
 	}
 }
 
-func SetupTsuruContextSingleton(vip *viper.Viper) {
-	osFs := afero.NewOsFs()
+func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {
 	var err error
 
 	// Get target
 	target := vip.GetString("target")
 	if target == "" {
-		target, err = config.GetCurrentTargetFromFs(osFs)
+		target, err = config.GetCurrentTargetFromFs(fs)
 		cobra.CheckErr(err)
 	}
-	target, err = config.GetTargetURL(osFs, target)
+	target, err = config.GetTargetURL(fs, target)
 	cobra.CheckErr(err)
 
 	// Get token
 	token := vip.GetString("token")
 	if token == "" {
-		token, err = config.GetTokenFromFs(osFs)
+		token, err = config.GetTokenFromFs(fs)
 		cobra.CheckErr(err)
 	}
 
-	tsuructx.SetupTsuruContextSingleton(productionOpts(osFs, token, target, vip))
+	return tsuructx.TsuruContextWithConfig(productionOpts(fs, token, target, vip))
 }
 
 func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuructx.TsuruContextOpts {

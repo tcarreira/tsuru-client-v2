@@ -45,9 +45,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -76,9 +76,9 @@ Units: 2
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -141,9 +141,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -177,9 +177,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -271,9 +271,9 @@ Routers:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -308,9 +308,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -345,9 +345,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -381,9 +381,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -417,9 +417,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -457,9 +457,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -536,9 +536,9 @@ Units [process worker]: 2
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -646,9 +646,9 @@ Units [process worker] [version 2] [routable]: 1
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -741,9 +741,9 @@ Auto Scale:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -769,9 +769,9 @@ Quota: 0/0 units
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -797,9 +797,9 @@ Quota: 0/0 units
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -835,9 +835,9 @@ Units: 2
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -872,9 +872,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -916,9 +916,9 @@ Service instances: 1
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -961,9 +961,9 @@ Service instances: 2
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1005,9 +1005,9 @@ App Plan:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1055,9 +1055,9 @@ App Plan:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1105,9 +1105,9 @@ App Plan:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1169,9 +1169,9 @@ Units: 3
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1212,9 +1212,9 @@ Cluster internal addresses:
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
@@ -1263,10 +1263,10 @@ Volumes: 1
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
 
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 	assert.NoError(t, err)
 	assert.Equal(t, expected, tsuruCtx.Stdout.(*strings.Builder).String())
 }
@@ -1279,17 +1279,17 @@ func TestAppInfoAppNotFound(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	tsuruCtx.TargetURL = mockServer.URL
 
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "myapp"})
 
-	err := printAppInfo(appInfoCmd, []string{}, tsuruCtx)
+	err := printAppInfo(tsuruCtx, appInfoCmd, []string{})
 	assert.ErrorContains(t, err, `app "myapp" not found`)
 	assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
 }
 
 func TestV1AppInfoInfo(t *testing.T) {
 	var stdout strings.Builder
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuructx.TsuruContextWithConfig(nil))
 	appInfoCmd.SetOutput(&stdout)
 	err := appInfoCmd.Help()
 	assert.NoError(t, err)
@@ -1297,13 +1297,13 @@ func TestV1AppInfoInfo(t *testing.T) {
 }
 
 func TestV1AppInfoFlags(t *testing.T) {
-	appInfoCmd := newAppInfoCmd()
+	appInfoCmd := newAppInfoCmd(tsuructx.TsuruContextWithConfig(nil))
 	flag := appInfoCmd.Flag("app")
 	assert.NotNil(t, flag)
 }
 
 func TestAppInfoIsRegistered(t *testing.T) {
-	appCmd := NewAppCmd()
+	appCmd := NewAppCmd(tsuructx.TsuruContextWithConfig(nil))
 	assert.NotNil(t, appCmd)
 	subCommands := appCmd.Commands()
 	assert.NotNil(t, subCommands)

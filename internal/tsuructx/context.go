@@ -16,8 +16,6 @@ import (
 	"github.com/tsuru/tsuru-client/internal/exec"
 )
 
-var tsuruContextSingleton *TsuruContext
-
 type TsuruContext struct {
 	TsuruContextOpts
 }
@@ -74,18 +72,6 @@ type DescriptorReader interface {
 	Fd() uintptr
 }
 
-func GetTsuruContextSingleton() *TsuruContext {
-	if tsuruContextSingleton == nil {
-		SetupTsuruContextSingleton(nil)
-	}
-	return tsuruContextSingleton
-}
-
-// SetupTsuruContextSingleton configures the tsuruContext to be returned by GetTsuruContextSingleton().
-func SetupTsuruContextSingleton(opts *TsuruContextOpts) {
-	tsuruContextSingleton = TsuruContextWithConfig(opts)
-}
-
 func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 	return &TsuruContextOpts{
 		Verbosity:          0,
@@ -94,6 +80,7 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 		AuthScheme:         "",
 		Executor:           &exec.FakeExec{},
 		Fs:                 afero.NewMemMapFs(),
+		Viper:              viper.New(),
 
 		UserAgent: "tsuru-client:testing",
 		TargetURL: "http://example.local:8080",

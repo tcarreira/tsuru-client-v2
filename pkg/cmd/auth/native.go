@@ -17,7 +17,7 @@ import (
 	"golang.org/x/term"
 )
 
-func nativeLogin(cmd *cobra.Command, args []string, tsuruCtx *tsuructx.TsuruContext) error {
+func nativeLogin(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	var email string
 	if len(args) > 0 {
 		email = args[0]
