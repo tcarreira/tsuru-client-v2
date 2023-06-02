@@ -61,10 +61,10 @@ func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []stri
 
 	envs := os.Environ()
 	tsuruEnvs := []string{
-		"TSURU_TARGET=" + tsuruCtx.TargetURL,
-		"TSURU_TOKEN=" + tsuruCtx.Token,
+		"TSURU_TARGET=" + tsuruCtx.TargetURL(),
+		"TSURU_TOKEN=" + tsuruCtx.Token(),
+		"TSURU_VERBOSITY=" + fmt.Sprintf("%d", tsuruCtx.Verbosity()),
 		"TSURU_PLUGIN_NAME=" + pluginName,
-		"TSURU_VERBOSITY=" + fmt.Sprintf("%d", tsuruCtx.Verbosity),
 	}
 	envs = append(envs, tsuruEnvs...)
 
@@ -139,6 +139,7 @@ func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruCon
 	}
 	target, err = config.GetTargetURL(fs, target)
 	cobra.CheckErr(err)
+	vip.Set("target", target)
 
 	// Get token
 	token := vip.GetString("token")
@@ -146,13 +147,13 @@ func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruCon
 		token, err = config.GetTokenFromFs(fs)
 		cobra.CheckErr(err)
 	}
+	vip.Set("token", token)
 
-	return tsuructx.TsuruContextWithConfig(productionOpts(fs, token, target, vip))
+	return tsuructx.TsuruContextWithConfig(productionOpts(fs, vip))
 }
 
-func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuructx.TsuruContextOpts {
+func productionOpts(fs afero.Fs, vip *viper.Viper) *tsuructx.TsuruContextOpts {
 	return &tsuructx.TsuruContextOpts{
-		Verbosity:          vip.GetInt("verbosity"),
 		InsecureSkipVerify: vip.GetBool("insecure-skip-verify"),
 		LocalTZ:            time.Local,
 		AuthScheme:         vip.GetString("auth-scheme"),
@@ -161,8 +162,6 @@ func productionOpts(fs afero.Fs, token, target string, vip *viper.Viper) *tsuruc
 		Viper:              vip,
 
 		UserAgent: "tsuru-client:" + Version,
-		TargetURL: target,
-		Token:     token,
 
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,

@@ -5,7 +5,6 @@
 package cmd
 
 import (
-	"io"
 	"os"
 	"reflect"
 	"strings"
@@ -32,11 +31,9 @@ func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []stri
 	}
 }
 
-func TestOverridingFlags(t *testing.T) {
+func TestNoFlagRedeclarationOnSubCommands(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 	rootCmd := newRootCmd(tsuruCtx)
-	rootCmd.SetOut(io.Discard)
-	rootCmd.SetErr(io.Discard)
 
 	cmdPathChan := make(chan []string)
 	go func() {
@@ -60,11 +57,10 @@ func TestOverridingFlags(t *testing.T) {
 
 func TestProductionOptsNonZeroValues(t *testing.T) {
 	vip := viper.New()
-	vip.Set("verbosity", 1)
 	vip.Set("insecure-skip-verify", true)
 	vip.Set("auth-scheme", true)
 
-	opts := productionOpts(afero.NewMemMapFs(), "abc", "target", vip)
+	opts := productionOpts(afero.NewMemMapFs(), vip)
 	value := reflect.ValueOf(opts).Elem()
 	errCount := 0
 	for i := 0; i < value.NumField(); i++ {
@@ -82,7 +78,7 @@ func TestProductionOptsNonZeroValues(t *testing.T) {
 func TestParseEnvVariables(t *testing.T) {
 	vip := preSetupViper(viper.GetViper()) // use global viper here
 
-	t.Run("string envs", func(t *testing.T) {
+	t.Run("string_envs", func(t *testing.T) {
 		for _, test := range []struct {
 			viperEnvName string
 			envName      string
@@ -102,7 +98,7 @@ func TestParseEnvVariables(t *testing.T) {
 		}
 	})
 
-	t.Run("Int envs", func(t *testing.T) {
+	t.Run("Int_envs", func(t *testing.T) {
 		for _, test := range []struct {
 			viperEnvName string
 			envName      string
@@ -120,7 +116,7 @@ func TestParseEnvVariables(t *testing.T) {
 		}
 	})
 
-	t.Run("Bool envs", func(t *testing.T) {
+	t.Run("Bool_envs", func(t *testing.T) {
 		for _, test := range []struct {
 			viperEnvName string
 			envName      string
@@ -140,7 +136,7 @@ func TestParseEnvVariables(t *testing.T) {
 }
 
 func TestRunRootCmd(t *testing.T) {
-	t.Run("with no args", func(t *testing.T) {
+	t.Run("with_no_args", func(t *testing.T) {
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 		cmd := newRootCmd(tsuruCtx)
 		args := []string{}
@@ -149,7 +145,7 @@ func TestRunRootCmd(t *testing.T) {
 		assert.Contains(t, tsuruCtx.Stdout.(*strings.Builder).String(), "A command-line interface for interacting with tsuru")
 	})
 
-	t.Run("not found command", func(t *testing.T) {
+	t.Run("not_found_command", func(t *testing.T) {
 		cmd := &cobra.Command{}
 		args := []string{"plugin", "arg2"}
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)

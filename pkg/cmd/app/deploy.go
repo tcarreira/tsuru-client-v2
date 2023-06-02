@@ -116,7 +116,7 @@ func appDeployCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args [
 
 	// ----
 	debugWriter := io.Discard
-	debug := tsuruCtx.Verbosity > 0 // e.g. --verbosity 2
+	debug := tsuruCtx.Verbosity() > 0 // e.g. --verbosity 2
 	if debug {
 		debugWriter = tsuruCtx.Stderr
 	}

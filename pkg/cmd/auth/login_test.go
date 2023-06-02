@@ -30,7 +30,7 @@ func TestGetAuthScheme(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	authScheme, err := getAuthScheme(tsuruCtx)
 	assert.NoError(t, err)
@@ -45,7 +45,7 @@ func TestLoginGetSchemeInvalidData(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	authScheme, err := getAuthScheme(tsuruCtx)
 	assert.Error(t, err)

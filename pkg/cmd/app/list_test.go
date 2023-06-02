@@ -28,7 +28,7 @@ func TestV1AppList(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -51,7 +51,7 @@ func TestV1AppListDisplayAppsInAlphabeticalOrder(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -72,7 +72,7 @@ func TestV1AppListUnitIsntAvailable(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -93,7 +93,7 @@ func TestV1AppListErrorFetchingUnits(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -108,8 +108,8 @@ func TestV1AppListErrorFetchingUnitsVerbose(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
-	tsuruCtx.Verbosity = 1
+	tsuruCtx.SetTargetURL(mockServer.URL)
+	tsuruCtx.SetVerbosity(1)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -145,7 +145,7 @@ func TestV1AppListUnitWithoutID(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -167,7 +167,7 @@ func TestAppListCName(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	err := appListCmdRun(tsuruCtx, appListCmd, []string{})
@@ -200,7 +200,7 @@ func TestV1AppListFiltering(t *testing.T) {
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	appListCmd.Flags().Parse([]string{"-p", "python", "--locked", "--user", "glenda@tsuru.io", "-t", "tsuru", "--name", "myapp", "--pool", "pool", "--status", "started", "--tag", "tag a", "--tag", "tag b"})
@@ -234,7 +234,7 @@ func TestV1AppListFilteringMe(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	appListCmd.Flags().Parse([]string{"-u", "me"})
@@ -270,7 +270,7 @@ func TestV1AppListSortByCountAndStatus(t *testing.T) {
 		httpServerState++
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	appListCmd.Flags().Parse([]string{"-u", "me"})
@@ -292,7 +292,7 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	appListCmd.Flags().Parse([]string{"-q"})
@@ -317,7 +317,7 @@ app3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appListCmd := newAppListCmd(tsuruCtx)
 	appListCmd.Flags().Parse([]string{"-p", "python", "-q"})

@@ -34,7 +34,7 @@ func TestCallbackHandler(t *testing.T) {
 	redirectURL := "someurl"
 	finish := make(chan bool, 1)
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	callbackHandler := callback(tsuruCtx, redirectURL, finish)
 	request, err := http.NewRequest("GET", "/", strings.NewReader(`{"code":"xpto"}`))
@@ -69,7 +69,7 @@ func TestOauthLogin(t *testing.T) {
 		"authorizeUrl": authServer.URL + "/authorize?redirect_uri=__redirect_url__",
 	}}
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 	tsuruCtx.Executor = &mockExec{url: authServer.URL}
 
 	err := oauthLogin(tsuruCtx, &ls)
@@ -100,7 +100,7 @@ func TestOauthLoginSaveAlias(t *testing.T) {
 		"authorizeUrl": authServer.URL + "/authorize?redirect_uri=__redirect_url__",
 	}}
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 	tsuruCtx.Executor = &mockExec{url: authServer.URL}
 
 	// setup current fs state //////////////////////////////////////////////////

@@ -22,7 +22,6 @@ type TsuruContext struct {
 
 type TsuruContextOpts struct {
 	// Verbosity is the verbosity level for tsuru client. Should be 1 ou 2
-	Verbosity int
 	// InsecureSkipVerify will skip TLS verification (not applied to websockets)
 	InsecureSkipVerify bool
 	// LocalTZ is the local timezone
@@ -37,12 +36,29 @@ type TsuruContextOpts struct {
 	Viper *viper.Viper
 
 	UserAgent string
-	TargetURL string
-	Token     string
 
 	Stdout io.Writer
 	Stderr io.Writer
 	Stdin  DescriptorReader
+}
+
+func (tc *TsuruContext) Verbosity() int {
+	return tc.Viper.GetInt("verbosity")
+}
+func (tc *TsuruContext) TargetURL() string {
+	return tc.Viper.GetString("target")
+}
+func (tc *TsuruContext) Token() string {
+	return tc.Viper.GetString("token")
+}
+func (tc *TsuruContext) SetVerbosity(value int) {
+	tc.Viper.Set("verbosity", value)
+}
+func (tc *TsuruContext) SetTargetURL(value string) {
+	tc.Viper.Set("target", value)
+}
+func (tc *TsuruContext) SetToken(value string) {
+	tc.Viper.Set("token", value)
 }
 
 // Config is the tsuru client configuration
@@ -51,7 +67,7 @@ func (c *TsuruContext) Config() *tsuru.Configuration {
 	if cfg.HTTPClient == nil {
 		cfg.HTTPClient = http.DefaultClient
 	}
-	cfg.BasePath = c.TargetURL
+	cfg.BasePath = c.TargetURL()
 	cfg.UserAgent = c.UserAgent
 	cfg.HTTPClient.Transport = c.httpTransportWrapper(cfg.HTTPClient.Transport)
 	return cfg
@@ -72,19 +88,16 @@ type DescriptorReader interface {
 	Fd() uintptr
 }
 
-func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
+func DefaultTestingTsuruContextOptions(vip *viper.Viper) *TsuruContextOpts {
 	return &TsuruContextOpts{
-		Verbosity:          0,
 		InsecureSkipVerify: false,
 		LocalTZ:            time.UTC,
 		AuthScheme:         "",
 		Executor:           &exec.FakeExec{},
 		Fs:                 afero.NewMemMapFs(),
-		Viper:              viper.New(),
+		Viper:              vip,
 
 		UserAgent: "tsuru-client:testing",
-		TargetURL: "http://example.local:8080",
-		Token:     "sometoken",
 
 		Stdout: &strings.Builder{},
 		Stderr: &strings.Builder{},
@@ -96,7 +109,11 @@ func DefaultTestingTsuruContextOptions() *TsuruContextOpts {
 func TsuruContextWithConfig(opts *TsuruContextOpts) *TsuruContext {
 	if opts == nil {
 		// defaults for testing
-		opts = DefaultTestingTsuruContextOptions()
+		vip := viper.New()
+		vip.Set("target", "http://example.local:8080")
+		vip.Set("token", "sometoken")
+		vip.Set("verbosity", 0)
+		opts = DefaultTestingTsuruContextOptions(vip)
 	}
 
 	tsuruCtx := &TsuruContext{

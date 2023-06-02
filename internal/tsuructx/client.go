@@ -35,8 +35,8 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 
 	req.Header.Set("X-Tsuru-Verbosity", "0")
 	// Verbosity level=1: log request
-	if t.tsuruCtx.Verbosity >= 1 {
-		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.tsuruCtx.Verbosity))
+	if t.tsuruCtx.Verbosity() >= 1 {
+		req.Header.Set("X-Tsuru-Verbosity", strconv.Itoa(t.tsuruCtx.Verbosity()))
 		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** <Request uri=%q> **********************************\n", req.URL.RequestURI())
 		requestDump, err := httputil.DumpRequest(req, true)
 		if err != nil {
@@ -52,7 +52,7 @@ func (t *TsuruClientHTTPTransport) RoundTrip(req *http.Request) (*http.Response,
 	response, err := t.transport.RoundTrip(req)
 
 	// Verbosity level=2: log response
-	if t.tsuruCtx.Verbosity >= 2 && response != nil {
+	if t.tsuruCtx.Verbosity() >= 2 && response != nil {
 		fmt.Fprintf(t.tsuruCtx.Stdout, "*************************** <Response uri=%q> **********************************\n", req.URL.RequestURI())
 		responseDump, errDump := httputil.DumpResponse(response, true)
 		if errDump != nil {
@@ -86,7 +86,7 @@ func tsuruDefaultHeadersFromContext(tsuruCtx *TsuruContext) map[string]string {
 		result["User-Agent"] = "tsuru-client"
 	}
 	if result["Authorization"] == "" {
-		result["Authorization"] = "bearer " + tsuruCtx.Token
+		result["Authorization"] = "bearer " + tsuruCtx.Token()
 	}
 	if result["Accept"] == "" {
 		result["Accept"] = "application/json"
@@ -96,14 +96,14 @@ func tsuruDefaultHeadersFromContext(tsuruCtx *TsuruContext) map[string]string {
 
 // NewRequest creates a new http.Request with the correct base path.
 func (tc *TsuruContext) NewRequest(method string, url string, body io.Reader) (*http.Request, error) {
-	if !strings.HasPrefix(url, tc.TargetURL) {
+	if !strings.HasPrefix(url, tc.TargetURL()) {
 		if !strings.HasPrefix(url, "/") {
 			url = "/" + url
 		}
 		if !regexp.MustCompile(`^/[0-9]+\.[0-9]+/`).MatchString(url) {
 			url = "/1.0" + url
 		}
-		url = strings.TrimRight(tc.TargetURL, "/") + url
+		url = strings.TrimRight(tc.TargetURL(), "/") + url
 	}
 	return http.NewRequest(method, url, body)
 }

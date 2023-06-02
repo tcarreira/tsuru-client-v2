@@ -28,7 +28,7 @@ func TestLogoutCmdRun(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	// setup current fs state //////////////////////////////////////////////////
 	f, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "target"))
@@ -63,7 +63,7 @@ func TestLogoutCmdRunServerError(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	logoutCmd := NewLogoutCmd(tsuruCtx)
 	err := logoutCmdRun(tsuruCtx, logoutCmd, nil)

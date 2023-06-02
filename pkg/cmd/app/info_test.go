@@ -43,7 +43,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -74,7 +74,7 @@ Units: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1", "-s"})
@@ -139,7 +139,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -175,7 +175,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -269,7 +269,7 @@ Routers:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -306,7 +306,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -343,7 +343,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -379,7 +379,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -415,7 +415,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -455,7 +455,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -534,7 +534,7 @@ Units [process worker]: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -644,7 +644,7 @@ Units [process worker] [version 2] [routable]: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -739,7 +739,7 @@ Auto Scale:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -767,7 +767,7 @@ Quota: 0/0 units
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -795,7 +795,7 @@ Quota: 0/0 units
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"--app", "app1"})
@@ -833,7 +833,7 @@ Units: 2
 		}
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -870,7 +870,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -914,7 +914,7 @@ Service instances: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -959,7 +959,7 @@ Service instances: 2
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1003,7 +1003,7 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1053,7 +1053,7 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1103,7 +1103,7 @@ App Plan:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1167,7 +1167,7 @@ Units: 3
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1210,7 +1210,7 @@ Cluster internal addresses:
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1261,7 +1261,7 @@ Volumes: 1
 		fmt.Fprintln(w, result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "secret"})
@@ -1277,7 +1277,7 @@ func TestAppInfoAppNotFound(t *testing.T) {
 		fmt.Fprintln(w, "App myapp not found")
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appInfoCmd := newAppInfoCmd(tsuruCtx)
 	appInfoCmd.Flags().Parse([]string{"-a", "myapp"})

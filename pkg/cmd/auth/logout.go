@@ -33,7 +33,7 @@ and cleanup the token from the local machine.
 func logoutCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
 	cmd.SilenceUsage = true
 	errs := []error{}
-	if tsuruCtx.Token != "" {
+	if tsuruCtx.Token() != "" {
 		func() {
 			request, err := tsuruCtx.NewRequest("DELETE", "/users/tokens", nil)
 			if err != nil {

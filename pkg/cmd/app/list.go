@@ -77,7 +77,7 @@ func appListCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []s
 		format = "json"
 	}
 
-	return printAppList(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity, apps)
+	return printAppList(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity(), apps)
 }
 
 func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []app) error {

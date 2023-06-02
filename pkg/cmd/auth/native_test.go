@@ -29,9 +29,9 @@ func TestNativeLogin(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
-	tsuruCtx.Token = ""
+	tsuruCtx.SetToken("")
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("foo@foo.com\nchico\n")}
 
@@ -53,9 +53,9 @@ func TestNativeLoginWithoutEmailFromArg(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
-	tsuruCtx.Token = ""
+	tsuruCtx.SetToken("")
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("chico\n")}
 
@@ -77,9 +77,9 @@ func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
 	}))
 
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
-	tsuruCtx.Token = ""
+	tsuruCtx.SetToken("")
 	tsuruCtx.AuthScheme = "native"
 	tsuruCtx.Stdin = &tsuructx.FakeStdin{Reader: strings.NewReader("chico\n")}
 
@@ -97,7 +97,7 @@ func TestNativeLoginShouldNotDependOnTsuruTokenFile(t *testing.T) {
 
 func TestNativeLoginNoPasswordError(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.Token = ""
+	tsuruCtx.SetToken("")
 	tsuruCtx.AuthScheme = "native"
 
 	cmd := NewLoginCmd(tsuruCtx)

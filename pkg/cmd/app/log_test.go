@@ -75,7 +75,7 @@ func TestV1AppLog(t *testing.T) {
 		w.Write(result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
@@ -102,7 +102,7 @@ func TestV1AppLogWithUnparsableData(t *testing.T) {
 		fmt.Fprint(w, string(result)+"\nunparseable data")
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
@@ -134,7 +134,7 @@ func TestV1AppLogWithoutTheFlag(t *testing.T) {
 		w.Write(result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"--app", "hitthelights"})
@@ -149,7 +149,7 @@ func TestV1AppLogShouldReturnNilIfHasNoContent(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"--app", "appName"})
@@ -175,7 +175,7 @@ func TestV1AppLogBySource(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--source", "mysource"})
@@ -191,7 +191,7 @@ func TestV1AppLogByUnit(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--unit", "api"})
@@ -207,7 +207,7 @@ func TestV1AppLogWithLines(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12"})
@@ -224,7 +224,7 @@ func TestV1AppLogWithFollow(t *testing.T) {
 		w.Write(nil)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f"})
@@ -252,7 +252,7 @@ func TestV1AppLogWithNoDateAndNoSource(t *testing.T) {
 		w.Write(result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-date", "--no-source"})
@@ -285,7 +285,7 @@ func TestV1AppLogWithNoSource(t *testing.T) {
 		w.Write(result)
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appLogCmd := newAppLogCmd(tsuruCtx)
 	appLogCmd.Flags().Parse([]string{"-a", "hitthelights", "--lines", "12", "-f", "--no-source"})

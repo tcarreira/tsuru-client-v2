@@ -52,7 +52,7 @@ func TestV1AppShellRunWithApp(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	appShellCmd := newAppShellCmd(tsuruCtx)
 	appShellCmd.Flags().Parse([]string{"--app", "myapp"})
@@ -73,7 +73,7 @@ func TestV1AppShellWithUnit(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	tsuruCtx.Stdin = nil
 
@@ -96,7 +96,7 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	tsuruCtx.Stdin = nil
 
@@ -109,7 +109,7 @@ func TestAppShellWithUnitAppFromArgs(t *testing.T) {
 func TestV1AppShellCmdConnectionRefused(t *testing.T) {
 	mockServer := httptest.NewServer(nil)
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	tsuruCtx.Stdin = nil
 	mockServer.Close()
@@ -160,7 +160,7 @@ func TestAppShellSendStdin(t *testing.T) {
 		ws.Close()
 	}))
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	tsuruCtx.TargetURL = mockServer.URL
+	tsuruCtx.SetTargetURL(mockServer.URL)
 
 	tsuruCtx.Stdin = stdin
 
