@@ -25,23 +25,29 @@ var (
 	cfgFile string
 )
 
-func newRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
-	rootCmd := &cobra.Command{
-		Use:   "tsuru",
-		Short: "A command-line interface for interacting with tsuru",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runRootCmd(tsuruCtx, cmd, args)
-		},
-		PersistentPreRun: rootPersistentPreRun(tsuruCtx),
-		FParseErrWhitelist: cobra.FParseErrWhitelist{
-			UnknownFlags: true,
-		},
-		DisableFlagParsing: true,
-	}
-	rootCmd.SetIn(tsuruCtx.Stdin)
-	rootCmd.SetOut(tsuruCtx.Stdout)
-	rootCmd.SetErr(tsuruCtx.Stderr)
+var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
+	app.NewAppCmd,
+	auth.NewLoginCmd,
+	auth.NewLogoutCmd,
+}
 
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute() {
+	rootCmd := newRootCmd(viper.GetViper(), nil)
+	err := rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
+}
+
+func newRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
+	vip = preSetupViper(vip)
+	if tsuruCtx == nil {
+		tsuruCtx = NewProductionTsuruContext(vip, afero.NewOsFs())
+	}
+	rootCmd := newBareRootCmd(tsuruCtx)
+	setupPFlagsAndCommands(rootCmd, tsuruCtx)
 	return rootCmd
 }
 
@@ -85,30 +91,38 @@ func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []stri
 
 func rootPersistentPreRun(tsuruCtx *tsuructx.TsuruContext) func(cmd *cobra.Command, args []string) {
 	return func(cmd *cobra.Command, args []string) {
-		if cmd.Flags().Lookup("token") != nil {
-			tsuruCtx.SetToken(cmd.Flag("token").Value.String())
-		}
-		if cmd.Flags().Lookup("target") != nil {
-			tsuruCtx.SetTargetURL(cmd.Flag("target").Value.String())
+		if l := cmd.Flags().Lookup("target"); l != nil && l.Value.String() != "" {
+			fmt.Println("debug: setting target", cmd.Flag("target").Value.String())
+			tsuruCtx.SetTargetURL(l.Value.String())
 		}
 		if v, err := cmd.Flags().GetInt("verbosity"); err != nil {
+			fmt.Println("debug: setting verbosity")
 			tsuruCtx.SetVerbosity(v)
 		}
 	}
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	vip := preSetupViper(viper.GetViper())
-	tsuruCtx := NewProductionTsuruContext(vip, afero.NewOsFs())
-	rootCmd := newRootCmd(tsuruCtx)
-	setupConfig(rootCmd, tsuruCtx)
+func newBareRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
+	rootCmd := &cobra.Command{
+		Use:   "tsuru",
+		Short: "A command-line interface for interacting with tsuru",
 
-	err := rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
+		PersistentPreRun: rootPersistentPreRun(tsuruCtx),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runRootCmd(tsuruCtx, cmd, args)
+		},
+		Args: cobra.MinimumNArgs(0),
+
+		FParseErrWhitelist: cobra.FParseErrWhitelist{
+			UnknownFlags: true,
+		},
+		DisableFlagParsing: true,
 	}
+	rootCmd.SetIn(tsuruCtx.Stdin)
+	rootCmd.SetOut(tsuruCtx.Stdout)
+	rootCmd.SetErr(tsuruCtx.Stderr)
+
+	return rootCmd
 }
 
 // preSetupViper is supposed to be called before NewProductionTsuruContext()
@@ -119,8 +133,8 @@ func preSetupViper(vip *viper.Viper) *viper.Viper {
 	return vip
 }
 
-// setupConfig reads in config file and ENV variables if set.
-func setupConfig(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) {
+// setupPFlagsAndCommands reads in config file and ENV variables if set.
+func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) {
 	// Persistent Flags.
 	// !!! Double bind them inside PersistentPreRun() !!!
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
@@ -147,10 +161,9 @@ func setupConfig(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) {
 	}
 
 	// Add subcommands
-	rootCmd.AddCommand(app.NewAppCmd(tsuruCtx))
-	rootCmd.AddCommand(auth.NewLoginCmd(tsuruCtx))
-	rootCmd.AddCommand(auth.NewLogoutCmd(tsuruCtx))
-
+	for _, cmd := range commands {
+		rootCmd.AddCommand(cmd(tsuruCtx))
+	}
 }
 
 func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {

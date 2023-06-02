@@ -36,7 +36,7 @@ func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []stri
 
 func TestNoFlagRedeclarationOnSubCommands(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	rootCmd := newRootCmd(tsuruCtx)
+	rootCmd := newRootCmd(viper.New(), tsuruCtx)
 
 	cmdPathChan := make(chan []string)
 	go func() {
@@ -60,8 +60,7 @@ func TestNoFlagRedeclarationOnSubCommands(t *testing.T) {
 
 func TestPersistentFlagsGetPassedToSubCommand(t *testing.T) {
 	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-	rootCmd := newRootCmd(tsuruCtx)
-	setupConfig(rootCmd, tsuruCtx)
+	rootCmd := newRootCmd(tsuruCtx.Viper, tsuruCtx)
 
 	called := false
 	newCmd := &cobra.Command{
@@ -167,7 +166,7 @@ func TestParseEnvVariables(t *testing.T) {
 func TestRunRootCmd(t *testing.T) {
 	t.Run("with_no_args", func(t *testing.T) {
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-		cmd := newRootCmd(tsuruCtx)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
 		args := []string{}
 		err := runRootCmd(tsuruCtx, cmd, args)
 		assert.NoError(t, err)
@@ -190,7 +189,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		_, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
 		assert.NoError(t, err)
 
-		cmd := newRootCmd(tsuruCtx)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
 		cmd.SetArgs([]string{"myplugin"})
 		err = cmd.Execute()
 		assert.NoError(t, err)
@@ -205,7 +204,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		_, err := tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
 		assert.NoError(t, err)
 
-		cmd := newRootCmd(tsuruCtx)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
 		cmd.SetArgs([]string{"myplugin", "arg1", "arg2"})
 		err = cmd.Execute()
 		assert.NoError(t, err)
@@ -219,7 +218,7 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 		tsuruCtx.Fs.Create(filepath.Join(config.ConfigPath, "plugins", "myplugin"))
 
-		cmd := newRootCmd(tsuruCtx)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
 		cmd.SetArgs([]string{"myplugin", "arg1", "arg2", "-n", "flag1"})
 		err := cmd.Execute()
 		assert.NoError(t, err)
