@@ -124,7 +124,7 @@ func setupConfig(rootCmd *cobra.Command, vip *viper.Viper) {
 
 	// If a config file is found, read it in.
 	if err := vip.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed()) // TODO: handle this better
+		fmt.Fprintln(os.Stderr, "Using config file:", vip.ConfigFileUsed()) // TODO: handle this better
 	}
 }
 

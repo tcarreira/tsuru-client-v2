@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 	"github.com/tsuru/tsuru-client/pkg/printer"
 )
@@ -104,6 +103,7 @@ func appLogCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []st
 		noDate:   func() bool { v, _ := cmd.Flags().GetBool("no-date"); return v }(),
 		noSource: func() bool { v, _ := cmd.Flags().GetBool("no-source"); return v }(),
 		localTZ:  tsuruCtx.LocalTZ,
+		noColor:  tsuruCtx.Viper.IsSet("disable-colors"),
 	}
 	dec := json.NewDecoder(httpResponse.Body)
 	for {
@@ -122,6 +122,7 @@ type logFormatter struct {
 	noDate   bool
 	noSource bool
 	localTZ  *time.Location
+	noColor  bool
 }
 type log struct {
 	Date    time.Time
@@ -142,7 +143,7 @@ func (f logFormatter) Format(out io.Writer, dec *json.Decoder) error {
 		return fmt.Errorf("unable to parse json: %v: %q", err, string(bufferedData))
 	}
 	colorify := printer.Colorify{
-		DisableColors: viper.IsSet("disable-colors"),
+		DisableColors: f.noColor,
 	}
 	for _, l := range logs {
 		prefix := f.prefix(l)
