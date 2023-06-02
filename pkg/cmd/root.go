@@ -33,6 +33,9 @@ func newRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 			return runRootCmd(tsuruCtx, cmd, args)
 		},
 	}
+	rootCmd.SetIn(tsuruCtx.Stdin)
+	rootCmd.SetOut(tsuruCtx.Stdout)
+	rootCmd.SetErr(tsuruCtx.Stderr)
 
 	// Add subcommands
 	rootCmd.AddCommand(app.NewAppCmd(tsuruCtx))

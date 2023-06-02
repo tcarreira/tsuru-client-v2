@@ -55,6 +55,30 @@ func TestNoFlagRedeclarationOnSubCommands(t *testing.T) {
 	}
 }
 
+func TestPersistentFlagsGetPassedToSubCommand(t *testing.T) {
+	tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+	rootCmd := newRootCmd(tsuruCtx)
+	setupConfig(rootCmd, tsuruCtx.Viper)
+
+	called := false
+	newCmd := &cobra.Command{
+		Use: "newtestcommand",
+		Run: func(cmd *cobra.Command, args []string) {
+			called = true
+			if cmd.Flags().Lookup("target") == nil {
+				assert.FailNow(t, "flag target not found from subcommand")
+			}
+			assert.Equal(t, "myNewTarget", cmd.Flag("target").Value.String())
+		},
+	}
+	rootCmd.AddCommand(newCmd)
+
+	rootCmd.SetArgs([]string{"--target", "myNewTarget", "newtestcommand"})
+	rootCmd.ParseFlags([]string{})
+	rootCmd.Execute()
+	assert.True(t, called)
+}
+
 func TestProductionOptsNonZeroValues(t *testing.T) {
 	vip := viper.New()
 	vip.Set("insecure-skip-verify", true)
