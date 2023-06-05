@@ -5,12 +5,46 @@
 package cmd
 
 import (
+	"fmt"
 	"io/fs"
+	"os"
 	"path/filepath"
 
 	"github.com/tsuru/tsuru-client/internal/config"
+	"github.com/tsuru/tsuru-client/internal/exec"
 	"github.com/tsuru/tsuru-client/internal/tsuructx"
 )
+
+func runTsuruPlugin(tsuruCtx *tsuructx.TsuruContext, args []string) error {
+	pluginName := args[0]
+	if tsuruCtx.Viper.GetString("plugin-name") == pluginName {
+		return fmt.Errorf("failing trying to run recursive plugin")
+	}
+
+	pluginPath := findExecutablePlugin(tsuruCtx, pluginName)
+	if pluginPath == "" {
+		return fmt.Errorf("command not found")
+	}
+
+	envs := os.Environ()
+	tsuruEnvs := []string{
+		"TSURU_TARGET=" + tsuruCtx.TargetURL(),
+		"TSURU_TOKEN=" + tsuruCtx.Token(),
+		"TSURU_VERBOSITY=" + fmt.Sprintf("%d", tsuruCtx.Verbosity()),
+		"TSURU_PLUGIN_NAME=" + pluginName,
+	}
+	envs = append(envs, tsuruEnvs...)
+
+	opts := exec.ExecuteOptions{
+		Cmd:    pluginPath,
+		Args:   args[1:],
+		Stdout: tsuruCtx.Stdout,
+		Stderr: tsuruCtx.Stderr,
+		Stdin:  tsuruCtx.Stdin,
+		Envs:   envs,
+	}
+	return tsuruCtx.Executor.Command(opts)
+}
 
 func findExecutablePlugin(tsuruCtx *tsuructx.TsuruContext, pluginName string) (execPath string) {
 	basePath := filepath.Join(config.ConfigPath, "plugins")
