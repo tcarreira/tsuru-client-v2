@@ -23,7 +23,7 @@ default: help
 
 ## Build:
 build: ## Build your project and put the output binary in build/
-	$(GOCMD) build -ldflags "-s -w -X 'main.version=$(VERSION)'" -o build/$(BINARY) .
+	$(GOCMD) build -ldflags "-s -w -X 'main.Version=$(VERSION)'" -o build/$(BINARY) .
 
 install: build  ## Build your project and install the binary in $GOPATH/bin/
 	rm -f "$(shell go env GOPATH)/bin/$(BINARY)"

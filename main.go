@@ -6,6 +6,8 @@ package main
 
 import "github.com/tsuru/tsuru-client/pkg/cmd"
 
+var Version = "dev"
+
 func main() {
-	cmd.Execute()
+	cmd.Execute(Version)
 }

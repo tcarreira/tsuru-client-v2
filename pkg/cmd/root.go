@@ -33,7 +33,8 @@ var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
+func Execute(version string) {
+	Version = version
 	rootCmd := newRootCmd(viper.GetViper(), nil)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -53,8 +54,9 @@ func newRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Comman
 
 func newBareRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Use:   "tsuru",
-		Short: "A command-line interface for interacting with tsuru",
+		Version: Version,
+		Use:     "tsuru",
+		Short:   "A command-line interface for interacting with tsuru",
 
 		PersistentPreRun: rootPersistentPreRun(tsuruCtx),
 		RunE: func(cmd *cobra.Command, args []string) error {
