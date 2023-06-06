@@ -167,19 +167,37 @@ func TestRunRootCmd(t *testing.T) {
 	t.Run("with_no_args", func(t *testing.T) {
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 		cmd := newRootCmd(viper.New(), tsuruCtx)
-		args := []string{}
-		err := runRootCmd(tsuruCtx, cmd, args)
+		cmd.SetArgs([]string{})
+		err := cmd.Execute()
 		assert.NoError(t, err)
 		assert.Contains(t, tsuruCtx.Stdout.(*strings.Builder).String(), "A command-line interface for interacting with tsuru")
 	})
 
 	t.Run("not_found_command", func(t *testing.T) {
-		cmd := &cobra.Command{}
-		args := []string{"plugin", "arg2"}
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
-		err := runRootCmd(tsuruCtx, cmd, args)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
+		cmd.SetArgs([]string{"plugin", "arg2"})
+		err := cmd.Execute()
 		assert.ErrorContains(t, err, "command not found")
 		assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
+	})
+
+	t.Run("help_flag", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
+		cmd.SetArgs([]string{"--help", "arg2"})
+		err := cmd.Execute()
+		assert.NoError(t, err)
+		assert.Contains(t, tsuruCtx.Stdout.(*strings.Builder).String(), "A command-line interface for interacting with tsuru")
+	})
+
+	t.Run("version_flag", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		cmd := newRootCmd(viper.New(), tsuruCtx)
+		cmd.SetArgs([]string{"--version", "arg2"})
+		err := cmd.Execute()
+		assert.NoError(t, err)
+		assert.Equal(t, tsuruCtx.Stdout.(*strings.Builder).String(), "tsuru-client version: dev\n")
 	})
 }
 
@@ -226,5 +244,77 @@ func TestRunRootCmdPlugin(t *testing.T) {
 		executedOpts := tsuruCtx.Executor.(*exec.FakeExec).CalledOpts
 		assert.True(t, strings.HasSuffix(executedOpts.Cmd, filepath.Join(".tsuru", "plugins", "myplugin")))
 		assert.Equal(t, []string{"arg1", "arg2", "-n", "flag1"}, executedOpts.Args)
+	})
+}
+
+func TestParseFirstFlagsOnly(t *testing.T) {
+	t.Run("parse_no_args", func(t *testing.T) {
+		result := parseFirstFlagsOnly(nil, []string{})
+		assert.Equal(t, []string{}, result)
+	})
+
+	t.Run("parse_args", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"myPlugin"})
+		assert.Equal(t, []string{"myPlugin"}, result)
+	})
+
+	t.Run("parse_multiple_args", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"myPlugin", "subCommand1", "subCmd2"})
+		assert.Equal(t, []string{"myPlugin", "subCommand1", "subCmd2"}, result)
+	})
+
+	t.Run("parse_multiple_args_w_flags", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"myPlugin", "subCommand1", "subCmd2", "-v", "flag1"})
+		assert.Equal(t, []string{"myPlugin", "subCommand1", "subCmd2", "-v", "flag1"}, result)
+	})
+
+	t.Run("parse_with_flag", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"--target", "myTarget"})
+		assert.Equal(t, []string{}, result)
+		assert.Equal(t, "myTarget", rootCmd.Flag("target").Value.String())
+	})
+
+	t.Run("parse_with_flag_short", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"-v", "42"})
+		assert.Equal(t, []string{}, result)
+		assert.Equal(t, "42", rootCmd.Flag("verbosity").Value.String())
+	})
+
+	t.Run("parse_with_flag_and_sub_commands", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		result := parseFirstFlagsOnly(rootCmd, []string{"--target", "myTarget", "myPlugin", "subCommand1", "--flag", "extra"})
+		assert.Equal(t, []string{"myPlugin", "subCommand1", "--flag", "extra"}, result)
+		assert.Equal(t, "myTarget", rootCmd.Flag("target").Value.String())
+	})
+
+	t.Run("parse_with_bool_flag", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		rootCmd.Flags().BoolP("bool-flag", "b", false, "bool flag")
+		result := parseFirstFlagsOnly(rootCmd, []string{"--target", "myTarget", "--bool-flag", "myPlugin", "subCommand1", "--flag", "extra"})
+		assert.Equal(t, []string{"myPlugin", "subCommand1", "--flag", "extra"}, result)
+		assert.Equal(t, "myTarget", rootCmd.Flag("target").Value.String())
+		assert.Equal(t, "true", rootCmd.Flag("bool-flag").Value.String())
+	})
+
+	t.Run("parse_with_bool_flag_short", func(t *testing.T) {
+		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
+		rootCmd := newRootCmd(viper.New(), tsuruCtx)
+		rootCmd.Flags().BoolP("bool-flag", "b", false, "bool flag")
+		result := parseFirstFlagsOnly(rootCmd, []string{"--target", "myTarget", "-b", "myPlugin", "subCommand1", "--flag", "extra"})
+		assert.Equal(t, []string{"myPlugin", "subCommand1", "--flag", "extra"}, result)
+		assert.Equal(t, "myTarget", rootCmd.Flag("target").Value.String())
+		assert.Equal(t, "true", rootCmd.Flag("bool-flag").Value.String())
 	})
 }
