@@ -50,7 +50,7 @@ builds:
   - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.dateStr={{ .CommitDate }}
   hooks:
     post:
-    - scripts/generate_metadata.sh dist/metadata.json
+    - ./scripts/generate_metadata.sh dist/metadata.json
 
 # Archive customization
 archives:
@@ -64,6 +64,7 @@ archives:
   format_overrides:
   - goos: windows
     format: zip
+  rlcp: true
   files:
   - src: LICENSE
   - src: README.md
@@ -71,7 +72,7 @@ archives:
 
 release:
   extra_files:
-  - glob: metadata.json
+  - glob: dist/metadata.json
   - glob: dist/CHANGELOG.md
 
   # If set to auto, will mark the release as not ready for production
