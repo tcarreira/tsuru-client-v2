@@ -4,6 +4,10 @@
 
 project_name: tsuru
 
+# https://goreleaser.com/customization/verifiable_builds/
+gomod:
+  proxy: true
+
 changelog:
   filters:
     # Commit messages matching the regexp listed here will be removed from
@@ -32,11 +36,21 @@ builds:
     goarch: "arm64"
   env:
   - CGO_ENABLED=0
+  - META_PROJECT_NAME={{.ProjectName}}
+  - META_VERSION={{.Version}}
+  - META_TAG={{.Tag}}
+  - META_PREVIOUS_TAG={{.PreviousTag}}
+  - META_COMMIT={{.Commit}}
+  - META_DATE={{.Date}}
   mod_timestamp: '{{ .CommitTimestamp }}'
   flags:
   - -trimpath
   ldflags:
   - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.dateStr={{ .CommitDate }}
+  hooks:
+    post:
+    - |
+      scripts/generate_metadata.sh dist/metadata.json
 
 # Archive customization
 archives:
@@ -54,9 +68,10 @@ archives:
   - src: LICENSE
   - src: README.md
 
+
 release:
   extra_files:
-  - glob: dist/metadata.json
+  - glob: metadata.json
   - glob: dist/CHANGELOG.md
 
   # If set to auto, will mark the release as not ready for production
