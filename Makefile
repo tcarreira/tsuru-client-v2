@@ -9,6 +9,8 @@ GOVET	?= $(GOCMD) vet
 GOFMT	?= gofmt
 BINARY	?= tsuru
 VERSION	?= $(shell git describe --tags --dirty --match='v*' 2> /dev/null || echo dev)
+COMMIT	?= $(shell git rev-parse --short HEAD 2> /dev/null || echo "")
+DATEUTC	?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 FILES	?= $(shell find . -type f -name '*.go')
 
 GREEN  := $(shell tput -Txterm setaf 2)
@@ -23,7 +25,7 @@ default: help
 
 ## Build:
 build: ## Build your project and put the output binary in build/
-	$(GOCMD) build -ldflags "-s -w -X 'main.Version=$(VERSION)'" -o build/$(BINARY) .
+	$(GOCMD) build -ldflags "-s -w -X 'main.version=$(VERSION)' -X 'main.commit=$(COMMIT)' -X 'main.dateStr=$(DATEUTC)'" -o build/$(BINARY) .
 
 install: build  ## Build your project and install the binary in $GOPATH/bin/
 	rm -f "$(shell go env GOPATH)/bin/$(BINARY)"
@@ -119,4 +121,6 @@ env:    ## Print useful environment variables to stdout
 	@echo '$$(GOVET)   :' $(GOVET)
 	@echo '$$(BINARY)  :' $(BINARY)
 	@echo '$$(VERSION) :' $(VERSION)
+	@echo '$$(COMMIT)  :' $(COMMIT)
+	@echo '$$(DATEUTC) :' $(DATEUTC)
 	@echo '$$(FILES#)  :' $(shell echo $(FILES) | wc -w)

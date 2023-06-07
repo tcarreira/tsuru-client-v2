@@ -21,9 +21,25 @@ import (
 )
 
 var (
-	Version string = "dev"
 	cfgFile string
+	version cmdVersion
 )
+
+type cmdVersion struct {
+	Version string
+	Commit  string
+	Date    string
+}
+
+func (v *cmdVersion) String() string {
+	if v.Version == "" {
+		v.Version = "dev"
+	}
+	if v.Commit == "" && v.Date == "" {
+		return v.Version
+	}
+	return fmt.Sprintf("%s (%s - %s)", v.Version, v.Commit, v.Date)
+}
 
 var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
 	app.NewAppCmd,
@@ -33,8 +49,8 @@ var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute(version string) {
-	Version = version
+func Execute(_version, _commit, _dateStr string) {
+	version = cmdVersion{_version, _commit, _dateStr}
 	rootCmd := newRootCmd(viper.GetViper(), nil)
 	err := rootCmd.Execute()
 	if err != nil {
@@ -54,7 +70,7 @@ func newRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Comman
 
 func newBareRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	rootCmd := &cobra.Command{
-		Version: Version,
+		Version: version.String(),
 		Use:     "tsuru",
 		Short:   "A command-line interface for interacting with tsuru",
 
@@ -217,7 +233,7 @@ func productionOpts(fs afero.Fs, vip *viper.Viper) *tsuructx.TsuruContextOpts {
 		Fs:                 fs,
 		Viper:              vip,
 
-		UserAgent: "tsuru-client:" + Version,
+		UserAgent: "tsuru-client:" + version.Version,
 
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
