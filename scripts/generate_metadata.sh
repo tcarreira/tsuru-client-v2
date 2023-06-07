@@ -1,4 +1,8 @@
 #!/bin/sh
+# Copyright © 2023 tsuru-client authors
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
 set -eu
 output_file="${1:-}"
 [ -z "$output_file" ] && echo "Usage: $0 <FILE>" && exit 1
