@@ -50,8 +50,7 @@ builds:
   - -s -w -X main.version={{.Version}} -X main.commit={{.ShortCommit}} -X main.dateStr={{ .CommitDate }}
   hooks:
     post:
-    - |
-      scripts/generate_metadata.sh dist/metadata.json
+    - scripts/generate_metadata.sh dist/metadata.json
 
 # Archive customization
 archives:
