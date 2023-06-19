@@ -18,6 +18,7 @@ import (
 
 type TsuruContext struct {
 	TsuruContextOpts
+	TokenSetFromFS bool
 }
 
 type TsuruContextOpts struct {

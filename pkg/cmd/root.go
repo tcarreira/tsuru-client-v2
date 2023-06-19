@@ -202,6 +202,7 @@ func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruCont
 
 func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {
 	var err error
+	var tokenSetFromFS bool
 
 	// Get target
 	target := vip.GetString("target")
@@ -218,10 +219,13 @@ func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruCon
 	if token == "" {
 		token, err = config.GetTokenFromFs(fs)
 		cobra.CheckErr(err)
+		tokenSetFromFS = true
+		vip.Set("token", token)
 	}
-	vip.Set("token", token)
 
-	return tsuructx.TsuruContextWithConfig(productionOpts(fs, vip))
+	tsuruCtx := tsuructx.TsuruContextWithConfig(productionOpts(fs, vip))
+	tsuruCtx.TokenSetFromFS = tokenSetFromFS
+	return tsuruCtx
 }
 
 func productionOpts(fs afero.Fs, vip *viper.Viper) *tsuructx.TsuruContextOpts {

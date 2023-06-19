@@ -45,7 +45,7 @@ $ tsuru login example@tsuru.local`,
 }
 
 func loginCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error {
-	if tsuruCtx.Token() != "" {
+	if tsuruCtx.Token() != "" && !tsuruCtx.TokenSetFromFS {
 		return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
 	}
 	cmd.SilenceUsage = true
