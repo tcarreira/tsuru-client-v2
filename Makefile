@@ -8,6 +8,7 @@ GOTEST	?= $(GOCMD) test -timeout 10s -parallel $(PARALL)
 GOVET	?= $(GOCMD) vet
 GOFMT	?= gofmt
 BINARY	?= tsuru
+TSURUGO	?= $(shell $(GOCMD) env GOPATH)/bin/$(BINARY)
 VERSION	?= $(shell git describe --tags --dirty --match='v*' 2> /dev/null || echo dev)
 COMMIT	?= $(shell git rev-parse --short HEAD 2> /dev/null || echo "")
 DATEUTC	?= $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
@@ -25,11 +26,11 @@ default: help
 
 ## Build:
 build: ## Build your project and put the output binary in build/
-	$(GOCMD) build -ldflags "-s -w -X 'main.version=$(VERSION)' -X 'main.commit=$(COMMIT)' -X 'main.dateStr=$(DATEUTC)'" -o build/$(BINARY) .
+	$(GOCMD) build -ldflags "-s -w -X 'main.version=$(VERSION)' -X 'main.commit=$(COMMIT)' -X 'main.dateStr=$(DATEUTC)'" -o build/$(BINARY) ./tsuru
 
 install: build  ## Build your project and install the binary in $GOPATH/bin/
-	rm -f "$(shell go env GOPATH)/bin/$(BINARY)"
-	cp build/$(BINARY) "$(shell go env GOPATH)/bin/$(BINARY)"
+	rm -f $(TSURUGO)
+	cp build/$(BINARY) $(TSURUGO)
 
 clean: ## Remove build related file
 	rm -fr ./build
@@ -38,7 +39,7 @@ clean: ## Remove build related file
 clean-all: ## Remove build related file and installed binary
 	rm -fr ./build
 	rm -fr ./coverage
-	rm -f "$(shell go env GOPATH)/bin/$(BINARY)"
+	rm -f $(TSURUGO)
 
 fmt: ## Format your code with gofmt
 	$(GOFMT) -w .

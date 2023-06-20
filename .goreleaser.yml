@@ -20,7 +20,7 @@ changelog:
     - (wip)
 
 builds:
-- main: .
+- main: ./tsuru
   binary: tsuru
   goos:
   - "windows"
