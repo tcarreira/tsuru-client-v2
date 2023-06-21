@@ -11,7 +11,7 @@ import (
 	"net/url"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 )
 
 func newAppDeployCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {

@@ -17,12 +17,12 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/tcarreira/tsuru-client/internal/parser"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/pkg/cmd/plan"
+	"github.com/tcarreira/tsuru-client/pkg/cmd/router"
+	"github.com/tcarreira/tsuru-client/pkg/printer"
 	"github.com/tsuru/tablecli"
-	"github.com/tsuru/tsuru-client/internal/parser"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
-	"github.com/tsuru/tsuru-client/pkg/cmd/plan"
-	"github.com/tsuru/tsuru-client/pkg/cmd/router"
-	"github.com/tsuru/tsuru-client/pkg/printer"
 	"k8s.io/apimachinery/pkg/api/resource"
 
 	appTypes "github.com/tsuru/tsuru/types/app"
@@ -205,7 +205,7 @@ func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified boo
 		buf.WriteString(autoScaleTable.String())
 	}
 
-	if !simplified && (a.Plan.Memory != 0 || a.Plan.Swap != 0 || a.Plan.CpuShare != 0) {
+	if !simplified && (a.Plan.Memory != 0 || a.Plan.CPUMilli != 0) {
 		buf.WriteString("\n")
 		buf.WriteString("App Plan:\n")
 		buf.WriteString(plan.RenderPlans([]appTypes.Plan{a.Plan}, false, false))

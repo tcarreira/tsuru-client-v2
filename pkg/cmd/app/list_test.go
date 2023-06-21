@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 )
 
 func TestV1AppList(t *testing.T) {

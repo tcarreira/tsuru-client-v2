@@ -9,8 +9,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/internal/config"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 )
 
 func NewLogoutCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command {

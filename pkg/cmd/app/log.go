@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
-	"github.com/tsuru/tsuru-client/pkg/printer"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/pkg/printer"
 )
 
 const tLogFmt = "2006-01-02 15:04:05 -0700"

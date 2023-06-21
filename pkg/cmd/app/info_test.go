@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 )
 
 func TestV1AppInfo(t *testing.T) {

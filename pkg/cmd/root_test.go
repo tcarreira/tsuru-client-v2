@@ -15,9 +15,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/exec"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tcarreira/tsuru-client/internal/config"
+	"github.com/tcarreira/tsuru-client/internal/exec"
+	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 )
 
 func iterateCmdTreeAndRemoveRun(t *testing.T, cmd *cobra.Command, cmdPath []string, cmdPathChan chan []string) {

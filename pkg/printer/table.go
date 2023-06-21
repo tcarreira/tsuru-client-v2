@@ -13,8 +13,8 @@ import (
 	"text/tabwriter"
 	"text/template"
 
+	iTemplate "github.com/tcarreira/tsuru-client/internal/template"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	iTemplate "github.com/tsuru/tsuru-client/internal/template"
 )
 
 type CustomFieldFunc func(any) string
