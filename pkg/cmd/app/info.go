@@ -205,7 +205,7 @@ func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified boo
 		buf.WriteString(autoScaleTable.String())
 	}
 
-	if !simplified && (a.Plan.Memory != 0 || a.Plan.Swap != 0 || a.Plan.CpuShare != 0) {
+	if !simplified && (a.Plan.Memory != 0 || a.Plan.CPUMilli != 0) {
 		buf.WriteString("\n")
 		buf.WriteString("App Plan:\n")
 		buf.WriteString(plan.RenderPlans([]appTypes.Plan{a.Plan}, false, false))
