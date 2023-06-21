@@ -4,7 +4,7 @@
 
 package main
 
-import "github.com/tsuru/tsuru-client/pkg/cmd"
+import "github.com/tsuru/tsuru-client/v2/pkg/cmd"
 
 var (
 	version = "dev"

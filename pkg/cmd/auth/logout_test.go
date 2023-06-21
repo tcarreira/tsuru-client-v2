@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/config"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 )
 
 func TestNewLogoutCmd(t *testing.T) {

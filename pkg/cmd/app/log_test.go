@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
-	"github.com/tsuru/tsuru-client/pkg/printer"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/pkg/printer"
 )
 
 func TestAppLogIsRegistered(t *testing.T) {

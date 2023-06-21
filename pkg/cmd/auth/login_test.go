@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 )
 
 func TestNewLoginCmd(t *testing.T) {

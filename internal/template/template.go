@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/tsuru/tsuru-client/internal/parser"
+	"github.com/tsuru/tsuru-client/v2/internal/parser"
 )
 
 func DefaultTemplateFuncs() template.FuncMap {

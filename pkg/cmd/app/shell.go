@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 	"golang.org/x/net/websocket"
 	"golang.org/x/term"
 )

@@ -1,4 +1,4 @@
-module github.com/tsuru/tsuru-client
+module github.com/tsuru/tsuru-client/v2
 
 go 1.20
 

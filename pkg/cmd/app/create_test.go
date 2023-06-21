@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 )
 
 const expectedFmt = `App %q has been created!

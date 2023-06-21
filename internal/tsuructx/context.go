@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/viper"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/exec"
+	"github.com/tsuru/tsuru-client/v2/internal/exec"
 )
 
 type TsuruContext struct {

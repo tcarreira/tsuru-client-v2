@@ -15,7 +15,7 @@ import (
 	"github.com/antihax/optional"
 	"github.com/spf13/cobra"
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 	appTypes "github.com/tsuru/tsuru/types/app"
 	quotaTypes "github.com/tsuru/tsuru/types/quota"
 	volumeTypes "github.com/tsuru/tsuru/types/volume"

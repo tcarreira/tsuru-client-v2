@@ -14,7 +14,7 @@ import (
 	"text/template"
 
 	"github.com/tsuru/go-tsuruclient/pkg/tsuru"
-	iTemplate "github.com/tsuru/tsuru-client/internal/template"
+	iTemplate "github.com/tsuru/tsuru-client/v2/internal/template"
 )
 
 type CustomFieldFunc func(any) string

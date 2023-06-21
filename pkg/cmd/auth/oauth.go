@@ -16,9 +16,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/exec"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/internal/config"
+	"github.com/tsuru/tsuru-client/v2/internal/exec"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
 )
 
 const callbackPage = `<!DOCTYPE html>

@@ -13,11 +13,11 @@ import (
 	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/exec"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
-	"github.com/tsuru/tsuru-client/pkg/cmd/app"
-	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
+	"github.com/tsuru/tsuru-client/v2/internal/config"
+	"github.com/tsuru/tsuru-client/v2/internal/exec"
+	"github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+	"github.com/tsuru/tsuru-client/v2/pkg/cmd/app"
+	"github.com/tsuru/tsuru-client/v2/pkg/cmd/auth"
 )
 
 var (
