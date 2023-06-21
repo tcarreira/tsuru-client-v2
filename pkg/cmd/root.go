@@ -18,11 +18,8 @@ import (
 	"github.com/tcarreira/tsuru-client/internal/tsuructx"
 	"github.com/tcarreira/tsuru-client/pkg/cmd/app"
 	"github.com/tcarreira/tsuru-client/pkg/cmd/auth"
-	"github.com/tsuru/tsuru-client/internal/config"
-	"github.com/tsuru/tsuru-client/internal/exec"
-	"github.com/tsuru/tsuru-client/internal/tsuructx"
-	"github.com/tsuru/tsuru-client/pkg/cmd/app"
-	"github.com/tsuru/tsuru-client/pkg/cmd/auth"
+	tsuruv2Config "github.com/tsuru/tsuru-client/tsuru/config"
+	"github.com/tsuru/tsuru/cmd"
 )
 
 var (
@@ -203,6 +200,35 @@ func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruCont
 	for _, cmd := range commands {
 		rootCmd.AddCommand(cmd(tsuruCtx))
 	}
+	rootCmd.AddCommand(newLegacyCommand())
+}
+
+func recoverCmdPanicExitError(err *error) {
+	if r := recover(); r != nil {
+		if e, ok := r.(*cmd.PanicExitError); ok {
+			*err = e
+			return
+		}
+		panic(r)
+	}
+}
+
+func newLegacyCommand() *cobra.Command {
+	legacyCmd := &cobra.Command{
+		Use:   "legacy",
+		Short: "legacy is a command to run legacy tsuru commands",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var err error
+			defer recoverCmdPanicExitError(&err)
+
+			m := tsuruv2Config.BuildManager("tsuru-legacy", version.Version)
+			m.Run(args)
+			return err
+		},
+		Args:               cobra.MinimumNArgs(0),
+		DisableFlagParsing: true,
+	}
+	return legacyCmd
 }
 
 func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {
