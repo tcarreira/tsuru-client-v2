@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -50,4 +51,56 @@ func runLegacyCommand(args []string) error {
 	m := tsuruV1Config.BuildManager("tsuru-legacy", versionForLegacy)
 	m.Run(args)
 	return err
+}
+
+type cmdNode struct {
+	command  *cobra.Command
+	children map[string]*cmdNode
+}
+
+func (n *cmdNode) addChild(c *cobra.Command) {
+	if n.children == nil {
+		n.children = make(map[string]*cmdNode)
+	}
+	n.children[c.Name()] = &cmdNode{command: c}
+	for _, sub := range c.Commands() {
+		n.children[c.Name()].addChild(sub)
+	}
+}
+
+func addMissingLegacyCommands(rootCmd *cobra.Command) []*cobra.Command {
+	tree := &cmdNode{command: rootCmd}
+	for _, c := range rootCmd.Commands() {
+		tree.addChild(c)
+	}
+
+	legacyCmd := tsuruV1Config.BuildManager("tsuru-legacy", "")
+	for cmdName, v1Cmd := range legacyCmd.Commands {
+		curr := tree
+		parts := strings.Split(strings.ReplaceAll(cmdName, "-", " "), " ")
+		for i, part := range parts {
+			if _, ok := curr.children[part]; !ok {
+				short := v1Cmd.Info().Usage
+				if len(short) > 50 {
+					short = short[:50] + "..."
+				}
+				newCmd := &cobra.Command{
+					Use:                part,
+					Short:              "[legacy] " + short,
+					DisableFlagParsing: true,
+				}
+				curr.addChild(newCmd)
+				curr.command.AddCommand(newCmd)
+			}
+			curr = curr.children[part]
+
+			if i == len(parts)-1 {
+				curr.command.RunE = func(cmd *cobra.Command, args []string) error {
+					return fmt.Errorf("aqui %s (%s)", cmdName, v1Cmd.Info().Name)
+				}
+			}
+		}
+	}
+
+	return nil
 }

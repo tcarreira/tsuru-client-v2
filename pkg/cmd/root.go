@@ -201,6 +201,7 @@ func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruCont
 	for _, cmd := range commands {
 		rootCmd.AddCommand(cmd(tsuruCtx))
 	}
+	addMissingLegacyCommands(rootCmd)
 	rootCmd.AddCommand(newLegacyCommand())
 }
 
