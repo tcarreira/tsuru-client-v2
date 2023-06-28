@@ -51,14 +51,14 @@ var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute(_version, _commit, _dateStr string) {
 	version = cmdVersion{_version, _commit, _dateStr}
-	rootCmd := newRootCmd(viper.GetViper(), nil)
+	rootCmd := NewRootCmd(viper.GetViper(), nil)
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
 	}
 }
 
-func newRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
+func NewRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Command {
 	vip = preSetupViper(vip)
 	if tsuruCtx == nil {
 		tsuruCtx = NewProductionTsuruContext(vip, afero.NewOsFs())
@@ -161,6 +161,9 @@ func rootPersistentPreRun(tsuruCtx *tsuructx.TsuruContext) func(cmd *cobra.Comma
 
 // preSetupViper is supposed to be called before NewProductionTsuruContext()
 func preSetupViper(vip *viper.Viper) *viper.Viper {
+	if vip == nil {
+		vip = viper.New()
+	}
 	vip.SetEnvPrefix("tsuru")
 	vip.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 	vip.AutomaticEnv() // read in environment variables that match
