@@ -5,7 +5,6 @@
 package cmd
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -14,12 +13,20 @@ import (
 	tsuruCmd "github.com/tsuru/tsuru/cmd"
 )
 
-func newLegacyCommand() *cobra.Command {
+func newV1LegacyCmd() *tsuruCmd.Manager {
+	versionForLegacy := strings.TrimLeft(version.Version, "v") + "-legacy-plugin"
+	if version.Version == "dev" {
+		versionForLegacy = "dev"
+	}
+	return tsuruV1Config.BuildManager("tsuru", versionForLegacy)
+}
+
+func newLegacyCommand(v1Cmd *tsuruCmd.Manager) *cobra.Command {
 	legacyCmd := &cobra.Command{
 		Use:   "legacy",
 		Short: "legacy is the previous version of tsuru cli",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLegacyCommand(args)
+			return runLegacyCommand(v1Cmd, args)
 		},
 		Args:               cobra.MinimumNArgs(0),
 		DisableFlagParsing: true,
@@ -39,17 +46,11 @@ func recoverCmdPanicExitError(err *error) {
 	}
 }
 
-func runLegacyCommand(args []string) error {
+func runLegacyCommand(v1Cmd *tsuruCmd.Manager, args []string) error {
 	var err error
 	defer recoverCmdPanicExitError(&err)
 
-	versionForLegacy := strings.TrimLeft(version.Version, "v") + "-legacy-plugin"
-	if version.Version == "dev" {
-		versionForLegacy = "dev"
-	}
-
-	m := tsuruV1Config.BuildManager("tsuru-legacy", versionForLegacy)
-	m.Run(args)
+	v1Cmd.Run(args)
 	return err
 }
 
@@ -68,39 +69,46 @@ func (n *cmdNode) addChild(c *cobra.Command) {
 	}
 }
 
-func addMissingLegacyCommands(rootCmd *cobra.Command) []*cobra.Command {
+func addMissingLegacyCommands(rootCmd *cobra.Command, v1RootCmd *tsuruCmd.Manager) {
+	// build current commands tree (without legacy commands)
 	tree := &cmdNode{command: rootCmd}
 	for _, c := range rootCmd.Commands() {
 		tree.addChild(c)
 	}
 
-	legacyCmd := tsuruV1Config.BuildManager("tsuru-legacy", "")
-	for cmdName, v1Cmd := range legacyCmd.Commands {
-		curr := tree
-		parts := strings.Split(strings.ReplaceAll(cmdName, "-", " "), " ")
-		for i, part := range parts {
-			if _, ok := curr.children[part]; !ok {
-				short := v1Cmd.Info().Usage
-				if len(short) > 50 {
-					short = short[:50] + "..."
-				}
-				newCmd := &cobra.Command{
-					Use:                part,
-					Short:              "[legacy] " + short,
-					DisableFlagParsing: true,
-				}
-				curr.addChild(newCmd)
-				curr.command.AddCommand(newCmd)
-			}
-			curr = curr.children[part]
+	// iterate over legacy commands
+	for cmdName, v1Cmd := range v1RootCmd.Commands {
+		if cmdName == "help" { // ignore this legacy commands
+			continue
+		}
+		addMissingLegacyCommand(tree, cmdName, v1RootCmd, v1Cmd)
+	}
+}
 
-			if i == len(parts)-1 {
-				curr.command.RunE = func(cmd *cobra.Command, args []string) error {
-					return fmt.Errorf("aqui %s (%s)", cmdName, v1Cmd.Info().Name)
-				}
+func addMissingLegacyCommand(tree *cmdNode, cmdName string, v1RootCmd *tsuruCmd.Manager, v1Cmd tsuruCmd.Command) {
+	curr := tree
+	parts := strings.Split(strings.ReplaceAll(cmdName, "-", " "), " ")
+	for i, part := range parts {
+		found := false
+		if _, found = curr.children[part]; !found {
+			newCmd := &cobra.Command{
+				Use:                part,
+				Short:              "[v1] " + strings.Join(parts[:i+1], " "),
+				DisableFlagParsing: true,
+			}
+			curr.addChild(newCmd)
+			curr.command.AddCommand(newCmd)
+		}
+		curr = curr.children[part]
+
+		if i == len(parts)-1 && !found {
+			curr.command.Short = "[v1] " + strings.Split(v1Cmd.Info().Desc, "\n")[0]
+			curr.command.Long = v1Cmd.Info().Usage
+			curr.command.SilenceUsage = true
+			curr.command.Args = cobra.MinimumNArgs(0)
+			curr.command.RunE = func(cmd *cobra.Command, args []string) error {
+				return runLegacyCommand(v1RootCmd, append(parts, args...))
 			}
 		}
 	}
-
-	return nil
 }
