@@ -80,7 +80,7 @@ func (n *cmdNode) addChild(c *cobra.Command) {
 	}
 }
 
-func addMissingLegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Manager) {
+func addMissingV1LegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Manager) {
 	// build current commands tree (without legacy commands)
 	tree := &cmdNode{command: rootCmd}
 	for _, c := range rootCmd.Commands() {
@@ -100,11 +100,11 @@ func addMissingLegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Man
 		if ignoredLegacyCommands[v1Cmd.name] {
 			continue
 		}
-		addMissingLegacyCommand(tree, v1CmdManager, v1Cmd)
+		addMissingV1LegacyCommand(tree, v1CmdManager, v1Cmd)
 	}
 }
 
-func addMissingLegacyCommand(tree *cmdNode, v1CmdManager *tsuruCmd.Manager, v1Cmd v1Command) {
+func addMissingV1LegacyCommand(tree *cmdNode, v1CmdManager *tsuruCmd.Manager, v1Cmd v1Command) {
 	curr := tree
 	parts := strings.Split(strings.ReplaceAll(v1Cmd.name, "-", " "), " ")
 	for i, part := range parts {

@@ -203,7 +203,7 @@ func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruCont
 	}
 
 	v1LegacyCmdManager := newV1LegacyCmdManager()
-	addMissingLegacyCommands(rootCmd, v1LegacyCmdManager)
+	addMissingV1LegacyCommands(rootCmd, v1LegacyCmdManager)
 	rootCmd.AddCommand(newLegacyCommand(v1LegacyCmdManager))
 }
 
