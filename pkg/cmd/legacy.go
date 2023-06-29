@@ -14,6 +14,16 @@ import (
 	tsuruCmd "github.com/tsuru/tsuru/cmd"
 )
 
+var ignoredLegacyCommands = map[string]bool{
+	"change-password": true,
+	"cluster-add":     true,
+	"cluster-list":    true,
+	"cluster-remove":  true,
+	"cluster-update":  true,
+	"help":            true,
+	"reset-password":  true,
+}
+
 func newV1LegacyCmdManager() *tsuruCmd.Manager {
 	versionForLegacy := strings.TrimLeft(version.Version, "v") + "-legacy-plugin"
 	if version.Version == "dev" {
@@ -87,9 +97,7 @@ func addMissingLegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Man
 	// add missing legacy commands
 	for _, v1Cmd := range v1Commands {
 		// ignore this legacy commands
-		if v1Cmd.name == "help" ||
-			strings.HasSuffix(v1Cmd.name, "-password") ||
-			strings.HasPrefix(v1Cmd.name, "cluster") {
+		if ignoredLegacyCommands[v1Cmd.name] {
 			continue
 		}
 		addMissingLegacyCommand(tree, v1CmdManager, v1Cmd)
