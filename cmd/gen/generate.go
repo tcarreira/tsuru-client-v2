@@ -12,7 +12,7 @@ import (
 )
 
 // Keep all go:generate commands here:
-//go:generate go run . legacy ../../internal/legacy/legacy.go
+//go:generate
 
 func main() {
 	if len(os.Args) < 2 {
@@ -22,9 +22,8 @@ func main() {
 
 	buf := bytes.NewBuffer(nil)
 	switch os.Args[1] {
-	case "legacy":
-		genTsuruLegacy(buf)
 	default:
+		_ = buf
 		fmt.Printf("Unknown command %s\n", os.Args[1])
 		os.Exit(1)
 	}
