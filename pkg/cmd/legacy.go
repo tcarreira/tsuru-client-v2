@@ -78,7 +78,10 @@ func addMissingLegacyCommands(rootCmd *cobra.Command, v1RootCmd *tsuruCmd.Manage
 
 	// iterate over legacy commands
 	for cmdName, v1Cmd := range v1RootCmd.Commands {
-		if cmdName == "help" { // ignore this legacy commands
+		// ignore this legacy commands
+		if cmdName == "help" ||
+			strings.HasSuffix(cmdName, "-password") ||
+			strings.HasPrefix(cmdName, "cluster") {
 			continue
 		}
 		addMissingLegacyCommand(tree, cmdName, v1RootCmd, v1Cmd)
