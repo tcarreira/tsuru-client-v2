@@ -176,7 +176,7 @@ func TestRunRootCmd(t *testing.T) {
 	t.Run("not_found_command", func(t *testing.T) {
 		tsuruCtx := tsuructx.TsuruContextWithConfig(nil)
 		cmd := NewRootCmd(viper.New(), tsuruCtx)
-		cmd.SetArgs([]string{"plugin", "arg2"})
+		cmd.SetArgs([]string{"myplugin", "arg2"})
 		err := cmd.Execute()
 		assert.ErrorContains(t, err, "command not found")
 		assert.Equal(t, "", tsuruCtx.Stdout.(*strings.Builder).String())
