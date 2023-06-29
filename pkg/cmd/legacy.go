@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -13,7 +14,7 @@ import (
 	tsuruCmd "github.com/tsuru/tsuru/cmd"
 )
 
-func newV1LegacyCmd() *tsuruCmd.Manager {
+func newV1LegacyCmdManager() *tsuruCmd.Manager {
 	versionForLegacy := strings.TrimLeft(version.Version, "v") + "-legacy-plugin"
 	if version.Version == "dev" {
 		versionForLegacy = "dev"
@@ -21,17 +22,25 @@ func newV1LegacyCmd() *tsuruCmd.Manager {
 	return tsuruV1Config.BuildManager("tsuru", versionForLegacy)
 }
 
-func newLegacyCommand(v1Cmd *tsuruCmd.Manager) *cobra.Command {
+func newLegacyCommand(v1CmdManager *tsuruCmd.Manager) *cobra.Command {
 	legacyCmd := &cobra.Command{
 		Use:   "legacy",
 		Short: "legacy is the previous version of tsuru cli",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runLegacyCommand(v1Cmd, args)
+			return runLegacyCommand(v1CmdManager, args)
 		},
 		Args:               cobra.MinimumNArgs(0),
 		DisableFlagParsing: true,
 	}
 	return legacyCmd
+}
+
+func runLegacyCommand(v1CmdManager *tsuruCmd.Manager, args []string) error {
+	var err error
+	defer recoverCmdPanicExitError(&err)
+
+	v1CmdManager.Run(args)
+	return err
 }
 
 func recoverCmdPanicExitError(err *error) {
@@ -44,14 +53,6 @@ func recoverCmdPanicExitError(err *error) {
 		}
 		panic(r)
 	}
-}
-
-func runLegacyCommand(v1Cmd *tsuruCmd.Manager, args []string) error {
-	var err error
-	defer recoverCmdPanicExitError(&err)
-
-	v1Cmd.Run(args)
-	return err
 }
 
 type cmdNode struct {
@@ -69,28 +70,35 @@ func (n *cmdNode) addChild(c *cobra.Command) {
 	}
 }
 
-func addMissingLegacyCommands(rootCmd *cobra.Command, v1RootCmd *tsuruCmd.Manager) {
+func addMissingLegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Manager) {
 	// build current commands tree (without legacy commands)
 	tree := &cmdNode{command: rootCmd}
 	for _, c := range rootCmd.Commands() {
 		tree.addChild(c)
 	}
 
-	// iterate over legacy commands
-	for cmdName, v1Cmd := range v1RootCmd.Commands {
+	// sort legacy commands by less specific ones first (create "deploy" before "deploy list" )
+	v1Commands := make([]v1Command, 0, len(v1CmdManager.Commands))
+	for cmdName, v1Cmd := range v1CmdManager.Commands {
+		v1Commands = append(v1Commands, v1Command{cmdName, v1Cmd})
+	}
+	sort.Sort(ByPriority(v1Commands))
+
+	// add missing legacy commands
+	for _, v1Cmd := range v1Commands {
 		// ignore this legacy commands
-		if cmdName == "help" ||
-			strings.HasSuffix(cmdName, "-password") ||
-			strings.HasPrefix(cmdName, "cluster") {
+		if v1Cmd.name == "help" ||
+			strings.HasSuffix(v1Cmd.name, "-password") ||
+			strings.HasPrefix(v1Cmd.name, "cluster") {
 			continue
 		}
-		addMissingLegacyCommand(tree, cmdName, v1RootCmd, v1Cmd)
+		addMissingLegacyCommand(tree, v1CmdManager, v1Cmd)
 	}
 }
 
-func addMissingLegacyCommand(tree *cmdNode, cmdName string, v1RootCmd *tsuruCmd.Manager, v1Cmd tsuruCmd.Command) {
+func addMissingLegacyCommand(tree *cmdNode, v1CmdManager *tsuruCmd.Manager, v1Cmd v1Command) {
 	curr := tree
-	parts := strings.Split(strings.ReplaceAll(cmdName, "-", " "), " ")
+	parts := strings.Split(strings.ReplaceAll(v1Cmd.name, "-", " "), " ")
 	for i, part := range parts {
 		found := false
 		if _, found = curr.children[part]; !found {
@@ -105,13 +113,31 @@ func addMissingLegacyCommand(tree *cmdNode, cmdName string, v1RootCmd *tsuruCmd.
 		curr = curr.children[part]
 
 		if i == len(parts)-1 && !found {
-			curr.command.Short = "[v1] " + strings.Split(v1Cmd.Info().Desc, "\n")[0]
-			curr.command.Long = v1Cmd.Info().Usage
+			curr.command.Short = "[v1] " + strings.Split(v1Cmd.cmd.Info().Desc, "\n")[0]
+			curr.command.Long = v1Cmd.cmd.Info().Usage
 			curr.command.SilenceUsage = true
 			curr.command.Args = cobra.MinimumNArgs(0)
 			curr.command.RunE = func(cmd *cobra.Command, args []string) error {
-				return runLegacyCommand(v1RootCmd, append(parts, args...))
+				return runLegacyCommand(v1CmdManager, append(parts, args...))
 			}
 		}
 	}
+}
+
+type v1Command struct {
+	name string
+	cmd  tsuruCmd.Command
+}
+
+type ByPriority []v1Command
+
+func (a ByPriority) Len() int      { return len(a) }
+func (a ByPriority) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByPriority) Less(i, j int) bool {
+	Li := len(strings.Split(a[i].name, " "))
+	Lj := len(strings.Split(a[j].name, " "))
+	if Li == Lj {
+		return a[i].name < a[j].name
+	}
+	return Li < Lj
 }

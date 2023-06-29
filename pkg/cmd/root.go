@@ -202,9 +202,9 @@ func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruCont
 		rootCmd.AddCommand(cmd(tsuruCtx))
 	}
 
-	v1LegacyCmd := newV1LegacyCmd()
-	addMissingLegacyCommands(rootCmd, v1LegacyCmd)
-	rootCmd.AddCommand(newLegacyCommand(v1LegacyCmd))
+	v1LegacyCmdManager := newV1LegacyCmdManager()
+	addMissingLegacyCommands(rootCmd, v1LegacyCmdManager)
+	rootCmd.AddCommand(newLegacyCommand(v1LegacyCmdManager))
 }
 
 func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext {
