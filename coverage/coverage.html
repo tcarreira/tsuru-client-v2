@@ -1,0 +1,3616 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>exec: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/tsuru/tsuru-client/v2/internal/exec/exec.go (100.0%)</option>
+				
+				<option value="file1">github.com/tsuru/tsuru-client/v2/internal/exec/open.go (71.4%)</option>
+				
+				<option value="file2">github.com/tsuru/tsuru-client/v2/internal/parser/parser.go (100.0%)</option>
+				
+				<option value="file3">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/app.go (85.0%)</option>
+				
+				<option value="file4">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/create.go (85.5%)</option>
+				
+				<option value="file5">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/deploy.go (18.4%)</option>
+				
+				<option value="file6">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/info.go (86.6%)</option>
+				
+				<option value="file7">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/list.go (90.2%)</option>
+				
+				<option value="file8">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/log.go (91.8%)</option>
+				
+				<option value="file9">github.com/tsuru/tsuru-client/v2/pkg/cmd/app/shell.go (78.8%)</option>
+				
+				<option value="file10">github.com/tsuru/tsuru-client/v2/pkg/cmd/auth/login.go (67.9%)</option>
+				
+				<option value="file11">github.com/tsuru/tsuru-client/v2/pkg/cmd/auth/logout.go (72.0%)</option>
+				
+				<option value="file12">github.com/tsuru/tsuru-client/v2/pkg/cmd/auth/native.go (82.1%)</option>
+				
+				<option value="file13">github.com/tsuru/tsuru-client/v2/pkg/cmd/auth/oauth.go (82.3%)</option>
+				
+				<option value="file14">github.com/tsuru/tsuru-client/v2/pkg/cmd/legacy.go (76.8%)</option>
+				
+				<option value="file15">github.com/tsuru/tsuru-client/v2/pkg/cmd/plugin.go (85.2%)</option>
+				
+				<option value="file16">github.com/tsuru/tsuru-client/v2/pkg/cmd/root.go (69.9%)</option>
+				
+				<option value="file17">github.com/tsuru/tsuru-client/v2/pkg/printer/color.go (100.0%)</option>
+				
+				<option value="file18">github.com/tsuru/tsuru-client/v2/pkg/printer/custom.go (61.8%)</option>
+				
+				<option value="file19">github.com/tsuru/tsuru-client/v2/pkg/printer/info.go (100.0%)</option>
+				
+				<option value="file20">github.com/tsuru/tsuru-client/v2/pkg/printer/list.go (100.0%)</option>
+				
+				<option value="file21">github.com/tsuru/tsuru-client/v2/pkg/printer/printer.go (100.0%)</option>
+				
+				<option value="file22">github.com/tsuru/tsuru-client/v2/pkg/printer/table.go (12.8%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">// Copyright 2013 tsuru authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+// Package exec provides a interface to run external commands as an
+// abstraction layer.
+package exec
+
+import (
+        "fmt"
+        "io"
+        "os/exec"
+)
+
+// ExecuteOptions specify parameters to the Execute method.
+type ExecuteOptions struct {
+        Cmd    string
+        Args   []string
+        Envs   []string
+        Dir    string
+        Stdin  io.Reader
+        Stdout io.Writer
+        Stderr io.Writer
+}
+
+var _ Executor = &amp;OsExec{}
+
+type Executor interface {
+        // Command executes the specified command.
+        Command(opts ExecuteOptions) error
+}
+
+type OsExec struct{}
+
+func (*OsExec) Command(opts ExecuteOptions) error <span class="cov10" title="4">{
+        c := exec.Command(opts.Cmd, opts.Args...)
+        c.Stdin = opts.Stdin
+        c.Stdout = opts.Stdout
+        c.Stderr = opts.Stderr
+        c.Env = opts.Envs
+        c.Dir = opts.Dir
+        return c.Run()
+}</span>
+
+var _ Executor = &amp;FakeExec{}
+
+type FakeExec struct {
+        OutStderr  string
+        OutStdout  string
+        OutErr     error
+        CalledOpts ExecuteOptions
+}
+
+func (e *FakeExec) Command(opts ExecuteOptions) error <span class="cov8" title="3">{
+        if opts.Stdout != nil </span><span class="cov1" title="1">{
+                fmt.Fprint(opts.Stdout, e.OutStdout)
+        }</span>
+        <span class="cov8" title="3">if opts.Stderr != nil </span><span class="cov1" title="1">{
+                fmt.Fprint(opts.Stderr, e.OutStderr)
+        }</span>
+        <span class="cov8" title="3">e.CalledOpts = opts
+        return e.OutErr</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+//go:build !windows &amp;&amp; !darwin
+// +build !windows,!darwin
+
+package exec
+
+import (
+        "fmt"
+        "strings"
+
+        "golang.org/x/sys/unix"
+)
+
+func isWSL() bool <span class="cov8" title="1">{
+        var u unix.Utsname
+        err := unix.Uname(&amp;u)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                return false
+        }</span>
+        <span class="cov8" title="1">release := strings.ToLower(string(u.Release[:]))
+        return strings.Contains(release, "microsoft")</span>
+}
+
+func Open(ex Executor, url string) error <span class="cov8" title="1">{
+        cmd := "xdg-open"
+        args := []string{url}
+
+        if isWSL() </span><span class="cov0" title="0">{
+                cmd = "cmd"
+                args = []string{"-c", "start", "'" + url + "'"}
+        }</span>
+
+        <span class="cov8" title="1">opts := ExecuteOptions{
+                Cmd:  cmd,
+                Args: args,
+        }
+        return ex.Command(opts)</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package parser
+
+import (
+        "fmt"
+        "regexp"
+        "strings"
+        "time"
+
+        "k8s.io/apimachinery/pkg/api/resource"
+        "k8s.io/apimachinery/pkg/util/duration"
+)
+
+const (
+        cutoffHexID = 12
+)
+
+var (
+        hexRegex  = regexp.MustCompile(`(?i)^[a-f0-9]+$`)
+        timeSince = time.Since // for mocking time.Since in tests
+)
+
+// DurationFromTimeStrWithoutSeconds returns a string representing the duration,
+// without seconds, between the given time and now.
+// eg: 1h2m
+func DurationFromTimeStrWithoutSeconds(timeStr string, defaultOnError string) string <span class="cov10" title="14">{
+        createdAt, err := time.Parse(time.RFC3339, timeStr)
+        if err != nil </span><span class="cov8" title="10">{
+                return defaultOnError
+        }</span>
+        <span class="cov5" title="4">return DurationFromTimeWithoutSeconds(createdAt, defaultOnError)</span>
+}
+
+// DurationFromTimeWithoutSeconds returns a string representing the duration,
+// without seconds, between the given time and now.
+// eg: 1h2m
+func DurationFromTimeWithoutSeconds(createdAt time.Time, defaultOnError string) string <span class="cov5" title="4">{
+        age := timeSince(createdAt).Truncate(1 * time.Minute)
+        if age &gt;= 1*time.Hour </span><span class="cov4" title="3">{
+                return fmt.Sprintf("%dh%02dm", age/time.Hour, age%time.Hour/time.Minute)
+        }</span>
+        <span class="cov1" title="1">return fmt.Sprintf("%dm", age/time.Minute)</span>
+}
+
+func TranslateDuration(since, to time.Time) string <span class="cov8" title="8">{
+        if since.IsZero() </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+        <span class="cov7" title="7">if to.Before(since) </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov7" title="6">return duration.HumanDuration(to.Sub(since))</span>
+}
+
+// CPUValue parses CPU as Quantity and returns a the percentage of a CPU core (as string).
+func CPUValue(q string) string <span class="cov6" title="5">{
+        qt, err := resource.ParseQuantity(q)
+        if err == nil </span><span class="cov5" title="4">{
+                return fmt.Sprintf("%d%%", qt.MilliValue()/10)
+        }</span>
+        <span class="cov1" title="1">return ""</span>
+}
+
+// MemoryValue parses Memory as Quantity and returns a human readable quantity.
+func MemoryValue(q string) string <span class="cov8" title="8">{
+        qt, err := resource.ParseQuantity(q)
+        if err != nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+        <span class="cov7" title="7">m := qt.Value()
+        if m &gt;= 1024*1024*1024 </span><span class="cov4" title="3">{
+                return fmt.Sprintf("%dGi", m/1024/1024/1024)
+        }</span> else<span class="cov5" title="4"> if m &gt;= 1024*1024 </span><span class="cov1" title="1">{
+                return fmt.Sprintf("%dMi", m/1024/1024)
+        }</span> else<span class="cov4" title="3"> if m &gt;= 1024 </span><span class="cov3" title="2">{
+                return fmt.Sprintf("%dKi", m/1024)
+        }</span>
+        <span class="cov1" title="1">return fmt.Sprintf("%d", m)</span>
+}
+
+func IntValue(i *int) string <span class="cov3" title="2">{
+        if i == nil </span><span class="cov1" title="1">{
+                return ""
+        }</span>
+
+        <span class="cov1" title="1">return fmt.Sprintf("%d", *i)</span>
+}
+
+func ShortID(id string) string <span class="cov5" title="4">{
+        if hexRegex.MatchString(id) &amp;&amp; len(id) &gt; cutoffHexID </span><span class="cov1" title="1">{
+                return id[:cutoffHexID]
+        }</span>
+        <span class="cov4" title="3">return id</span>
+}
+
+// SliceToMapFlags converts a slice of flags on the form "key=value" to a map.
+// If a flag is not on the form "key=value" an error is returned.
+func SliceToMapFlags(flags []string) (map[string]string, error) <span class="cov8" title="8">{
+        ret := map[string]string{}
+        for _, flag := range flags </span><span class="cov9" title="11">{
+                kv := strings.SplitN(flag, "=", 2)
+                if len(kv) != 2 </span><span class="cov3" title="2">{
+                        return nil, fmt.Errorf("invalid flag %q. Must be on the form \"key=value\"", flag)
+                }</span>
+                <span class="cov8" title="9">ret[kv[0]] = kv[1]</span>
+        }
+        <span class="cov7" title="6">return ret, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "fmt"
+        "net"
+        "net/url"
+        "sort"
+        "strings"
+        "time"
+
+        "github.com/antihax/optional"
+        "github.com/spf13/cobra"
+        "github.com/tsuru/go-tsuruclient/pkg/tsuru"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        appTypes "github.com/tsuru/tsuru/types/app"
+        quotaTypes "github.com/tsuru/tsuru/types/quota"
+        volumeTypes "github.com/tsuru/tsuru/types/volume"
+        "k8s.io/apimachinery/pkg/api/resource"
+)
+
+func NewAppCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov5" title="7">{
+        appCmd := &amp;cobra.Command{
+                Use:   "app",
+                Short: "app is a runnable application running on Tsuru",
+        }
+        appCmd.AddCommand(newAppInfoCmd(tsuruCtx))
+        appCmd.AddCommand(newAppCreateCmd(tsuruCtx))
+        appCmd.AddCommand(newAppListCmd(tsuruCtx))
+        appCmd.AddCommand(newAppShellCmd(tsuruCtx))
+        appCmd.AddCommand(newAppLogCmd(tsuruCtx))
+        appCmd.AddCommand(newAppDeployCmd(tsuruCtx))
+        return appCmd
+}</span>
+
+func completeAppNames(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) <span class="cov0" title="0">{
+        apps, _, err := tsuruCtx.Client().AppApi.AppList(cmd.Context(), &amp;tsuru.AppListOpts{
+                Simplified: optional.NewBool(true),
+                Name:       optional.NewString(toComplete),
+        })
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, cobra.ShellCompDirectiveNoFileComp
+        }</span>
+        <span class="cov0" title="0">var names []string
+        for _, app := range apps </span><span class="cov0" title="0">{
+                names = append(names, app.Name)
+        }</span>
+        <span class="cov0" title="0">return names, cobra.ShellCompDirectiveNoFileComp</span>
+}
+
+type app struct {
+        IP          string
+        CName       []string
+        Name        string
+        Provisioner string
+        Cluster     string
+        Platform    string
+        Repository  string
+        Teams       []string
+        Units       []unit
+        Owner       string
+        TeamOwner   string
+        Deploys     uint
+        Pool        string
+        Description string
+        Lock        lock
+        Quota       quotaTypes.Quota
+        Plan        appTypes.Plan
+        Router      string
+        RouterOpts  map[string]string
+        Tags        []string
+        Error       string
+        Routers     []appTypes.AppRouter
+        AutoScale   []tsuru.AutoScaleSpec
+
+        InternalAddresses    []appInternalAddress
+        UnitsMetrics         []unitMetrics
+        VolumeBinds          []volumeTypes.VolumeBind
+        ServiceInstanceBinds []serviceInstanceBind
+}
+
+type serviceInstanceBind struct {
+        Service  string
+        Instance string
+        Plan     string
+}
+
+type appInternalAddress struct {
+        Domain   string
+        Protocol string
+        Port     int
+        Version  string
+        Process  string
+}
+
+type unitMetrics struct {
+        ID     string
+        CPU    string
+        Memory string
+}
+
+type unit struct {
+        ID           string
+        IP           string
+        InternalIP   string
+        Status       string
+        StatusReason string
+        ProcessName  string
+        Address      *url.URL
+        Addresses    []url.URL
+        Version      int
+        Routable     *bool
+        Ready        *bool
+        Restarts     *int
+        CreatedAt    *time.Time
+}
+
+func (u *unit) Host() string <span class="cov10" title="64">{
+        address := ""
+        if len(u.Addresses) &gt; 0 </span><span class="cov1" title="1">{
+                address = u.Addresses[0].Host
+        }</span> else<span class="cov9" title="63"> if u.Address != nil </span><span class="cov5" title="8">{
+                address = u.Address.Host
+        }</span> else<span class="cov9" title="55"> if u.IP != "" </span><span class="cov5" title="8">{
+                return u.IP
+        }</span>
+        <span class="cov9" title="56">if address == "" </span><span class="cov9" title="47">{
+                return address
+        }</span>
+
+        <span class="cov5" title="9">host, _, _ := net.SplitHostPort(address)
+        return host</span>
+
+}
+
+func (u *unit) ReadyAndStatus() string <span class="cov3" title="3">{
+        if u.Ready != nil &amp;&amp; *u.Ready </span><span class="cov2" title="2">{
+                return "ready"
+        }</span>
+
+        <span class="cov1" title="1">if u.StatusReason != "" </span><span class="cov0" title="0">{
+                return u.Status + " (" + u.StatusReason + ")"
+        }</span>
+
+        <span class="cov1" title="1">return u.Status</span>
+}
+
+func (u *unit) Port() string <span class="cov9" title="61">{
+        if len(u.Addresses) == 0 </span><span class="cov9" title="60">{
+                if u.Address == nil </span><span class="cov9" title="54">{
+                        return ""
+                }</span>
+                <span class="cov4" title="6">_, port, _ := net.SplitHostPort(u.Address.Host)
+                return port</span>
+        }
+
+        <span class="cov1" title="1">ports := []string{}
+        for _, addr := range u.Addresses </span><span class="cov2" title="2">{
+                _, port, _ := net.SplitHostPort(addr.Host)
+                ports = append(ports, port)
+        }</span>
+        <span class="cov1" title="1">return strings.Join(ports, ", ")</span>
+}
+
+func (a *app) QuotaString() string <span class="cov7" title="24">{
+        var limit strings.Builder
+        if a.Quota.IsUnlimited() </span><span class="cov1" title="1">{
+                limit.WriteString("unlimited")
+        }</span> else<span class="cov7" title="23"> {
+                fmt.Fprintf(&amp;limit, "%d units", a.Quota.Limit)
+        }</span>
+        <span class="cov7" title="24">return fmt.Sprintf("%d/%s", a.Quota.InUse, limit.String())</span>
+}
+
+func (a *app) TeamList() string <span class="cov7" title="25">{
+        teams := []string{}
+        if a.TeamOwner != "" </span><span class="cov7" title="25">{
+                teams = append(teams, a.TeamOwner+" (owner)")
+        }</span>
+
+        <span class="cov7" title="25">for _, t := range a.Teams </span><span class="cov9" title="49">{
+                if t != a.TeamOwner </span><span class="cov9" title="49">{
+                        teams = append(teams, t)
+                }</span>
+        }
+
+        <span class="cov7" title="25">return strings.Join(teams, ", ")</span>
+
+}
+
+func (a *app) InternalAddr() string <span class="cov1" title="1">{
+
+        addrs := []string{}
+        for _, a := range a.InternalAddresses </span><span class="cov0" title="0">{
+                if a.Protocol == "UDP" </span><span class="cov0" title="0">{
+                        addrs = append(addrs, fmt.Sprintf("%s:%d (UDP)", a.Domain, a.Port))
+                }</span> else<span class="cov0" title="0"> {
+                        addrs = append(addrs, fmt.Sprintf("%s:%d", a.Domain, a.Port))
+                }</span>
+        }
+
+        <span class="cov1" title="1">return strings.Join(addrs, ", ")</span>
+}
+
+func (a *app) Addr() string <span class="cov8" title="26">{
+        var allAddrs []string
+        for _, cname := range a.CName </span><span class="cov7" title="18">{
+                if cname != "" </span><span class="cov2" title="2">{
+                        allAddrs = append(allAddrs, cname+" (cname)")
+                }</span>
+        }
+        <span class="cov8" title="26">if len(a.Routers) == 0 </span><span class="cov7" title="25">{
+                if a.IP != "" </span><span class="cov7" title="25">{
+                        allAddrs = append(allAddrs, a.IP)
+                }</span>
+        } else<span class="cov1" title="1"> {
+                for _, r := range a.Routers </span><span class="cov3" title="3">{
+                        if len(r.Addresses) &gt; 0 </span><span class="cov1" title="1">{
+                                sort.Strings(r.Addresses)
+                                allAddrs = append(allAddrs, r.Addresses...)
+                        }</span> else<span class="cov2" title="2"> if r.Address != "" </span><span class="cov2" title="2">{
+                                allAddrs = append(allAddrs, r.Address)
+                        }</span>
+                }
+        }
+        <span class="cov8" title="26">return strings.Join(allAddrs, ", ")</span>
+}
+
+func (a *app) TagList() string <span class="cov8" title="26">{
+        return strings.Join(a.Tags, ", ")
+}</span>
+
+func (a *app) GetRouterOpts() string <span class="cov1" title="1">{
+        var kv []string
+        for k, v := range a.RouterOpts </span><span class="cov2" title="2">{
+                kv = append(kv, fmt.Sprintf("%s=%s", k, v))
+        }</span>
+        <span class="cov1" title="1">sort.Strings(kv)
+        return strings.Join(kv, ", ")</span>
+}
+
+func (a *app) SimpleServicesView() string <span class="cov1" title="1">{
+        sibs := make([]serviceInstanceBind, len(a.ServiceInstanceBinds))
+        copy(sibs, a.ServiceInstanceBinds)
+
+        sort.Slice(sibs, func(i, j int) bool </span><span class="cov0" title="0">{
+                if sibs[i].Service &lt; sibs[j].Service </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+                <span class="cov0" title="0">if sibs[i].Service &gt; sibs[j].Service </span><span class="cov0" title="0">{
+                        return false
+                }</span>
+                <span class="cov0" title="0">return sibs[i].Instance &lt; sibs[j].Instance</span>
+        })
+        <span class="cov1" title="1">pairs := []string{}
+        for _, b := range sibs </span><span class="cov0" title="0">{
+                pairs = append(pairs, b.Service+"/"+b.Instance)
+        }</span>
+
+        <span class="cov1" title="1">return strings.Join(pairs, ", ")</span>
+}
+
+func memoryValue(q string) string <span class="cov3" title="3">{
+        var memory string
+        qt, err := resource.ParseQuantity(q)
+        if err == nil </span><span class="cov3" title="3">{
+                memory = fmt.Sprintf("%vMi", qt.Value()/(1024*1024))
+
+        }</span>
+        <span class="cov3" title="3">return memory</span>
+}
+
+func (l *lock) String() string <span class="cov1" title="1">{
+        format := `Lock:
+ Acquired in: %s
+ Owner: %s
+ Running: %s`
+        return fmt.Sprintf(format, l.AcquireDate, l.Owner, l.Reason)
+}</span>
+
+// AppNameAndUnitIDFromArgsOrFlags returns the appName and unitID parsed from the
+// command line arguments or flags.
+// If the appName is specified with the "app" flag, the first arg is considered
+// to be the unitID. Otherwise, it is parsed as: COMMAND &lt;appName&gt; &lt;unitID&gt;.
+func AppNameAndUnitIDFromArgsOrFlags(cmd *cobra.Command, args []string) (appName, unitID string, err error) <span class="cov8" title="29">{
+        appName = cmd.Flag("app").Value.String()
+        unitID = cmd.Flag("unit").Value.String()
+        switch len(args) </span>{
+        case 0:<span class="cov6" title="15">
+                return</span>
+        case 1:<span class="cov4" title="6">
+                if appName == "" </span><span class="cov3" title="3">{
+                        appName = args[0]
+                }</span> else<span class="cov3" title="3"> {
+                        if unitID != "" </span><span class="cov1" title="1">{
+                                return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
+                        }</span>
+                        <span class="cov2" title="2">unitID = args[0]</span>
+                }
+        case 2:<span class="cov5" title="7">
+                if appName != "" || unitID != "" </span><span class="cov4" title="4">{
+                        return "", "", fmt.Errorf("specify app and unit either by flags or by arguments, not both")
+                }</span>
+                <span class="cov3" title="3">appName = args[0]
+                unitID = args[1]</span>
+        default:<span class="cov1" title="1">
+                return "", "", fmt.Errorf("too many arguments")</span>
+        }
+        <span class="cov5" title="8">return</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/url"
+        "strings"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/parser"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+func newAppCreateCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="19">{
+        appCreateCmd := &amp;cobra.Command{
+                Use:   "create APP [PLATFORM]",
+                Short: "creates a new app",
+                Long: `Creates a new app using the given name and platform. For tsuru,
+a platform is provisioner dependent. To check the available platforms, use the
+command [[tsuru platform list]] and to add a platform use the command [[tsuru platform add]].
+
+In order to create an app, you need to be member of at least one team. All
+teams that you are member (see [[tsuru team list]]) will be able to access the
+app.
+
+The [[--platform]] parameter is the name of the platform to be used when
+creating the app. This will define how tsuru understands and executes your
+app. The list of available platforms can be found running [[tsuru platform list]].
+
+The [[--plan]] parameter defines the plan to be used. The plan specifies how
+computational resources are allocated to your application. Typically this
+means limits for memory and swap usage, and how much cpu share is allocated.
+The list of available plans can be found running [[tsuru plan list]].
+
+If this parameter is not informed, tsuru will choose the plan with the
+[[default]] flag set to true.
+
+The [[--router]] parameter defines the router to be used. The list of available
+routers can be found running [[tsuru router-list]].
+
+If this parameter is not informed, tsuru will choose the router with the
+[[default]] flag set to true.
+
+The [[--team]] parameter describes which team is responsible for the created
+app, this is only needed if the current user belongs to more than one team, in
+which case this parameter will be mandatory.
+
+The [[--pool]] parameter defines which pool your app will be deployed.
+This is only needed if you have more than one pool associated with your teams.
+
+The [[--description]] parameter sets a description for your app.
+It is an optional parameter, and if its not set the app will only not have a
+description associated.
+
+The [[--tag]] parameter sets a tag to your app. You can set multiple [[--tag]] parameters.
+
+The [[--router-opts]] parameter allow passing custom parameters to the router
+used by the application's plan. The key and values used depends on the router
+implementation.
+`,
+                Example: `$ tsuru app create myapp
+$ tsuru app create myapp python
+$ tsuru app create myapp go
+$ tsuru app create myapp python --plan small --team myteam
+$ tsuru app create myapp python --plan small --team myteam --tag tag1 --tag tag2`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return appCreateRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.RangeArgs(0, 2),
+        }
+
+        <span class="cov10" title="19">appCreateCmd.Flags().StringP("app", "a", "", "the name of the app. Must be unique across tsuru (may be passed as argument)")
+        appCreateCmd.Flags().String("platform", "", "the platform for the app (can be changed later) (may be passed as argument)")
+        appCreateCmd.Flags().StringP("description", "d", "", "app description")
+        appCreateCmd.Flags().StringP("plan", "p", "", "the plan used to create the app")
+        appCreateCmd.Flags().StringP("router", "r", "", "the router used by the app")
+        appCreateCmd.Flags().StringP("team", "t", "", "team owning the app")
+        appCreateCmd.Flags().StringP("pool", "o", "", "pool to deploy your app")
+        appCreateCmd.Flags().StringArrayP("tag", "g", nil, "app tags")
+        appCreateCmd.Flags().StringArray("router-opts", nil, "router options")
+
+        return appCreateCmd</span>
+}
+
+func appCreateRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov8" title="10">{
+        var appName, platform string
+        if len(args) == 0 &amp;&amp; cmd.Flag("app").Value.String() == "" </span><span class="cov1" title="1">{
+                return fmt.Errorf("no app was provided. Please provide an app name")
+        }</span>
+        <span class="cov7" title="9">if len(args) &gt; 0 &amp;&amp; cmd.Flag("app").Value.String() != "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("flag --app and argument app cannot be used at the same time")
+        }</span>
+        <span class="cov7" title="9">cmd.SilenceUsage = true
+
+        if len(args) &gt; 0 </span><span class="cov7" title="9">{
+                appName = args[0]
+        }</span>
+        <span class="cov7" title="9">if len(args) &gt; 1 </span><span class="cov7" title="8">{
+                platform = args[1]
+        }</span>
+
+        <span class="cov7" title="9">if appName != "" &amp;&amp; cmd.Flag("app").Value.String() != "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("flag --app and argument app cannot be used at the same time")
+        }</span>
+        <span class="cov7" title="9">if platform != "" &amp;&amp; cmd.Flag("platform").Value.String() != "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("flag --platform and argument platform cannot be used at the same time")
+        }</span>
+
+        <span class="cov7" title="9">v := url.Values{}
+        v.Set("name", appName)
+        v.Set("platform", platform)
+        v.Set("description", cmd.Flag("description").Value.String())
+        v.Set("plan", cmd.Flag("plan").Value.String())
+        v.Set("router", cmd.Flag("router").Value.String())
+        v.Set("teamOwner", cmd.Flag("team").Value.String())
+        v.Set("pool", cmd.Flag("pool").Value.String())
+        if tags, err := cmd.Flags().GetStringArray("tag"); err == nil </span><span class="cov7" title="9">{
+                for _, tag := range tags </span><span class="cov3" title="2">{
+                        v.Add("tag", tag)
+                }</span>
+        }
+        <span class="cov7" title="9">if routerOpts, err := cmd.Flags().GetStringArray("router-opts"); err == nil </span><span class="cov7" title="9">{
+                routerOptsMap, err := parser.SliceToMapFlags(routerOpts)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov7" title="9">for key, val := range routerOptsMap </span><span class="cov3" title="2">{
+                        v.Add("routeropts."+key, val)
+                }</span>
+        }
+
+        <span class="cov7" title="9">b := strings.NewReader(v.Encode())
+        request, err := tsuruCtx.NewRequest("POST", "/apps", b)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov7" title="9">request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+        response, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov7" title="9">defer response.Body.Close()
+        result, err := io.ReadAll(response.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov7" title="9">data := make(map[string]string)
+        err = json.Unmarshal(result, &amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov7" title="9">fmt.Fprintf(tsuruCtx.Stdout, "App %q has been created!\n", appName)
+        fmt.Fprintln(tsuruCtx.Stdout, "Use app info to check the status of the app and its units.")
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+func newAppDeployCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="8">{
+        appDeployCmd := &amp;cobra.Command{
+                Use:   "deploy APP [file-or-dir ...]",
+                Short: "deploy the source code and/or configurations to the application on Tsuru",
+                Long: `Deploy the source code and/or configurations to the application on Tsuru.
+Files specified in the ".tsuruignore" file are skipped - similar to ".gitignore". It also honors ".dockerignore" file if deploying with container file (--dockerfile).
+`,
+                Example: `To deploy using app's platform build process (just sending source code and/or configurations):
+  Uploading all files within the current directory
+    $ tsuru app deploy -a &lt;APP&gt; .
+
+  Uploading all files within a specific directory
+    $ tsuru app deploy -a &lt;APP&gt; mysite/
+
+  Uploading specific files
+    $ tsuru app deploy -a &lt;APP&gt; ./myfile.jar ./Procfile
+
+  Uploading specific files (ignoring their base directories)
+    $ tsuru app deploy -a &lt;APP&gt; --files-only ./my-code/main.go ./tsuru_stuff/Procfile
+
+To deploy using a container image:
+    $ tsuru app deploy -a &lt;APP&gt; --image registry.example.com/my-company/app:v42
+
+To deploy using container file ("docker build" mode):
+  Sending the the current directory as container build context - uses Dockerfile file as container image instructions:
+    $ tsuru app deploy -a &lt;APP&gt; --dockerfile .
+
+  Sending a specific container file and specific directory as container build context:
+    $ tsuru app deploy -a &lt;APP&gt; --dockerfile ./Dockerfile.other ./other/
+`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return appDeployCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.MinimumNArgs(0),
+        }
+
+        <span class="cov10" title="8">appDeployCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
+        appDeployCmd.Flags().StringP("image", "i", "", "The image to deploy in app")
+        appDeployCmd.Flags().StringP("message", "m", "", "A message describing this deploy")
+        appDeployCmd.Flags().BoolP("files-only", "f", false, "Enables single file deployment into the root of the app's tree")
+        appDeployCmd.Flags().String("dockerfile", "", "Container file")
+        appDeployCmd.Flags().Bool("new-version", false, "Creates a new version for the current deployment while preserving existing versions")
+        appDeployCmd.Flags().Bool("override-old-versions", false, "Force replace all deployed versions by this new deploy")
+        return appDeployCmd</span>
+}
+
+func appDeployCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov0" title="0">{
+        appName := cmd.Flag("app").Value.String()
+        if appName == "" &amp;&amp; len(args) &gt; 0 </span><span class="cov0" title="0">{
+                appName = args[0]
+                args = args[1:]
+        }</span>
+
+        <span class="cov0" title="0">if appName == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("no app was provided. Please provide an app name")
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flag("image").Value.String() == "" &amp;&amp; cmd.Flag("dockerfile").Value.String() == "" &amp;&amp; len(args) == 0 </span><span class="cov0" title="0">{
+                return fmt.Errorf("you should provide at least one file, Docker image name or Dockerfile to deploy")
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flag("image").Value.String() != "" &amp;&amp; len(args) &gt; 0 </span><span class="cov0" title="0">{
+                return fmt.Errorf("you can't deploy files and docker image at the same time")
+        }</span>
+
+        <span class="cov0" title="0">if cmd.Flag("image").Value.String() != "" &amp;&amp; cmd.Flag("dockerfile").Value.String() != "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("you can't deploy container image and container file at same time")
+        }</span>
+
+        <span class="cov0" title="0">cmd.SilenceUsage = true
+
+        values := url.Values{}
+        values.Set("origin", "app-deploy")
+        if cmd.Flag("image").Value.String() != "" </span><span class="cov0" title="0">{
+                values.Set("origin", "image")
+        }</span>
+        <span class="cov0" title="0">if msg := cmd.Flag("message").Value.String(); msg != "" </span><span class="cov0" title="0">{
+                values.Set("message", msg)
+        }</span>
+        <span class="cov0" title="0">if newV := cmd.Flag("new-version").Value.String(); newV == "true" </span><span class="cov0" title="0">{
+                values.Set("new-version", "true")
+        }</span>
+        <span class="cov0" title="0">if overrideV := cmd.Flag("override-old-versions").Value.String(); overrideV == "true" </span><span class="cov0" title="0">{
+                values.Set("override-versions", "true")
+        }</span>
+
+        <span class="cov0" title="0">requestReader, _ := io.Pipe()
+        request, err := tsuruCtx.NewRequest("POST", "/apps/"+appName+"/deploy", requestReader)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer httpResponse.Body.Close()
+        if httpResponse.StatusCode == http.StatusNotFound </span><span class="cov0" title="0">{
+                return fmt.Errorf("app %q not found", appName)
+        }</span>
+
+        // ----
+        <span class="cov0" title="0">debugWriter := io.Discard
+        debug := tsuruCtx.Verbosity() &gt; 0 // e.g. --verbosity 2
+        if debug </span><span class="cov0" title="0">{
+                debugWriter = tsuruCtx.Stderr
+        }</span>
+        <span class="cov0" title="0">_ = debugWriter
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/http"
+        "sort"
+        "strconv"
+        "strings"
+        "text/template"
+        "time"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tablecli"
+        "github.com/tsuru/tsuru-client/v2/internal/parser"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "github.com/tsuru/tsuru-client/v2/pkg/cmd/plan"
+        "github.com/tsuru/tsuru-client/v2/pkg/cmd/router"
+        "github.com/tsuru/tsuru-client/v2/pkg/printer"
+        "k8s.io/apimachinery/pkg/api/resource"
+
+        appTypes "github.com/tsuru/tsuru/types/app"
+        volumeTypes "github.com/tsuru/tsuru/types/volume"
+)
+
+const (
+        simplifiedFormat = `{{ if .Error -}}
+Error: {{ .Error }}
+{{ end -}}
+Application: {{.Name}}
+{{- if .Description }}
+Description: {{.Description}}
+{{- end }}
+{{- if .TagList }}
+Tags: {{.TagList}}
+{{- end }}
+Created by: {{.Owner}}
+Platform: {{.Platform}}
+Plan: {{ .Plan.Name }}
+Pool: {{.Pool}} ({{ .Provisioner }}{{ if .Cluster}} | cluster: {{ .Cluster }}{{end}})
+{{if not .Routers -}}
+Router:{{if .Router}} {{.Router}}{{if .RouterOpts}} ({{.GetRouterOpts}}){{end}}{{end}}
+{{end -}}
+Teams: {{.TeamList}}
+{{- if .InternalAddr }}
+Cluster Internal Addresses: {{.InternalAddr}}
+{{- end }}
+{{- if .Addr }}
+Cluster External Addresses: {{.Addr}}
+{{- end }}
+{{- if .SimpleServicesView }}
+Bound Services: {{ .SimpleServicesView }}
+{{- end }}
+`
+        fullFormat = `{{ if .Error -}}
+Error: {{ .Error }}
+{{ end -}}
+Application: {{.Name}}
+{{- if .Description }}
+Description: {{.Description}}
+{{- end }}
+{{- if .TagList }}
+Tags: {{.TagList}}
+{{- end }}
+Platform: {{.Platform}}
+{{ if .Provisioner -}}
+Provisioner: {{ .Provisioner }}
+{{ end -}}
+{{if not .Routers -}}
+Router:{{if .Router}} {{.Router}}{{if .RouterOpts}} ({{.GetRouterOpts}}){{end}}{{end}}
+{{end -}}
+Teams: {{.TeamList}}
+External Addresses: {{.Addr}}
+Created by: {{.Owner}}
+Deploys: {{.Deploys}}
+{{if .Cluster -}}
+Cluster: {{ .Cluster }}
+{{ end -}}
+Pool:{{if .Pool}} {{.Pool}}{{end}}{{if .Lock.Locked}}
+{{.Lock.String}}{{end}}
+Quota: {{ .QuotaString }}
+`
+)
+
+func newAppInfoCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov8" title="35">{
+        appInfoCmd := &amp;cobra.Command{
+                Use:   "info [APP]",
+                Short: "shows information about a specific app",
+                Long: `shows information about a specific app.
+Its name, platform, state (and its units), address, etc.
+You need to be a member of a team that has access to the app to be able to see information about it.
+`,
+                Example: `$ tsuru app info myapp
+$ tsuru app info -a myapp`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return printAppInfo(tsuruCtx, cmd, args)
+                }</span>,
+                ValidArgsFunction: func(cmd *cobra.Command, args []string, toComplete string) ([]string, cobra.ShellCompDirective) <span class="cov0" title="0">{
+                        return completeAppNames(tsuruCtx, cmd, args, toComplete)
+                }</span>,
+                Args: cobra.RangeArgs(0, 1),
+        }
+
+        <span class="cov8" title="35">appInfoCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
+        appInfoCmd.Flags().BoolP("simplified", "s", false, "Show simplified view of app")
+        appInfoCmd.Flags().Bool("json", false, "Show JSON view of app")
+        return appInfoCmd</span>
+}
+
+func printAppInfo(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov8" title="26">{
+        if len(args) == 0 &amp;&amp; cmd.Flag("app").Value.String() == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("no app was provided. Please provide an app name or use the --app flag")
+        }</span>
+        <span class="cov8" title="26">if len(args) &gt; 0 &amp;&amp; cmd.Flag("app").Value.String() != "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("either pass an app name as an argument or use the --app flag, not both")
+        }</span>
+        <span class="cov8" title="26">cmd.SilenceUsage = true
+
+        appName := cmd.Flag("app").Value.String()
+        if appName == "" </span><span class="cov0" title="0">{
+                appName = args[0]
+        }</span>
+
+        <span class="cov8" title="26">request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="26">httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="26">defer httpResponse.Body.Close()
+        if httpResponse.StatusCode == http.StatusNotFound </span><span class="cov1" title="1">{
+                return fmt.Errorf("app %q not found", appName)
+        }</span>
+
+        <span class="cov7" title="25">var a app
+        err = json.NewDecoder(httpResponse.Body).Decode(&amp;a)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov7" title="25">format := "table"
+        if v, _ := cmd.Flags().GetBool("json"); v </span><span class="cov0" title="0">{
+                format = "json"
+        }</span>
+        <span class="cov7" title="25">return a.PrintInfo(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true")</span>
+}
+
+func (a *app) PrintInfo(out io.Writer, format printer.OutputType, simplified bool) error <span class="cov7" title="25">{
+        if format == printer.JSON </span><span class="cov0" title="0">{
+                return printer.PrintPrettyJSON(out, a)
+        }</span>
+
+        <span class="cov7" title="25">httpTemplate := fullFormat
+        if simplified </span><span class="cov1" title="1">{
+                httpTemplate = simplifiedFormat
+        }</span>
+
+        <span class="cov7" title="25">var buf bytes.Buffer
+        tmpl := template.Must(template.New("app").Parse(httpTemplate))
+
+        if simplified </span><span class="cov1" title="1">{
+                renderUnitsSummary(&amp;buf, a.Units, a.UnitsMetrics, a.Provisioner)
+        }</span> else<span class="cov7" title="24"> {
+                renderUnits(&amp;buf, a.Units, a.UnitsMetrics, a.Provisioner)
+        }</span>
+
+        <span class="cov7" title="25">internalAddressesTable := tablecli.NewTable()
+        internalAddressesTable.Headers = []string{"Domain", "Port", "Process", "Version"}
+        for _, internalAddress := range a.InternalAddresses </span><span class="cov2" title="2">{
+                internalAddressesTable.AddRow([]string{
+                        internalAddress.Domain,
+                        strconv.Itoa(internalAddress.Port) + "/" + internalAddress.Protocol,
+                        internalAddress.Process,
+                        internalAddress.Version,
+                })
+        }</span>
+
+        <span class="cov7" title="25">if !simplified </span><span class="cov7" title="24">{
+                renderServiceInstanceBinds(&amp;buf, a.ServiceInstanceBinds)
+        }</span>
+
+        <span class="cov7" title="25">autoScaleTable := tablecli.NewTable()
+        autoScaleTable.Headers = tablecli.Row([]string{"Process", "Min", "Max", "Target CPU"})
+        for _, as := range a.AutoScale </span><span class="cov2" title="2">{
+                cpu := parser.CPUValue(as.AverageCPU)
+                autoScaleTable.AddRow(tablecli.Row([]string{
+                        fmt.Sprintf("%s (v%d)", as.Process, as.Version),
+                        strconv.Itoa(int(as.MinUnits)),
+                        strconv.Itoa(int(as.MaxUnits)),
+                        cpu,
+                }))
+        }</span>
+
+        <span class="cov7" title="25">if autoScaleTable.Rows() &gt; 0 </span><span class="cov1" title="1">{
+                buf.WriteString("\n")
+                buf.WriteString("Auto Scale:\n")
+                buf.WriteString(autoScaleTable.String())
+        }</span>
+
+        <span class="cov7" title="25">if !simplified &amp;&amp; (a.Plan.Memory != 0 || a.Plan.CPUMilli != 0) </span><span class="cov3" title="3">{
+                buf.WriteString("\n")
+                buf.WriteString("App Plan:\n")
+                buf.WriteString(plan.RenderPlans([]appTypes.Plan{a.Plan}, false, false))
+        }</span>
+        <span class="cov7" title="25">if !simplified &amp;&amp; internalAddressesTable.Rows() &gt; 0 </span><span class="cov1" title="1">{
+                buf.WriteString("\n")
+                buf.WriteString("Cluster internal addresses:\n")
+                buf.WriteString(internalAddressesTable.String())
+        }</span>
+        <span class="cov7" title="25">if !simplified &amp;&amp; len(a.Routers) &gt; 0 </span><span class="cov1" title="1">{
+                buf.WriteString("\n")
+                if a.Provisioner == "kubernetes" </span><span class="cov0" title="0">{
+                        buf.WriteString("Cluster external addresses:\n")
+                        router.RenderRouters(a.Routers, &amp;buf, "Router")
+                }</span> else<span class="cov1" title="1"> {
+                        buf.WriteString("Routers:\n")
+                        router.RenderRouters(a.Routers, &amp;buf, "Name")
+                }</span>
+        }
+
+        <span class="cov7" title="25">renderVolumeBinds(&amp;buf, a.VolumeBinds)
+
+        var tplBuffer bytes.Buffer
+        err := tmpl.Execute(&amp;tplBuffer, a)
+        fmt.Fprintln(out, tplBuffer.String()+buf.String())
+        return err</span>
+}
+
+type lock struct {
+        Locked      bool
+        Reason      string
+        Owner       string
+        AcquireDate time.Time
+}
+
+func renderUnitsSummary(buf *bytes.Buffer, units []unit, metrics []unitMetrics, provisioner string) <span class="cov1" title="1">{
+        type unitsKey struct {
+                process  string
+                version  int
+                routable bool
+        }
+        groupedUnits := map[unitsKey][]unit{}
+        for _, u := range units </span><span class="cov2" title="2">{
+                routable := false
+                if u.Routable != nil </span><span class="cov2" title="2">{
+                        routable = *u.Routable
+                }</span>
+                <span class="cov2" title="2">key := unitsKey{process: u.ProcessName, version: u.Version, routable: routable}
+                groupedUnits[key] = append(groupedUnits[key], u)</span>
+        }
+        <span class="cov1" title="1">keys := make([]unitsKey, 0, len(groupedUnits))
+        for key := range groupedUnits </span><span class="cov1" title="1">{
+                keys = append(keys, key)
+        }</span>
+        <span class="cov1" title="1">sort.Slice(keys, func(i, j int) bool </span><span class="cov0" title="0">{
+                if keys[i].version == keys[j].version </span><span class="cov0" title="0">{
+                        return keys[i].process &lt; keys[j].process
+                }</span>
+                <span class="cov0" title="0">return keys[i].version &lt; keys[j].version</span>
+        })
+        <span class="cov1" title="1">var titles []string
+        if provisioner == "kubernetes" </span><span class="cov1" title="1">{
+                titles = []string{"Process", "Ready", "Restarts", "Avg CPU (abs)", "Avg Memory"}
+        }</span> else<span class="cov0" title="0"> {
+                titles = []string{"Process", "Units"}
+        }</span>
+        <span class="cov1" title="1">unitsTable := tablecli.NewTable()
+        tablecli.TableConfig.ForceWrap = false
+        unitsTable.Headers = tablecli.Row(titles)
+
+        fmt.Fprintf(buf, "Units: %d\n", len(units))
+
+        if len(units) == 0 </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov1" title="1">mapUnitMetrics := map[string]unitMetrics{}
+        for _, unitMetric := range metrics </span><span class="cov0" title="0">{
+                mapUnitMetrics[unitMetric.ID] = unitMetric
+        }</span>
+
+        <span class="cov1" title="1">for _, key := range keys </span><span class="cov1" title="1">{
+                summaryTitle := key.process
+                if key.version &gt; 0 </span><span class="cov0" title="0">{
+                        summaryTitle = fmt.Sprintf("%s (v%d)", key.process, key.version)
+                }</span>
+
+                <span class="cov1" title="1">summaryUnits := groupedUnits[key]
+
+                if !key.routable &amp;&amp; provisioner == "kubernetes" </span><span class="cov0" title="0">{
+                        summaryTitle = summaryTitle + " (unroutable)"
+                }</span>
+
+                <span class="cov1" title="1">readyUnits := 0
+                restarts := 0
+                cpuTotal := resource.NewQuantity(0, resource.DecimalSI)
+                memoryTotal := resource.NewQuantity(0, resource.BinarySI)
+
+                for _, unit := range summaryUnits </span><span class="cov2" title="2">{
+                        if unit.Ready != nil &amp;&amp; *unit.Ready </span><span class="cov2" title="2">{
+                                readyUnits += 1
+                        }</span>
+
+                        <span class="cov2" title="2">if unit.Restarts != nil </span><span class="cov0" title="0">{
+                                restarts += *unit.Restarts
+                        }</span>
+
+                        <span class="cov2" title="2">unitMetric := mapUnitMetrics[unit.ID]
+                        qt, err := resource.ParseQuantity(unitMetric.CPU)
+                        if err == nil </span><span class="cov0" title="0">{
+                                cpuTotal.Add(qt)
+                        }</span>
+                        <span class="cov2" title="2">qt, err = resource.ParseQuantity(unitMetric.Memory)
+                        if err == nil </span><span class="cov0" title="0">{
+                                memoryTotal.Add(qt)
+                        }</span>
+                }
+
+                <span class="cov1" title="1">if provisioner == "kubernetes" </span><span class="cov1" title="1">{
+                        unitsTable.AddRow(tablecli.Row{
+                                summaryTitle,
+                                fmt.Sprintf("%d/%d", readyUnits, len(summaryUnits)),
+                                fmt.Sprintf("%d", restarts),
+                                fmt.Sprintf("%d%%", cpuTotal.MilliValue()/int64(10)/int64(len(summaryUnits))),
+                                fmt.Sprintf("%vMi", memoryTotal.Value()/int64(1024*1024)/int64(len(summaryUnits))),
+                        })
+                }</span> else<span class="cov0" title="0"> {
+                        unitsTable.AddRow(tablecli.Row{
+                                summaryTitle,
+                                fmt.Sprintf("%d", len(summaryUnits)),
+                        })
+                }</span>
+        }
+        <span class="cov1" title="1">buf.WriteString(unitsTable.String())</span>
+}
+
+func renderUnits(buf *bytes.Buffer, units []unit, metrics []unitMetrics, provisioner string) <span class="cov7" title="24">{
+        type unitsKey struct {
+                process  string
+                version  int
+                routable bool
+        }
+        groupedUnits := map[unitsKey][]unit{}
+        for _, u := range units </span><span class="cov10" title="65">{
+                routable := false
+                if u.Routable != nil </span><span class="cov4" title="5">{
+                        routable = *u.Routable
+                }</span>
+                <span class="cov10" title="65">key := unitsKey{process: u.ProcessName, version: u.Version, routable: routable}
+                groupedUnits[key] = append(groupedUnits[key], u)</span>
+        }
+        <span class="cov7" title="24">keys := make([]unitsKey, 0, len(groupedUnits))
+        for key := range groupedUnits </span><span class="cov8" title="28">{
+                keys = append(keys, key)
+        }</span>
+        <span class="cov7" title="24">sort.Slice(keys, func(i, j int) bool </span><span class="cov5" title="7">{
+                if keys[i].version == keys[j].version </span><span class="cov3" title="4">{
+                        return keys[i].process &lt; keys[j].process
+                }</span>
+                <span class="cov3" title="3">return keys[i].version &lt; keys[j].version</span>
+        })
+
+        <span class="cov7" title="24">var titles []string
+        if provisioner == "kubernetes" </span><span class="cov1" title="1">{
+                titles = []string{"Name", "Host", "Status", "Restarts", "Age", "CPU", "Memory"}
+        }</span> else<span class="cov7" title="23"> {
+                titles = []string{"Name", "Status", "Host", "Port"}
+        }</span>
+        <span class="cov7" title="24">mapUnitMetrics := map[string]unitMetrics{}
+        for _, unitMetric := range metrics </span><span class="cov3" title="3">{
+                mapUnitMetrics[unitMetric.ID] = unitMetric
+        }</span>
+
+        <span class="cov7" title="24">for _, key := range keys </span><span class="cov8" title="28">{
+                units := groupedUnits[key]
+                unitsTable := tablecli.NewTable()
+                tablecli.TableConfig.ForceWrap = false
+                unitsTable.Headers = tablecli.Row(titles)
+                sort.Slice(units, func(i, j int) bool </span><span class="cov8" title="37">{
+                        return units[i].ID &lt; units[j].ID
+                }</span>)
+                <span class="cov8" title="28">for _, unit := range units </span><span class="cov10" title="65">{
+                        if unit.ID == "" </span><span class="cov1" title="1">{
+                                continue</span>
+                        }
+                        <span class="cov9" title="64">var row tablecli.Row
+                        if provisioner == "kubernetes" </span><span class="cov3" title="3">{
+                                row = tablecli.Row{
+                                        unit.ID,
+                                        unit.Host(),
+                                        unit.ReadyAndStatus(),
+                                        parser.IntValue(unit.Restarts),
+                                        parser.TranslateDuration(*unit.CreatedAt, time.Now()),
+                                        parser.CPUValue(mapUnitMetrics[unit.ID].CPU),
+                                        memoryValue(mapUnitMetrics[unit.ID].Memory),
+                                }
+                        }</span> else<span class="cov9" title="61"> {
+                                row = tablecli.Row{
+                                        parser.ShortID(unit.ID),
+                                        unit.Status,
+                                        unit.Host(),
+                                        unit.Port(),
+                                }
+                        }</span>
+
+                        <span class="cov9" title="64">unitsTable.AddRow(row)</span>
+                }
+                <span class="cov8" title="28">if unitsTable.Rows() &gt; 0 </span><span class="cov8" title="27">{
+                        unitsTable.SortByColumn(2)
+                        buf.WriteString("\n")
+                        groupLabel := ""
+                        if key.process != "" </span><span class="cov5" title="8">{
+                                groupLabel = fmt.Sprintf(" [process %s]", key.process)
+                        }</span>
+                        <span class="cov8" title="27">if key.version != 0 </span><span class="cov3" title="4">{
+                                groupLabel = fmt.Sprintf("%s [version %d]", groupLabel, key.version)
+                        }</span>
+                        <span class="cov8" title="27">if key.routable </span><span class="cov2" title="2">{
+                                groupLabel = fmt.Sprintf("%s [routable]", groupLabel)
+                        }</span>
+                        <span class="cov8" title="27">buf.WriteString(fmt.Sprintf("Units%s: %d\n", groupLabel, unitsTable.Rows()))
+                        buf.WriteString(unitsTable.String())</span>
+                }
+        }
+}
+
+func renderServiceInstanceBinds(w io.Writer, binds []serviceInstanceBind) <span class="cov7" title="24">{
+        sibs := make([]serviceInstanceBind, len(binds))
+        copy(sibs, binds)
+
+        sort.Slice(sibs, func(i, j int) bool </span><span class="cov1" title="1">{
+                if sibs[i].Service &lt; sibs[j].Service </span><span class="cov1" title="1">{
+                        return true
+                }</span>
+                <span class="cov0" title="0">if sibs[i].Service &gt; sibs[j].Service </span><span class="cov0" title="0">{
+                        return false
+                }</span>
+                <span class="cov0" title="0">return sibs[i].Instance &lt; sibs[j].Instance</span>
+        })
+
+        <span class="cov7" title="24">type instanceAndPlan struct {
+                Instance string
+                Plan     string
+        }
+
+        instancesByService := map[string][]instanceAndPlan{}
+        for _, sib := range sibs </span><span class="cov4" title="6">{
+                instancesByService[sib.Service] = append(instancesByService[sib.Service], instanceAndPlan{
+                        Instance: sib.Instance,
+                        Plan:     sib.Plan,
+                })
+        }</span>
+
+        <span class="cov7" title="24">var services []string
+        for _, sib := range sibs </span><span class="cov4" title="6">{
+                if len(services) &gt; 0 &amp;&amp; services[len(services)-1] == sib.Service </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov4" title="6">services = append(services, sib.Service)</span>
+        }
+
+        <span class="cov7" title="24">table := tablecli.NewTable()
+        table.Headers = []string{"Service", "Instance (Plan)"}
+
+        for _, s := range services </span><span class="cov4" title="6">{
+                var sb strings.Builder
+                for i, inst := range instancesByService[s] </span><span class="cov4" title="6">{
+                        sb.WriteString(inst.Instance)
+                        if inst.Plan != "" </span><span class="cov2" title="2">{
+                                sb.WriteString(fmt.Sprintf(" (%s)", inst.Plan))
+                        }</span>
+
+                        <span class="cov4" title="6">if i &lt; len(instancesByService[s])-1 </span><span class="cov0" title="0">{
+                                sb.WriteString("\n")
+                        }</span>
+                }
+                <span class="cov4" title="6">table.AddRow([]string{s, sb.String()})</span>
+        }
+
+        <span class="cov7" title="24">if table.Rows() &gt; 0 </span><span class="cov4" title="5">{
+                fmt.Fprintf(w, "\nService instances: %d\n", table.Rows())
+                fmt.Fprint(w, table.String())
+        }</span>
+}
+
+func renderVolumeBinds(w io.Writer, binds []volumeTypes.VolumeBind) <span class="cov7" title="25">{
+        table := tablecli.NewTable()
+        table.Headers = tablecli.Row([]string{"Name", "MountPoint", "Mode"})
+        table.LineSeparator = true
+
+        for _, b := range binds </span><span class="cov1" title="1">{
+                mode := "rw"
+                if b.ReadOnly </span><span class="cov0" title="0">{
+                        mode = "ro"
+                }</span>
+                <span class="cov1" title="1">table.AddRow(tablecli.Row([]string{b.ID.Volume, b.ID.MountPoint, mode}))</span>
+        }
+
+        <span class="cov7" title="25">if table.Rows() &gt; 0 </span><span class="cov1" title="1">{
+                fmt.Fprintln(w)
+                fmt.Fprintln(w, "Volumes:", table.Rows())
+                fmt.Fprint(w, table.String())
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+        "sort"
+        "strings"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tablecli"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "github.com/tsuru/tsuru-client/v2/pkg/printer"
+)
+
+func newAppListCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov8" title="21">{
+        appListCmd := &amp;cobra.Command{
+                Use:   "list",
+                Short: "list apps",
+                Long: `Lists all apps that you have access to. App access is controlled by teams.
+If your team has access to an app, then you have access to it.
+Flags can be used to filter the list of applications.`,
+                Example: `$ tsuru app list
+$ tsuru app list -n my
+$ tsuru app list --status error`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return appListCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.ExactArgs(0),
+        }
+
+        <span class="cov8" title="21">appListCmd.Flags().StringP("name", "n", "", "filter applications by name")
+        appListCmd.Flags().StringP("pool", "o", "", "filter applications by pool")
+        appListCmd.Flags().StringP("status", "s", "", "filter applications by unit status. Accepts multiple values separated by commas. Possible values can be: building, created, starting, error, started, stopped, asleep")
+        appListCmd.Flags().StringP("platform", "p", "", "filter applications by platform")
+        appListCmd.Flags().StringP("team", "t", "", "filter applications by team owner")
+        appListCmd.Flags().StringP("user", "u", "", "filter applications by owner")
+        appListCmd.Flags().BoolP("locked", "l", false, "filter applications by lock status")
+        appListCmd.Flags().BoolP("simplified", "q", false, "display only applications name")
+        appListCmd.Flags().Bool("json", false, "display applications in JSON format")
+        appListCmd.Flags().StringSliceP("tag", "g", []string{}, "filter applications by tag. Can be used multiple times")
+
+        return appListCmd</span>
+}
+
+func appListCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov6" title="12">{
+        cmd.SilenceUsage = true
+
+        qs := appListQueryString(cmd, tsuruCtx)
+        request, err := tsuruCtx.NewRequest("GET", "/apps", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="12">request.URL.RawQuery = qs.Encode()
+        httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="12">defer httpResponse.Body.Close()
+        if httpResponse.StatusCode == http.StatusNoContent </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+        <span class="cov6" title="12">var apps []app
+        err = json.NewDecoder(httpResponse.Body).Decode(&amp;apps)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov6" title="12">format := "table"
+        if cmd.Flag("json").Value.String() == "true" </span><span class="cov0" title="0">{
+                format = "json"
+        }</span>
+
+        <span class="cov6" title="12">return printAppList(tsuruCtx.Stdout, printer.FormatAs(format), cmd.Flag("simplified").Value.String() == "true", tsuruCtx.Verbosity(), apps)</span>
+}
+
+func printAppList(out io.Writer, format printer.OutputType, simplified bool, verbosity int, apps []app) error <span class="cov6" title="12">{
+        if format == printer.JSON </span><span class="cov0" title="0">{
+                return printer.PrintPrettyJSON(out, apps)
+        }</span>
+
+        <span class="cov6" title="12">table := tablecli.NewTable()
+        if simplified </span><span class="cov2" title="2">{
+                for _, app := range apps </span><span class="cov5" title="6">{
+                        fmt.Fprintln(out, app.Name)
+                }</span>
+                <span class="cov2" title="2">return nil</span>
+        }
+
+        <span class="cov6" title="10">table.Headers = tablecli.Row([]string{"Application", "Units", "Address"})
+        for _, app := range apps </span><span class="cov6" title="11">{
+                var summary string
+                if app.Error == "" </span><span class="cov6" title="9">{
+                        unitsStatus := make(map[string]int)
+                        for _, unit := range app.Units </span><span class="cov7" title="15">{
+                                if unit.ID != "" </span><span class="cov7" title="14">{
+                                        if unit.Ready != nil &amp;&amp; *unit.Ready </span><span class="cov0" title="0">{
+                                                unitsStatus["ready"]++
+                                        }</span> else<span class="cov7" title="14"> {
+                                                unitsStatus[unit.Status]++
+                                        }</span>
+                                }
+                        }
+                        <span class="cov6" title="9">statusText := make([]string, len(unitsStatus))
+                        i := 0
+                        us := newUnitSorter(unitsStatus)
+                        sort.Sort(us)
+                        for _, status := range us.Statuses </span><span class="cov6" title="12">{
+                                statusText[i] = fmt.Sprintf("%d %s", unitsStatus[status], status)
+                                i++
+                        }</span>
+                        <span class="cov6" title="9">summary = strings.Join(statusText, "\n")</span>
+                } else<span class="cov2" title="2"> {
+                        summary = "error fetching units"
+                        if verbosity &gt; 0 </span><span class="cov1" title="1">{
+                                summary += fmt.Sprintf(": %s", app.Error)
+                        }</span>
+                }
+                <span class="cov6" title="11">addrs := strings.Replace(appAddr(app), ", ", "\n", -1)
+                table.AddRow(tablecli.Row([]string{app.Name, summary, addrs}))</span>
+        }
+        <span class="cov6" title="10">table.LineSeparator = true
+        table.Sort()
+        out.Write(table.Bytes())
+        return nil</span>
+}
+
+type unitSorter struct {
+        Statuses []string
+        Counts   []int
+}
+
+func (u *unitSorter) Len() int <span class="cov6" title="9">{
+        return len(u.Statuses)
+}</span>
+
+func (u *unitSorter) Swap(i, j int) <span class="cov4" title="5">{
+        u.Statuses[i], u.Statuses[j] = u.Statuses[j], u.Statuses[i]
+        u.Counts[i], u.Counts[j] = u.Counts[j], u.Counts[i]
+}</span>
+
+func (u *unitSorter) Less(i, j int) bool <span class="cov5" title="6">{
+        if u.Counts[i] &gt; u.Counts[j] </span><span class="cov3" title="3">{
+                return true
+        }</span>
+        <span class="cov3" title="3">if u.Counts[i] == u.Counts[j] </span><span class="cov2" title="2">{
+                return u.Statuses[i] &lt; u.Statuses[j]
+        }</span>
+        <span class="cov1" title="1">return false</span>
+}
+
+func newUnitSorter(m map[string]int) *unitSorter <span class="cov6" title="9">{
+        us := &amp;unitSorter{
+                Statuses: make([]string, 0, len(m)),
+                Counts:   make([]int, 0, len(m)),
+        }
+        for k, v := range m </span><span class="cov6" title="12">{
+                us.Statuses = append(us.Statuses, k)
+                us.Counts = append(us.Counts, v)
+        }</span>
+        <span class="cov6" title="9">return us</span>
+}
+
+func appAddr(a app) string <span class="cov6" title="11">{
+        var allAddrs []string
+        for _, cname := range a.CName </span><span class="cov4" title="4">{
+                if cname != "" </span><span class="cov4" title="4">{
+                        allAddrs = append(allAddrs, cname+" (cname)")
+                }</span>
+        }
+        <span class="cov6" title="11">if len(a.Routers) == 0 </span><span class="cov6" title="11">{
+                if a.IP != "" </span><span class="cov6" title="11">{
+                        allAddrs = append(allAddrs, a.IP)
+                }</span>
+        } else<span class="cov0" title="0"> {
+                for _, r := range a.Routers </span><span class="cov0" title="0">{
+                        if r.Address != "" </span><span class="cov0" title="0">{
+                                allAddrs = append(allAddrs, r.Address)
+                        }</span>
+                }
+        }
+        <span class="cov6" title="11">return strings.Join(allAddrs, ", ")</span>
+}
+
+func appListQueryString(cmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) url.Values <span class="cov6" title="12">{
+        result := make(url.Values)
+
+        // string flags with the same name as the query string
+        for _, flagName := range []string{"name", "platform", "pool", "status"} </span><span class="cov10" title="48">{
+                if cmd.Flag(flagName).Value.String() != "" </span><span class="cov4" title="5">{
+                        result.Set(flagName, cmd.Flag(flagName).Value.String())
+                }</span>
+        }
+        <span class="cov6" title="12">if cmd.Flag("team").Value.String() != "" </span><span class="cov1" title="1">{
+                result.Set("teamOwner", cmd.Flag("team").Value.String())
+        }</span>
+        <span class="cov6" title="12">if cmd.Flag("user").Value.String() != "" </span><span class="cov3" title="3">{
+                userFlag := cmd.Flag("user").Value.String()
+                result.Set("owner", userFlag)
+                if userFlag == "me" </span><span class="cov2" title="2">{
+                        user, _, err := tsuruCtx.Client().UserApi.UserGet(cmd.Context())
+                        if err == nil </span><span class="cov2" title="2">{
+                                result.Set("owner", user.Email)
+                        }</span>
+                }
+        }
+        <span class="cov6" title="12">if cmd.Flag("locked").Value.String() == "true" </span><span class="cov1" title="1">{
+                result.Set("locked", "true")
+        }</span>
+        <span class="cov6" title="12">if cmd.Flag("simplified").Value.String() == "true" </span><span class="cov2" title="2">{
+                result.Set("simplified", "true")
+        }</span>
+        <span class="cov6" title="12">tags, _ := cmd.Flags().GetStringSlice("tag")
+        for _, tag := range tags </span><span class="cov2" title="2">{
+                result.Add("tag", tag)
+        }</span>
+
+        <span class="cov6" title="12">return result</span>
+}
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/http"
+        "net/url"
+        "strings"
+        "time"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "github.com/tsuru/tsuru-client/v2/pkg/printer"
+)
+
+const tLogFmt = "2006-01-02 15:04:05 -0700"
+
+func newAppLogCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="19">{
+        appLogCmd := &amp;cobra.Command{
+                Use:   "log APP [UNIT]",
+                Short: "shows log entries for an application",
+                Long: `Shows log entries for an application. These logs include everything the
+application send to stdout and stderr, alongside with logs from tsuru server
+(deployments, restarts, etc.)
+
+The [[--lines]] flag is optional and by default its value is 10.
+
+The [[--source]] flag is optional and allows filtering logs by log source
+(e.g. application, tsuru api).
+
+The [[--unit]] flag is optional and allows filtering by unit. It's useful if
+your application has multiple units and you want logs from a single one.
+
+The [[--follow]] flag is optional and makes the command wait for additional
+log output
+
+The [[--no-date]] flag is optional and makes the log output without date.
+
+The [[--no-source]] flag is optional and makes the log output without source
+information, useful to very dense logs.
+`,
+                Example: `$ tsuru app log myapp
+$ tsuru app log -l 50 -f myapp`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return appLogCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.RangeArgs(0, 2),
+        }
+
+        <span class="cov10" title="19">appLogCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
+        appLogCmd.Flags().StringP("unit", "u", "", "The log from the given unit (may be passed as argument)")
+        appLogCmd.Flags().IntP("lines", "l", 10, "The number of log lines to display")
+        appLogCmd.Flags().StringP("source", "s", "", "The log from the given source")
+        appLogCmd.Flags().BoolP("follow", "f", false, "Follow logs")
+        appLogCmd.Flags().Bool("no-date", false, "No date information")
+        appLogCmd.Flags().Bool("no-source", false, "No source information")
+
+        return appLogCmd</span>
+}
+
+func appLogCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov8" title="10">{
+        appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="10">if appName == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("app name is required")
+        }</span>
+        <span class="cov8" title="10">cmd.SilenceUsage = true
+
+        request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName+"/log", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="10">qs := make(url.Values)
+        qs.Set("lines", cmd.Flag("lines").Value.String())
+        if unitID != "" </span><span class="cov1" title="1">{
+                qs.Set("unit", unitID)
+        }</span>
+        <span class="cov8" title="10">if cmd.Flag("source").Value.String() != "" </span><span class="cov1" title="1">{
+                qs.Set("source", cmd.Flag("source").Value.String())
+        }</span>
+        <span class="cov8" title="10">if isFollow, _ := cmd.Flags().GetBool("follow"); isFollow </span><span class="cov4" title="3">{
+                qs.Set("follow", "1")
+        }</span>
+        <span class="cov8" title="10">request.URL.RawQuery = qs.Encode()
+        httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="10">defer httpResponse.Body.Close()
+
+        if httpResponse.StatusCode == http.StatusNoContent </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov8" title="10">formatter := logFormatter{
+                noDate:   func() bool </span><span class="cov8" title="10">{ v, _ := cmd.Flags().GetBool("no-date"); return v }</span>(),
+                noSource: func() bool <span class="cov8" title="10">{ v, _ := cmd.Flags().GetBool("no-source"); return v }</span>(),
+                localTZ:  tsuruCtx.LocalTZ,
+                noColor:  tsuruCtx.Viper.IsSet("disable-colors"),
+        }
+        <span class="cov8" title="10">dec := json.NewDecoder(httpResponse.Body)
+        for </span><span class="cov9" title="15">{
+                err = formatter.Format(tsuruCtx.Stdout, dec)
+                if err != nil </span><span class="cov8" title="10">{
+                        if err != io.EOF </span><span class="cov1" title="1">{
+                                fmt.Fprintf(tsuruCtx.Stdout, "Error: %v", err)
+                        }</span>
+                        <span class="cov8" title="10">break</span>
+                }
+        }
+        <span class="cov8" title="10">return nil</span>
+}
+
+type logFormatter struct {
+        noDate   bool
+        noSource bool
+        localTZ  *time.Location
+        noColor  bool
+}
+type log struct {
+        Date    time.Time
+        Message string
+        Source  string
+        Unit    string
+}
+
+func (f logFormatter) Format(out io.Writer, dec *json.Decoder) error <span class="cov9" title="16">{
+        var logs []log
+        err := dec.Decode(&amp;logs)
+        if err != nil </span><span class="cov8" title="10">{
+                if err == io.EOF </span><span class="cov7" title="9">{
+                        return err
+                }</span>
+                <span class="cov1" title="1">buffered := dec.Buffered()
+                bufferedData, _ := io.ReadAll(buffered)
+                return fmt.Errorf("unable to parse json: %v: %q", err, string(bufferedData))</span>
+        }
+        <span class="cov6" title="6">colorify := printer.Colorify{
+                DisableColors: f.noColor,
+        }
+        for _, l := range logs </span><span class="cov8" title="11">{
+                prefix := f.prefix(l)
+
+                if prefix == "" </span><span class="cov3" title="2">{
+                        fmt.Fprintf(out, "%s\n", l.Message)
+                }</span> else<span class="cov7" title="9"> {
+                        fmt.Fprintf(out, "%s %s\n", colorify.Colorfy(prefix, "blue", "", ""), l.Message)
+                }</span>
+        }
+        <span class="cov6" title="6">return nil</span>
+}
+
+func (f logFormatter) prefix(l log) string <span class="cov8" title="11">{
+        parts := make([]string, 0, 2)
+        if !f.noDate </span><span class="cov7" title="9">{
+                parts = append(parts, l.Date.In(f.localTZ).Format(tLogFmt))
+        }</span>
+        <span class="cov8" title="11">if !f.noSource </span><span class="cov6" title="7">{
+                if l.Unit != "" </span><span class="cov1" title="1">{
+                        parts = append(parts, fmt.Sprintf("[%s][%s]", l.Source, l.Unit))
+                }</span> else<span class="cov6" title="6"> {
+                        parts = append(parts, fmt.Sprintf("[%s]", l.Source))
+                }</span>
+        }
+        <span class="cov8" title="11">prefix := strings.Join(parts, " ")
+        if prefix != "" </span><span class="cov7" title="9">{
+                prefix = prefix + ":"
+        }</span>
+        <span class="cov8" title="11">return prefix</span>
+}
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package app
+
+import (
+        "context"
+        "errors"
+        "fmt"
+        "io"
+        "net"
+        "net/url"
+        "os"
+        "os/signal"
+        "reflect"
+        "regexp"
+        "strconv"
+        "strings"
+        "sync"
+        "syscall"
+        "time"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "golang.org/x/net/websocket"
+        "golang.org/x/term"
+)
+
+var httpRegexp = regexp.MustCompile(`^http`)
+
+// ShellToContainerCmd
+func newAppShellCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="13">{
+        appShellCmd := &amp;cobra.Command{
+                Use:   "shell APP [UNIT]",
+                Short: "run shell inside an app unit",
+                Long: `Opens a remote shell inside a unit, using the API server as a proxy. You
+can access an app unit just giving app name, or specifying the id of the unit.
+You can get the ID of the unit using the "app info" command.
+`,
+                Example: `$ tsuru app shell myapp
+$ tsuru app shell myapp myapp-web-123def-456abc
+$ tsuru app shell myapp --isolated`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return appShellCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.RangeArgs(0, 2),
+        }
+
+        <span class="cov10" title="13">appShellCmd.Flags().StringP("app", "a", "", "The name of the app (may be passed as argument)")
+        appShellCmd.Flags().StringP("unit", "u", "", "The name of the app's unit (may be passed as argument)")
+        appShellCmd.Flags().BoolP("isolated", "i", false, "run shell in a new unit")
+        return appShellCmd</span>
+}
+
+func appShellCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov6" title="5">{
+        appName, unitID, err := AppNameAndUnitIDFromArgsOrFlags(cmd, args)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="5">if appName == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("app name is required")
+        }</span>
+        <span class="cov6" title="5">cmd.SilenceUsage = true
+
+        qs := make(url.Values)
+        qs.Set("isolated", cmd.Flag("isolated").Value.String())
+        qs.Set("unit", unitID)
+        qs.Set("container_id", unitID)
+        width, height := getStdinSize(tsuruCtx.Stdin)
+        qs.Set("width", strconv.Itoa(width))
+        qs.Set("height", strconv.Itoa(height))
+        if term := os.Getenv("TERM"); term != "" </span><span class="cov0" title="0">{
+                qs.Set("term", term)
+        }</span>
+
+        <span class="cov6" title="5">request, err := tsuruCtx.NewRequest("GET", "/apps/"+appName+"/shell", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="5">request.URL.Scheme = httpRegexp.ReplaceAllString(request.URL.Scheme, "ws")
+        reqURLWithoutQuerystring := request.URL.String()
+        request.URL.RawQuery = qs.Encode()
+
+        config, err := websocket.NewConfig(request.URL.String(), "ws://localhost")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov6" title="5">config.Header = tsuruCtx.DefaultHeaders()
+        config.Dialer = &amp;net.Dialer{}
+
+        /********* wetbsocket does not implement DialWithContext : */
+        dialerCancelChan := make(chan struct{})
+        config.Dialer.Cancel = dialerCancelChan //lint:ignore SA1019 This is a golang.org/x/net/websocket limitation
+        go func() </span><span class="cov6" title="5">{
+                select </span>{
+                case &lt;-time.After(5 * time.Second):<span class="cov0" title="0">
+                        close(dialerCancelChan)</span>
+                case &lt;-dialerCancelChan:<span class="cov5" title="4"></span>
+                }
+        }()
+        /********* &lt;- wetbsocket does not implement DialWithContext :( */
+
+        <span class="cov6" title="5">ws, err := websocket.DialConfig(config)
+        if err != nil </span><span class="cov1" title="1">{
+                if strings.HasSuffix(err.Error(), "operation was canceled") </span><span class="cov0" title="0">{
+                        return fmt.Errorf("timeout connecting to the server: %s", reqURLWithoutQuerystring)
+                }</span>
+                <span class="cov1" title="1">return err</span>
+        }
+        <span class="cov5" title="4">close(dialerCancelChan)
+        defer ws.Close()
+        restoreStdin, err := setupRawStdin(tsuruCtx.Stdin)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov5" title="4">defer restoreStdin()
+
+        wg := sync.WaitGroup{}
+        errChan := make(chan error, 3)
+        ctx, cancelCtx := context.WithCancel(context.Background())
+        defer cancelCtx()
+        interrupt := make(chan os.Signal, 1)
+        signal.Notify(interrupt, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+
+        wg.Add(1)
+        go func() </span><span class="cov5" title="4">{ // handle interrupts
+                defer wg.Done()
+                for </span><span class="cov5" title="4">{
+                        select </span>{
+                        case &lt;-ctx.Done():<span class="cov5" title="4">
+                                return</span>
+                        case &lt;-interrupt:<span class="cov0" title="0">
+                                errChan &lt;- fmt.Errorf("interrupted! Closing connection")
+                                return</span>
+                        }
+                }
+        }()
+
+        <span class="cov5" title="4">wg.Add(1)
+        go func() </span><span class="cov5" title="4">{ // read from ws and write to stdout
+                defer wg.Done()
+                defer func() </span><span class="cov5" title="4">{
+                        // most important for testing. In real life, this is irrelevant
+                        time.Sleep(100 * time.Millisecond)
+                        cancelCtx()
+                }</span>()
+
+                <span class="cov5" title="4">_, err1 := copyWithContext(ctx, tsuruCtx.Stdout, ws)
+                if err1 != nil </span><span class="cov0" title="0">{
+                        errChan &lt;- err1
+                        return
+                }</span>
+        }()
+
+        // wg.Add(1) // leaking this goroutine intentionally. stdin.Read() is blocking
+        <span class="cov5" title="4">go func() </span><span class="cov5" title="4">{ // read from stdin and write to ws
+                // defer wg.Done()
+                defer func() </span><span class="cov5" title="4">{
+                        // most important for testing. In real life, this is irrelevant
+                        time.Sleep(100 * time.Millisecond)
+                        cancelCtx()
+                }</span>()
+
+                <span class="cov5" title="4">_, err1 := copyWithContext(ctx, ws, tsuruCtx.Stdin)
+                if err1 != nil </span><span class="cov0" title="0">{
+                        errChan &lt;- err1
+                        return
+                }</span>
+        }()
+
+        <span class="cov5" title="4">wg.Wait()
+
+        close(errChan)
+        errs := []error{}
+        for e := range errChan </span><span class="cov0" title="0">{
+                errs = append(errs, e)
+        }</span>
+
+        <span class="cov5" title="4">fmt.Fprintln(tsuruCtx.Stdout)
+        o := errors.Join(errs...)
+        return o</span>
+}
+
+func getStdinSize(in tsuructx.DescriptorReader) (width, height int) <span class="cov6" title="5">{
+        if in == nil || reflect.ValueOf(in).IsNil() </span><span class="cov4" title="3">{
+                return
+        }</span>
+        <span class="cov3" title="2">fd := int(in.Fd())
+        if term.IsTerminal(fd) </span><span class="cov0" title="0">{
+                width, height, _ = term.GetSize(fd)
+        }</span>
+        <span class="cov3" title="2">return</span>
+}
+
+func setupRawStdin(in tsuructx.DescriptorReader) (restoreStdin func(), err error) <span class="cov5" title="4">{
+        restoreStdin = func() </span>{<span class="cov5" title="4">}</span>
+        <span class="cov5" title="4">if in == nil || reflect.ValueOf(in).IsNil() </span><span class="cov3" title="2">{
+                return
+        }</span>
+
+        <span class="cov3" title="2">fd := int(in.Fd())
+        if term.IsTerminal(fd) </span><span class="cov0" title="0">{
+                var oldState *term.State
+                oldState, err = term.MakeRaw(fd)
+                if err != nil </span><span class="cov0" title="0">{
+                        return
+                }</span>
+                <span class="cov0" title="0">restoreStdin = func() </span><span class="cov0" title="0">{
+                        term.Restore(fd, oldState)
+                }</span>
+        }
+        <span class="cov3" title="2">return</span>
+}
+
+type readerFunc func(p []byte) (n int, err error)
+
+func (rf readerFunc) Read(p []byte) (n int, err error) <span class="cov9" title="11">{ return rf(p) }</span>
+
+func copyWithContext(ctx context.Context, dst io.Writer, src io.Reader) (int64, error) <span class="cov8" title="8">{
+        if src == nil || reflect.ValueOf(src).IsNil() </span><span class="cov3" title="2">{
+                return 0, nil
+        }</span>
+        <span class="cov7" title="6">return io.Copy(dst, readerFunc(func(p []byte) (int, error) </span><span class="cov9" title="11">{
+                select </span>{
+                case &lt;-ctx.Done():<span class="cov0" title="0">
+                        return 0, io.EOF</span>
+                default:<span class="cov9" title="11">
+                        return src.Read(p)</span>
+                }
+        }))
+}
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package auth
+
+import (
+        "encoding/json"
+        "fmt"
+        "strings"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+type loginScheme struct {
+        Name string
+        Data map[string]string
+}
+
+func NewLoginCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="5">{
+        loginCmd := &amp;cobra.Command{
+                Use:   "login [EMAIL]",
+                Short: "initiates a new tsuru session for a user",
+                Long: `Initiates a new tsuru session for a user. If using tsuru native authentication
+scheme, it will ask for the email and the password and check if the user is
+successfully authenticated. If using OAuth, it will open a web browser for the
+user to complete the login.
+
+After that, the token generated by the tsuru server will be stored in
+[[${HOME}/.tsuru/token]].
+
+All tsuru actions require the user to be authenticated (except [[tsuru login]]
+and [[tsuru version]]).
+`,
+                Example: `$ tsuru login
+$ tsuru login example@tsuru.local`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return loginCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.RangeArgs(0, 1),
+        }
+
+        <span class="cov10" title="5">return loginCmd</span>
+}
+
+func loginCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov10" title="5">{
+        if tsuruCtx.Token() != "" &amp;&amp; !tsuruCtx.TokenSetFromFS </span><span class="cov1" title="1">{
+                return fmt.Errorf("this command can't run with $TSURU_TOKEN environment variable set. Did you forget to unset?")
+        }</span>
+        <span class="cov8" title="4">cmd.SilenceUsage = true
+
+        authScheme := &amp;loginScheme{Name: tsuruCtx.AuthScheme}
+        if authScheme.Name == "" </span><span class="cov0" title="0">{
+                var err error
+                authScheme, err = getAuthScheme(tsuruCtx)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        <span class="cov8" title="4">switch strings.ToLower(authScheme.Name) </span>{
+        case "oauth":<span class="cov0" title="0">
+                return oauthLogin(tsuruCtx, authScheme)</span>
+        case "saml":<span class="cov0" title="0">
+                return fmt.Errorf("login is not implemented for saml auth. Please contact the tsuru team")</span>
+        default:<span class="cov8" title="4">
+                return nativeLogin(tsuruCtx, cmd, args)</span>
+        }
+}
+
+func getAuthScheme(tsuruCtx *tsuructx.TsuruContext) (*loginScheme, error) <span class="cov4" title="2">{
+        request, err := tsuruCtx.NewRequest("GET", "/auth/scheme", nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov4" title="2">httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov4" title="2">defer httpResponse.Body.Close()
+
+        info := loginScheme{}
+        err = json.NewDecoder(httpResponse.Body).Decode(&amp;info)
+        if err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="1">return &amp;info, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file11" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package auth
+
+import (
+        "errors"
+        "fmt"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/config"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+func NewLogoutCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov10" title="3">{
+        loginCmd := &amp;cobra.Command{
+                Use:   "logout",
+                Short: "logout will terminate the session with the tsuru server",
+                Long: `logout will terminate the session with the tsuru server
+and cleanup the token from the local machine.
+`,
+                Example: `$ tsuru logout`,
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return logoutCmdRun(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.ExactArgs(0),
+        }
+
+        <span class="cov10" title="3">return loginCmd</span>
+}
+
+func logoutCmdRun(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov6" title="2">{
+        cmd.SilenceUsage = true
+        errs := []error{}
+        if tsuruCtx.Token() != "" </span><span class="cov6" title="2">{
+                func() </span><span class="cov6" title="2">{
+                        request, err := tsuruCtx.NewRequest("DELETE", "/users/tokens", nil)
+                        if err != nil </span><span class="cov0" title="0">{
+                                errs = append(errs, err)
+                                return
+                        }</span>
+                        <span class="cov6" title="2">httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+                        if err != nil </span><span class="cov0" title="0">{
+                                errs = append(errs, err)
+                                return
+                        }</span>
+                        <span class="cov6" title="2">if httpResponse.StatusCode != 200 </span><span class="cov1" title="1">{
+                                errs = append(errs, fmt.Errorf("unexpected response from server: %d: %s", httpResponse.StatusCode, httpResponse.Status))
+                        }</span>
+                        <span class="cov6" title="2">defer httpResponse.Body.Close()</span>
+                }()
+        }
+
+        <span class="cov6" title="2">if err := config.RemoveCurrentTokensFromFs(tsuruCtx.Fs); err != nil </span><span class="cov0" title="0">{
+                errs = append(errs, err)
+                return errors.Join(errs...)
+        }</span>
+
+        <span class="cov6" title="2">if len(errs) == 0 </span><span class="cov1" title="1">{
+                fmt.Fprintln(tsuruCtx.Stdout, "Successfully logged out!")
+        }</span> else<span class="cov1" title="1"> {
+                fmt.Fprintln(tsuruCtx.Stdout, "Logged out, but some errors occurred:")
+        }</span>
+        <span class="cov6" title="2">return errors.Join(errs...)</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file12" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package auth
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "net/url"
+        "strings"
+
+        "github.com/spf13/cobra"
+        "github.com/tsuru/tsuru-client/v2/internal/config"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "golang.org/x/term"
+)
+
+func nativeLogin(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov10" title="4">{
+        var email string
+        if len(args) &gt; 0 </span><span class="cov8" title="3">{
+                email = args[0]
+        }</span> else<span class="cov1" title="1"> {
+                fmt.Fprint(tsuruCtx.Stdout, "Email: ")
+                fmt.Fscanf(tsuruCtx.Stdin, "%s\n", &amp;email)
+        }</span>
+        <span class="cov10" title="4">fmt.Fprint(tsuruCtx.Stdout, "Password: ")
+        password, err := PasswordFromReader(tsuruCtx.Stdin)
+        if err != nil </span><span class="cov1" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="3">fmt.Fprintln(tsuruCtx.Stdout)
+
+        v := url.Values{}
+        v.Set("password", password)
+        b := strings.NewReader(v.Encode())
+        request, err := tsuruCtx.NewRequest("POST", "/users/"+email+"/tokens", b)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="3">request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+        httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="3">defer httpResponse.Body.Close()
+        result, err := io.ReadAll(httpResponse.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="3">out := make(map[string]interface{})
+        err = json.Unmarshal(result, &amp;out)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="3">fmt.Fprintln(tsuruCtx.Stdout, "Successfully logged in!")
+        return config.SaveToken(tsuruCtx.Fs, out["token"].(string))</span>
+}
+
+func PasswordFromReader(reader io.Reader) (string, error) <span class="cov10" title="4">{
+        var (
+                password []byte
+                err      error
+        )
+        if desc, ok := reader.(tsuructx.DescriptorReader); ok &amp;&amp; term.IsTerminal(int(desc.Fd())) </span><span class="cov0" title="0">{
+                password, err = term.ReadPassword(int(desc.Fd()))
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", err
+                }</span>
+        } else<span class="cov10" title="4"> {
+                fmt.Fscanf(reader, "%s\n", &amp;password)
+        }</span>
+        <span class="cov10" title="4">if len(password) == 0 </span><span class="cov1" title="1">{
+                return "", fmt.Errorf("empty password. You must provide the password")
+        }</span>
+        <span class="cov8" title="3">return string(password), err</span>
+}
+</pre>
+		
+		<pre class="file" id="file13" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package auth
+
+import (
+        "context"
+        "encoding/json"
+        "fmt"
+        "io"
+        "net"
+        "net/http"
+        "net/url"
+        "strings"
+        "time"
+
+        "github.com/pkg/errors"
+        "github.com/tsuru/tsuru-client/v2/internal/config"
+        "github.com/tsuru/tsuru-client/v2/internal/exec"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+const callbackPage = `&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+        &lt;style&gt;
+        body {
+                text-align: center;
+        }
+        &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+        %s
+&lt;/body&gt;
+&lt;/html&gt;
+`
+
+const successMarkup = `
+        &lt;script&gt;window.close();&lt;/script&gt;
+        &lt;h1&gt;Login Successful!&lt;/h1&gt;
+        &lt;p&gt;You can close this window now.&lt;/p&gt;
+`
+
+const errorMarkup = `
+        &lt;h1&gt;Login Failed!&lt;/h1&gt;
+        &lt;p&gt;%s&lt;/p&gt;
+`
+
+func port(schemeData map[string]string) string <span class="cov10" title="4">{
+        p := schemeData["port"]
+        if p != "" </span><span class="cov1" title="1">{
+                return fmt.Sprintf(":%s", p)
+        }</span>
+        <span class="cov8" title="3">return ":0"</span>
+}
+
+func getToken(tsuruCtx *tsuructx.TsuruContext, code, redirectURL string) (token string, err error) <span class="cov8" title="3">{
+        v := url.Values{}
+        v.Set("code", code)
+        v.Set("redirectUrl", redirectURL)
+        b := strings.NewReader(v.Encode())
+        request, err := tsuruCtx.NewRequest("POST", "/auth/login", b)
+        if err != nil </span><span class="cov0" title="0">{
+                return
+        }</span>
+        <span class="cov8" title="3">request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+        httpResponse, err := tsuruCtx.RawHTTPClient().Do(request)
+        if err != nil </span><span class="cov0" title="0">{
+                return token, errors.Wrap(err, "error during login post")
+        }</span>
+        <span class="cov8" title="3">defer httpResponse.Body.Close()
+
+        result, err := io.ReadAll(httpResponse.Body)
+        if err != nil </span><span class="cov0" title="0">{
+                return token, errors.Wrap(err, "error reading body")
+        }</span>
+
+        <span class="cov8" title="3">data := make(map[string]interface{})
+        err = json.Unmarshal(result, &amp;data)
+        if err != nil </span><span class="cov0" title="0">{
+                return token, errors.Wrapf(err, "error parsing response: %s", result)
+        }</span>
+        <span class="cov8" title="3">return data["token"].(string), nil</span>
+}
+
+func callback(tsuruCtx *tsuructx.TsuruContext, redirectURL string, finish chan bool) http.HandlerFunc <span class="cov8" title="3">{
+        return func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="3">{
+                defer func() </span><span class="cov8" title="3">{
+                        finish &lt;- true
+                }</span>()
+                <span class="cov8" title="3">var page string
+                token, err := getToken(tsuruCtx, r.URL.Query().Get("code"), redirectURL)
+                if err == nil </span><span class="cov8" title="3">{
+                        config.SaveToken(tsuruCtx.Fs, token)
+                        page = fmt.Sprintf(callbackPage, successMarkup)
+                }</span> else<span class="cov0" title="0"> {
+                        msg := fmt.Sprintf(errorMarkup, err.Error())
+                        page = fmt.Sprintf(callbackPage, msg)
+                }</span>
+                <span class="cov8" title="3">w.Header().Add("Content-Type", "text/html")
+                w.Write([]byte(page))</span>
+        }
+}
+
+func oauthLogin(tsuruCtx *tsuructx.TsuruContext, scheme *loginScheme) error <span class="cov5" title="2">{
+        if _, ok := scheme.Data["authorizeUrl"]; !ok </span><span class="cov0" title="0">{
+                return fmt.Errorf("missing authorizeUrl in scheme data")
+        }</span>
+
+        <span class="cov5" title="2">l, err := net.Listen("tcp", port(scheme.Data)) // use low level net.Listen for random port with :0
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov5" title="2">_, port, err := net.SplitHostPort(l.Addr().String())
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov5" title="2">redirectURL := fmt.Sprintf("http://localhost:%s", port)
+        authURL := strings.Replace(scheme.Data["authorizeUrl"], "__redirect_url__", redirectURL, 1)
+        finish := make(chan bool, 1)
+
+        mux := http.NewServeMux()
+        mux.HandleFunc("/", callback(tsuruCtx, redirectURL, finish))
+        server := &amp;http.Server{}
+        server.Handler = mux
+        go server.Serve(l)
+
+        err = exec.Open(tsuruCtx.Executor, authURL)
+        if err != nil </span><span class="cov0" title="0">{
+                fmt.Fprintln(tsuruCtx.Stdout, "Failed to start your browser.")
+                fmt.Fprintf(tsuruCtx.Stdout, "Please open the following URL in your browser: %s\n", authURL)
+        }</span>
+        <span class="cov5" title="2">&lt;-finish
+
+        ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+        defer cancel()
+        server.Shutdown(ctx)
+        fmt.Fprintln(tsuruCtx.Stdout, "Successfully logged in!")
+        return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file14" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package cmd
+
+import (
+        "sort"
+        "strings"
+
+        "github.com/spf13/cobra"
+
+        tsuruV1Config "github.com/tsuru/tsuru-client/tsuru/config"
+        tsuruCmd "github.com/tsuru/tsuru/cmd"
+)
+
+var ignoredLegacyCommands = map[string]bool{
+        "change-password": true,
+        "cluster-add":     true,
+        "cluster-list":    true,
+        "cluster-remove":  true,
+        "cluster-update":  true,
+        "help":            true,
+        "reset-password":  true,
+}
+
+func newV1LegacyCmdManager() *tsuruCmd.Manager <span class="cov3" title="17">{
+        versionForLegacy := strings.TrimLeft(version.Version, "v") + "-legacy-plugin"
+        if version.Version == "dev" </span><span class="cov3" title="17">{
+                versionForLegacy = "dev"
+        }</span>
+        <span class="cov3" title="17">return tsuruV1Config.BuildManager("tsuru", versionForLegacy)</span>
+}
+
+func newLegacyCommand(v1CmdManager *tsuruCmd.Manager) *cobra.Command <span class="cov3" title="17">{
+        legacyCmd := &amp;cobra.Command{
+                Use:   "legacy",
+                Short: "legacy is the previous version of tsuru cli",
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        return runLegacyCommand(v1CmdManager, args)
+                }</span>,
+                Args:               cobra.MinimumNArgs(0),
+                DisableFlagParsing: true,
+        }
+        <span class="cov3" title="17">return legacyCmd</span>
+}
+
+func runLegacyCommand(v1CmdManager *tsuruCmd.Manager, args []string) error <span class="cov0" title="0">{
+        var err error
+        defer recoverCmdPanicExitError(&amp;err)
+
+        v1CmdManager.Run(args)
+        return err
+}</span>
+
+func recoverCmdPanicExitError(err *error) <span class="cov0" title="0">{
+        if r := recover(); r != nil </span><span class="cov0" title="0">{
+                if e, ok := r.(*tsuruCmd.PanicExitError); ok </span><span class="cov0" title="0">{
+                        if e.Code &gt; 0 </span><span class="cov0" title="0">{
+                                *err = e
+                        }</span>
+                        <span class="cov0" title="0">return</span>
+                }
+                <span class="cov0" title="0">panic(r)</span>
+        }
+}
+
+type cmdNode struct {
+        command  *cobra.Command
+        children map[string]*cmdNode
+}
+
+func (n *cmdNode) addChild(c *cobra.Command) <span class="cov8" title="3383">{
+        if n.children == nil </span><span class="cov6" title="731">{
+                n.children = make(map[string]*cmdNode)
+        }</span>
+        <span class="cov8" title="3383">n.children[c.Name()] = &amp;cmdNode{command: c}
+        for _, sub := range c.Commands() </span><span class="cov5" title="102">{
+                n.children[c.Name()].addChild(sub)
+        }</span>
+}
+
+func addMissingV1LegacyCommands(rootCmd *cobra.Command, v1CmdManager *tsuruCmd.Manager) <span class="cov3" title="17">{
+        // build current commands tree (without legacy commands)
+        tree := &amp;cmdNode{command: rootCmd}
+        for _, c := range rootCmd.Commands() </span><span class="cov4" title="51">{
+                tree.addChild(c)
+        }</span>
+
+        // sort legacy commands by less specific ones first (create "deploy" before "deploy list" )
+        <span class="cov3" title="17">v1Commands := make([]v1Command, 0, len(v1CmdManager.Commands))
+        for cmdName, v1Cmd := range v1CmdManager.Commands </span><span class="cov8" title="2822">{
+                v1Commands = append(v1Commands, v1Command{cmdName, v1Cmd})
+        }</span>
+        <span class="cov3" title="17">sort.Sort(ByPriority(v1Commands))
+
+        // add missing legacy commands
+        for _, v1Cmd := range v1Commands </span><span class="cov8" title="2822">{
+                // ignore this legacy commands
+                if ignoredLegacyCommands[v1Cmd.name] </span><span class="cov5" title="119">{
+                        continue</span>
+                }
+                <span class="cov8" title="2703">addMissingV1LegacyCommand(tree, v1CmdManager, v1Cmd)</span>
+        }
+}
+
+func addMissingV1LegacyCommand(tree *cmdNode, v1CmdManager *tsuruCmd.Manager, v1Cmd v1Command) <span class="cov8" title="2703">{
+        curr := tree
+        parts := strings.Split(strings.ReplaceAll(v1Cmd.name, "-", " "), " ")
+        for i, part := range parts </span><span class="cov8" title="6273">{
+                found := false
+                if _, found = curr.children[part]; !found </span><span class="cov8" title="3230">{
+                        newCmd := &amp;cobra.Command{
+                                Use:                part,
+                                Short:              "[v1] " + strings.Join(parts[:i+1], " "),
+                                DisableFlagParsing: true,
+                        }
+                        curr.addChild(newCmd)
+                        curr.command.AddCommand(newCmd)
+                }</span>
+                <span class="cov8" title="6273">curr = curr.children[part]
+
+                if i == len(parts)-1 &amp;&amp; !found </span><span class="cov8" title="2567">{
+                        curr.command.Short = "[v1] " + strings.Split(v1Cmd.cmd.Info().Desc, "\n")[0]
+                        curr.command.Long = v1Cmd.cmd.Info().Usage
+                        curr.command.SilenceUsage = true
+                        curr.command.Args = cobra.MinimumNArgs(0)
+                        curr.command.RunE = func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                                return runLegacyCommand(v1CmdManager, append(parts, args...))
+                        }</span>
+                }
+        }
+}
+
+type v1Command struct {
+        name string
+        cmd  tsuruCmd.Command
+}
+
+type ByPriority []v1Command
+
+func (a ByPriority) Len() int      <span class="cov3" title="17">{ return len(a) }</span>
+func (a ByPriority) Swap(i, j int) <span class="cov9" title="8037">{ a[i], a[j] = a[j], a[i] }</span>
+func (a ByPriority) Less(i, j int) bool <span class="cov10" title="21245">{
+        Li := len(strings.Split(a[i].name, " "))
+        Lj := len(strings.Split(a[j].name, " "))
+        if Li == Lj </span><span class="cov10" title="21245">{
+                return a[i].name &lt; a[j].name
+        }</span>
+        <span class="cov0" title="0">return Li &lt; Lj</span>
+}
+</pre>
+		
+		<pre class="file" id="file15" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package cmd
+
+import (
+        "fmt"
+        "io/fs"
+        "os"
+        "path/filepath"
+
+        "github.com/tsuru/tsuru-client/v2/internal/config"
+        "github.com/tsuru/tsuru-client/v2/internal/exec"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+)
+
+func runTsuruPlugin(tsuruCtx *tsuructx.TsuruContext, args []string) error <span class="cov7" title="4">{
+        pluginName := args[0]
+        if tsuruCtx.Viper.GetString("plugin-name") == pluginName </span><span class="cov0" title="0">{
+                return fmt.Errorf("failing trying to run recursive plugin")
+        }</span>
+
+        <span class="cov7" title="4">pluginPath := findExecutablePlugin(tsuruCtx, pluginName)
+        if pluginPath == "" </span><span class="cov1" title="1">{
+                return fmt.Errorf("command not found")
+        }</span>
+
+        <span class="cov6" title="3">envs := os.Environ()
+        tsuruEnvs := []string{
+                "TSURU_TARGET=" + tsuruCtx.TargetURL(),
+                "TSURU_TOKEN=" + tsuruCtx.Token(),
+                "TSURU_VERBOSITY=" + fmt.Sprintf("%d", tsuruCtx.Verbosity()),
+                "TSURU_PLUGIN_NAME=" + pluginName,
+        }
+        envs = append(envs, tsuruEnvs...)
+
+        opts := exec.ExecuteOptions{
+                Cmd:    pluginPath,
+                Args:   args[1:],
+                Stdout: tsuruCtx.Stdout,
+                Stderr: tsuruCtx.Stderr,
+                Stdin:  tsuruCtx.Stdin,
+                Envs:   envs,
+        }
+        return tsuruCtx.Executor.Command(opts)</span>
+}
+
+func findExecutablePlugin(tsuruCtx *tsuructx.TsuruContext, pluginName string) (execPath string) <span class="cov7" title="4">{
+        basePath := filepath.Join(config.ConfigPath, "plugins")
+        testPathGlobs := []string{
+                filepath.Join(basePath, pluginName),
+                filepath.Join(basePath, pluginName, pluginName),
+                filepath.Join(basePath, pluginName, pluginName+".*"),
+                filepath.Join(basePath, pluginName+".*"),
+        }
+        for _, pathGlob := range testPathGlobs </span><span class="cov10" title="7">{
+                var fStat fs.FileInfo
+                var err error
+                execPath = pathGlob
+                if fStat, err = tsuruCtx.Fs.Stat(pathGlob); err != nil </span><span class="cov7" title="4">{
+                        files, _ := filepath.Glob(pathGlob)
+                        if len(files) != 1 </span><span class="cov7" title="4">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">execPath = files[0]
+                        fStat, err = tsuruCtx.Fs.Stat(execPath)</span>
+                }
+                <span class="cov6" title="3">if err != nil || fStat.IsDir() || !fStat.Mode().IsRegular() </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov6" title="3">return execPath</span>
+        }
+        <span class="cov1" title="1">return ""</span>
+}
+</pre>
+		
+		<pre class="file" id="file16" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package cmd
+
+import (
+        "fmt"
+        "os"
+        "strings"
+        "time"
+
+        "github.com/spf13/afero"
+        "github.com/spf13/cobra"
+        "github.com/spf13/viper"
+        "github.com/tsuru/tsuru-client/v2/internal/config"
+        "github.com/tsuru/tsuru-client/v2/internal/exec"
+        "github.com/tsuru/tsuru-client/v2/internal/tsuructx"
+        "github.com/tsuru/tsuru-client/v2/pkg/cmd/app"
+        "github.com/tsuru/tsuru-client/v2/pkg/cmd/auth"
+)
+
+var (
+        cfgFile string
+        version cmdVersion
+)
+
+type cmdVersion struct {
+        Version string
+        Commit  string
+        Date    string
+}
+
+func (v *cmdVersion) String() string <span class="cov7" title="17">{
+        if v.Version == "" </span><span class="cov1" title="1">{
+                v.Version = "dev"
+        }</span>
+        <span class="cov7" title="17">if v.Commit == "" &amp;&amp; v.Date == "" </span><span class="cov7" title="17">{
+                return v.Version
+        }</span>
+        <span class="cov0" title="0">return fmt.Sprintf("%s (%s - %s)", v.Version, v.Commit, v.Date)</span>
+}
+
+var commands = []func(*tsuructx.TsuruContext) *cobra.Command{
+        app.NewAppCmd,
+        auth.NewLoginCmd,
+        auth.NewLogoutCmd,
+}
+
+// Execute adds all child commands to the root command and sets flags appropriately.
+// This is called by main.main(). It only needs to happen once to the rootCmd.
+func Execute(_version, _commit, _dateStr string) <span class="cov0" title="0">{
+        version = cmdVersion{_version, _commit, _dateStr}
+        rootCmd := NewRootCmd(viper.GetViper(), nil)
+        err := rootCmd.Execute()
+        if err != nil </span><span class="cov0" title="0">{
+                os.Exit(1)
+        }</span>
+}
+
+func NewRootCmd(vip *viper.Viper, tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov7" title="17">{
+        vip = preSetupViper(vip)
+        if tsuruCtx == nil </span><span class="cov0" title="0">{
+                tsuruCtx = NewProductionTsuruContext(vip, afero.NewOsFs())
+        }</span>
+        <span class="cov7" title="17">rootCmd := newBareRootCmd(tsuruCtx)
+        setupPFlagsAndCommands(rootCmd, tsuruCtx)
+        return rootCmd</span>
+}
+
+func newBareRootCmd(tsuruCtx *tsuructx.TsuruContext) *cobra.Command <span class="cov7" title="17">{
+        rootCmd := &amp;cobra.Command{
+                Version: version.String(),
+                Use:     "tsuru",
+                Short:   "A command-line interface for interacting with tsuru",
+
+                PersistentPreRun: rootPersistentPreRun(tsuruCtx),
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov5" title="7">{
+                        return runRootCmd(tsuruCtx, cmd, args)
+                }</span>,
+                Args: cobra.MinimumNArgs(0),
+
+                FParseErrWhitelist: cobra.FParseErrWhitelist{
+                        UnknownFlags: true,
+                },
+                DisableFlagParsing: true,
+        }
+
+        <span class="cov7" title="17">rootCmd.SetVersionTemplate(`{{printf "tsuru-client version: %s" .Version}}` + "\n")
+        rootCmd.SetIn(tsuruCtx.Stdin)
+        rootCmd.SetOut(tsuruCtx.Stdout)
+        rootCmd.SetErr(tsuruCtx.Stderr)
+
+        return rootCmd</span>
+}
+
+func runRootCmd(tsuruCtx *tsuructx.TsuruContext, cmd *cobra.Command, args []string) error <span class="cov5" title="7">{
+        cmd.SilenceUsage = true
+        parseFirstFlagsOnly(cmd, args)
+
+        versionVal, _ := cmd.Flags().GetBool("version")
+        helpVal, _ := cmd.Flags().GetBool("help")
+        if len(args) == 0 || versionVal || helpVal </span><span class="cov3" title="3">{
+                cmd.RunE = nil
+                cmd.Run = nil
+                return cmd.Execute()
+        }</span>
+
+        <span class="cov4" title="4">return runTsuruPlugin(tsuruCtx, args)</span>
+}
+
+// parseFirstFlagsOnly handles only the first flags with cmd.ParseFlags()
+// before a non-flag element
+func parseFirstFlagsOnly(cmd *cobra.Command, args []string) []string <span class="cov7" title="16">{
+        if cmd == nil </span><span class="cov1" title="1">{
+                return args
+        }</span>
+        <span class="cov7" title="15">cmd.DisableFlagParsing = false
+        for len(args) &gt; 0 </span><span class="cov7" title="21">{
+                s := args[0]
+                if len(s) == 0 || s[0] != '-' || len(s) == 1 </span><span class="cov6" title="12">{
+                        return args // any non-flag means we're done
+                }</span>
+                <span class="cov6" title="9">args = args[1:]
+
+                flagName := s[1:]
+                if s[1] == '-' </span><span class="cov5" title="7">{
+                        if len(s) == 2 </span><span class="cov0" title="0">{ // "--" terminates the flags
+                                return args
+                        }</span>
+                        <span class="cov5" title="7">flagName = s[2:]</span>
+                }
+
+                <span class="cov6" title="9">flag := cmd.Flags().Lookup(flagName)
+                if flag == nil &amp;&amp; len(flagName) == 1 </span><span class="cov2" title="2">{
+                        flag = cmd.Flags().ShorthandLookup(flagName)
+                }</span>
+
+                <span class="cov6" title="9">if flag != nil &amp;&amp; flag.Value.Type() == "bool" </span><span class="cov4" title="4">{
+                        cmd.ParseFlags([]string{s})
+                }</span> else<span class="cov4" title="5"> {
+                        cmd.ParseFlags([]string{s, args[0]})
+                        args = args[1:]
+                }</span>
+        }
+        <span class="cov3" title="3">return args</span>
+}
+
+func rootPersistentPreRun(tsuruCtx *tsuructx.TsuruContext) func(cmd *cobra.Command, args []string) <span class="cov7" title="17">{
+        return func(cmd *cobra.Command, args []string) </span><span class="cov5" title="8">{
+                if l := cmd.Flags().Lookup("target"); l != nil &amp;&amp; l.Value.String() != "" </span><span class="cov1" title="1">{
+                        fmt.Println("debug: setting target", cmd.Flag("target").Value.String())
+                        tsuruCtx.SetTargetURL(l.Value.String())
+                }</span>
+                <span class="cov5" title="8">if v, err := cmd.Flags().GetInt("verbosity"); err != nil </span><span class="cov0" title="0">{
+                        fmt.Println("debug: setting verbosity")
+                        tsuruCtx.SetVerbosity(v)
+                }</span>
+        }
+}
+
+// preSetupViper is supposed to be called before NewProductionTsuruContext()
+func preSetupViper(vip *viper.Viper) *viper.Viper <span class="cov7" title="18">{
+        if vip == nil </span><span class="cov0" title="0">{
+                vip = viper.New()
+        }</span>
+        <span class="cov7" title="18">vip.SetEnvPrefix("tsuru")
+        vip.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+        vip.AutomaticEnv() // read in environment variables that match
+        return vip</span>
+}
+
+// setupPFlagsAndCommands reads in config file and ENV variables if set.
+func setupPFlagsAndCommands(rootCmd *cobra.Command, tsuruCtx *tsuructx.TsuruContext) <span class="cov7" title="17">{
+        // Persistent Flags.
+        // !!! Double bind them inside PersistentPreRun() !!!
+        rootCmd.PersistentFlags().StringVar(&amp;cfgFile, "config", "", "config file (default is $HOME/.tsuru/.tsuru-client.yaml)")
+        rootCmd.PersistentFlags().Bool("json", false, "return the output in json format (when possible)") // TODO: add to PersistentPreRun()
+        rootCmd.PersistentFlags().String("target", "", "Tsuru server endpoint")
+        rootCmd.PersistentFlags().IntP("verbosity", "v", 0, "Verbosity level: 1 =&gt; print HTTP requests; 2 =&gt; print HTTP requests/responses")
+
+        if cfgFile != "" </span><span class="cov0" title="0">{
+                // Use config file from the flag.
+                tsuruCtx.Viper.SetConfigFile(cfgFile)
+        }</span> else<span class="cov7" title="17"> {
+                // Search config in home directory with name ".tsuru-client" (without extension).
+                tsuruCtx.Viper.AddConfigPath(config.ConfigPath)
+                tsuruCtx.Viper.SetConfigType("yaml")
+                tsuruCtx.Viper.SetConfigName(".tsuru-client")
+        }</span>
+
+        <span class="cov7" title="17">tsuruCtx.Viper.BindPFlag("target", rootCmd.PersistentFlags().Lookup("target"))
+        tsuruCtx.Viper.BindPFlag("verbosity", rootCmd.PersistentFlags().Lookup("verbosity"))
+
+        // If a config file is found, read it in.
+        if err := tsuruCtx.Viper.ReadInConfig(); err == nil </span><span class="cov0" title="0">{
+                fmt.Fprintln(os.Stderr, "Using config file:", tsuruCtx.Viper.ConfigFileUsed()) // TODO: handle this better
+        }</span>
+
+        // Add subcommands
+        <span class="cov7" title="17">for _, cmd := range commands </span><span class="cov10" title="51">{
+                rootCmd.AddCommand(cmd(tsuruCtx))
+        }</span>
+
+        <span class="cov7" title="17">v1LegacyCmdManager := newV1LegacyCmdManager()
+        addMissingV1LegacyCommands(rootCmd, v1LegacyCmdManager)
+        rootCmd.AddCommand(newLegacyCommand(v1LegacyCmdManager))</span>
+}
+
+func NewProductionTsuruContext(vip *viper.Viper, fs afero.Fs) *tsuructx.TsuruContext <span class="cov0" title="0">{
+        var err error
+        var tokenSetFromFS bool
+
+        // Get target
+        target := vip.GetString("target")
+        if target == "" </span><span class="cov0" title="0">{
+                target, err = config.GetCurrentTargetFromFs(fs)
+                cobra.CheckErr(err)
+        }</span>
+        <span class="cov0" title="0">target, err = config.GetTargetURL(fs, target)
+        cobra.CheckErr(err)
+        vip.Set("target", target)
+
+        // Get token
+        token := vip.GetString("token")
+        if token == "" </span><span class="cov0" title="0">{
+                token, err = config.GetTokenFromFs(fs)
+                cobra.CheckErr(err)
+                tokenSetFromFS = true
+                vip.Set("token", token)
+        }</span>
+
+        <span class="cov0" title="0">tsuruCtx := tsuructx.TsuruContextWithConfig(productionOpts(fs, vip))
+        tsuruCtx.TokenSetFromFS = tokenSetFromFS
+        return tsuruCtx</span>
+}
+
+func productionOpts(fs afero.Fs, vip *viper.Viper) *tsuructx.TsuruContextOpts <span class="cov1" title="1">{
+        return &amp;tsuructx.TsuruContextOpts{
+                InsecureSkipVerify: vip.GetBool("insecure-skip-verify"),
+                LocalTZ:            time.Local,
+                AuthScheme:         vip.GetString("auth-scheme"),
+                Executor:           &amp;exec.OsExec{},
+                Fs:                 fs,
+                Viper:              vip,
+
+                UserAgent: "tsuru-client:" + version.Version,
+
+                Stdout: os.Stdout,
+                Stderr: os.Stderr,
+                Stdin:  os.Stdin,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file17" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import (
+        "fmt"
+)
+
+const (
+        pattern  = "\033[%d;%d;%dm%s\033[0m"
+        bgFactor = 10
+)
+
+var (
+        fontColors = map[string]int{
+                "black":   30,
+                "red":     31,
+                "green":   32,
+                "yellow":  33,
+                "blue":    34,
+                "magenta": 35,
+                "cyan":    36,
+                "white":   37,
+        }
+
+        fontEffects = map[string]int{
+                "reset":   0,
+                "bold":    1,
+                "inverse": 7,
+        }
+)
+
+type Colorify struct {
+        DisableColors bool
+}
+
+func (c Colorify) Colorfy(msg string, fontcolor string, background string, effect string) string <span class="cov10" title="4">{
+        if c.DisableColors </span><span class="cov5" title="2">{
+                return msg
+        }</span>
+        <span class="cov5" title="2">return fmt.Sprintf(pattern, fontEffects[effect], fontColors[fontcolor], fontColors[background]+bgFactor, msg)</span>
+}
+</pre>
+		
+		<pre class="file" id="file18" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "strings"
+        "text/tabwriter"
+
+        "gopkg.in/yaml.v3"
+)
+
+type FieldType struct {
+        Name  string
+        Value any
+}
+
+type ArrayItemType []any
+
+type DetailedFieldType struct {
+        Name   string
+        Fields []string
+        Items  []ArrayItemType
+}
+
+type PrintableType struct {
+        SimpleFields   []FieldType
+        DetailedFields []DetailedFieldType
+}
+
+var _ json.Marshaler = &amp;PrintableType{}
+var _ json.Marshaler = &amp;DetailedFieldType{}
+var _ yaml.Marshaler = &amp;PrintableType{}
+var _ yaml.Marshaler = &amp;DetailedFieldType{}
+
+func (p *PrintableType) MarshalJSON() ([]byte, error) <span class="cov0" title="0">{
+        ret := make(map[string]any)
+        for _, f := range p.SimpleFields </span><span class="cov0" title="0">{
+                ret[f.Name] = f.Value
+        }</span>
+
+        <span class="cov0" title="0">for _, f := range p.DetailedFields </span><span class="cov0" title="0">{
+                ret[f.Name] = f.ToSliceOfMap()
+        }</span>
+        <span class="cov0" title="0">return json.Marshal(p.SimpleFields)</span>
+}
+
+func (l *DetailedFieldType) MarshalJSON() ([]byte, error) <span class="cov4" title="4">{
+        return json.Marshal(l.ToSliceOfMap())
+}</span>
+
+func (l *DetailedFieldType) ToSliceOfMap() []map[string]any <span class="cov4" title="4">{
+        ret := []map[string]any{}
+        for i, v := range l.Items </span><span class="cov6" title="8">{
+                ret = append(ret, map[string]any{})
+                for j, h := range l.Fields </span><span class="cov8" title="20">{
+                        ret[i][h] = v[j]
+                }</span>
+        }
+        <span class="cov4" title="4">return ret</span>
+}
+
+func (p *PrintableType) MarshalYAML() (interface{}, error) <span class="cov0" title="0">{
+        ret := make(map[string]any)
+        for _, f := range p.SimpleFields </span><span class="cov0" title="0">{
+                ret[f.Name] = f.Value
+        }</span>
+
+        <span class="cov0" title="0">for _, f := range p.DetailedFields </span><span class="cov0" title="0">{
+                ret[f.Name] = f.ToSliceOfMap()
+        }</span>
+        <span class="cov0" title="0">return yaml.Marshal(ret)</span>
+}
+
+func (l *DetailedFieldType) MarshalYAML() (interface{}, error) <span class="cov0" title="0">{
+        return yaml.Marshal(l.ToSliceOfMap())
+}</span>
+
+func (p *PrintableType) PrintTable(out io.Writer) <span class="cov3" title="3">{
+        w := out
+        if _, ok := out.(*tabwriter.Writer); !ok </span><span class="cov3" title="3">{
+                w = tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
+                defer w.(*tabwriter.Writer).Flush()
+        }</span>
+
+        <span class="cov3" title="3">for _, f := range p.SimpleFields </span><span class="cov6" title="9">{
+                fmt.Fprintf(w, "%s:\t%v\n", f.Name, f.Value)
+        }</span>
+
+        <span class="cov3" title="3">for _, f := range p.DetailedFields </span><span class="cov5" title="6">{
+                fmt.Fprintln(w)
+                fmt.Fprintf(w, "%s:\n", f.Name)
+                fmt.Fprintf(w, "\t%s\n", strings.Join(UpperCase(f.Fields), "\t"))
+                for _, line := range f.Items </span><span class="cov7" title="12">{
+                        for _, v := range line </span><span class="cov10" title="30">{
+                                fmt.Fprintf(w, "\t%v", v)
+                        }</span>
+                        <span class="cov7" title="12">fmt.Fprintln(w)</span>
+                }
+        }
+}
+</pre>
+		
+		<pre class="file" id="file19" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import "io"
+
+func PrintInfo(out io.Writer, format OutputType, data any, opts *TableViewOptions) (err error) <span class="cov10" title="10">{
+        switch format </span>{
+        case JSON:<span class="cov3" title="2">
+                return PrintJSON(out, data)</span>
+        case PrettyJSON:<span class="cov3" title="2">
+                return PrintPrettyJSON(out, data)</span>
+        case YAML:<span class="cov3" title="2">
+                return PrintYAML(out, data)</span>
+        case Table:<span class="cov3" title="2">
+                if pData, ok := data.(PrintableType); ok </span><span class="cov1" title="1">{
+                        pData.PrintTable(out)
+                        return nil
+                }</span>
+                <span class="cov1" title="1">return PrintTable(out, data, opts)</span>
+        default:<span class="cov3" title="2">
+                if pData, ok := data.(PrintableType); ok </span><span class="cov1" title="1">{
+                        pData.PrintTable(out)
+                        return nil
+                }</span>
+                <span class="cov1" title="1">return PrintTable(out, data, opts)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file20" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import "io"
+
+func PrintList(out io.Writer, format OutputType, data any, opts *TableViewOptions) (err error) <span class="cov10" title="5">{
+        switch format </span>{
+        case JSON:<span class="cov1" title="1">
+                return PrintJSON(out, data)</span>
+        case PrettyJSON:<span class="cov1" title="1">
+                return PrintPrettyJSON(out, data)</span>
+        case YAML:<span class="cov1" title="1">
+                return PrintYAML(out, data)</span>
+        case Table:<span class="cov1" title="1">
+                return PrintTableList(out, data, opts)</span>
+        default:<span class="cov1" title="1">
+                return PrintTableList(out, data, opts)</span>
+        }
+}
+</pre>
+		
+		<pre class="file" id="file21" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import (
+        "encoding/json"
+        "fmt"
+        "io"
+        "strings"
+
+        "gopkg.in/yaml.v3"
+)
+
+type OutputType string
+
+const (
+        // every OutputType should be mapped inside PrintInfo()
+        JSON       OutputType = "JSON"
+        PrettyJSON OutputType = "PrettyJSON"
+        YAML       OutputType = "YAML"
+        Table      OutputType = "Table"
+)
+
+func FormatAs(s string) OutputType <span class="cov6" title="5">{
+        switch strings.ToLower(s) </span>{
+        case "json":<span class="cov1" title="1">
+                return JSON</span>
+        case "pretty-json", "prettyjson":<span class="cov1" title="1">
+                return PrettyJSON</span>
+        case "yaml":<span class="cov1" title="1">
+                return YAML</span>
+        case "table":<span class="cov1" title="1">
+                return Table</span>
+        default:<span class="cov1" title="1">
+                return Table</span>
+        }
+}
+
+func PrintJSON(out io.Writer, data any) error <span class="cov9" title="14">{
+        if data == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov9" title="13">dataByte, err := json.Marshal(data)
+        if err != nil </span><span class="cov3" title="2">{
+                return fmt.Errorf("error converting to json: %w", err)
+        }</span>
+        <span class="cov8" title="11">fmt.Fprintln(out, string(dataByte))
+        return nil</span>
+}
+
+func PrintPrettyJSON(out io.Writer, data any) error <span class="cov9" title="14">{
+        if data == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov9" title="13">dataByte, err := json.MarshalIndent(data, "", "  ")
+        if err != nil </span><span class="cov3" title="2">{
+                return fmt.Errorf("error converting to json: %w", err)
+        }</span>
+        <span class="cov8" title="11">fmt.Fprintln(out, string(dataByte))
+        return nil</span>
+}
+
+func PrintYAML(out io.Writer, data any) (err error) <span class="cov10" title="15">{
+        defer func() </span><span class="cov10" title="15">{
+                if r := recover(); r != nil </span><span class="cov3" title="2">{
+                        // yaml.v3 panics a lot: https://github.com/go-yaml/yaml/issues/954
+                        err = fmt.Errorf("error converting to yaml (panic): %v", r)
+                }</span>
+        }()
+
+        <span class="cov10" title="15">if data == nil </span><span class="cov1" title="1">{
+                return nil
+        }</span>
+        <span class="cov9" title="14">dataByte, err := yaml.Marshal(data)
+        if err != nil </span><span class="cov1" title="1">{
+                return fmt.Errorf("error converting to yaml: %w", err)
+        }</span>
+        <span class="cov8" title="11">_, err = out.Write(dataByte)
+        return err</span>
+}
+</pre>
+		
+		<pre class="file" id="file22" style="display: none">// Copyright © 2023 tsuru-client authors
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package printer
+
+import (
+        "fmt"
+        "io"
+        "reflect"
+        "sort"
+        "strings"
+        "text/tabwriter"
+        "text/template"
+
+        "github.com/tsuru/go-tsuruclient/pkg/tsuru"
+        iTemplate "github.com/tsuru/tsuru-client/v2/internal/template"
+)
+
+type CustomFieldFunc func(any) string
+
+type TableViewOptions struct {
+        // TextTemplate is a template to use to print the data.
+        // If defined, it will be used regardless of any other option.
+        TextTemplate string
+        // ShowFields is a list of fields to exclusively show in the table.
+        ShowFields []string
+        // HideFields is a list of fields to hide in the table.
+        // If ShowFields is not empty, this list will be ignored.
+        HiddenFields []string
+        // CustomFieldFunc is a map of field name to a function that returns a string to show in the table.
+        CustomFieldFunc map[string]CustomFieldFunc
+}
+
+func (o *TableViewOptions) isFieldVisible(field string) bool <span class="cov0" title="0">{
+        if o == nil </span><span class="cov0" title="0">{
+                return true
+        }</span>
+        <span class="cov0" title="0">if len(o.ShowFields) &gt; 0 </span><span class="cov0" title="0">{
+                return Contains(o.ShowFields, field)
+        }</span>
+        <span class="cov0" title="0">if len(o.HiddenFields) &gt; 0 </span><span class="cov0" title="0">{
+                return !Contains(o.HiddenFields, field)
+        }</span>
+        <span class="cov0" title="0">return true</span>
+}
+
+func (o *TableViewOptions) visibleFieldsFromMap(m map[string]any) []string <span class="cov0" title="0">{
+        if o == nil </span><span class="cov0" title="0">{
+                return sortedKeys(m)
+        }</span>
+        <span class="cov0" title="0">if len(o.ShowFields) &gt; 0 </span><span class="cov0" title="0">{
+                return o.ShowFields
+        }</span>
+        <span class="cov0" title="0">return sortedKeysExcept(m, o.HiddenFields)</span>
+}
+func (o *TableViewOptions) visibleFieldsFromSlice(ss []string) []string <span class="cov0" title="0">{
+        ret := make([]string, 0, len(ss))
+        for _, s := range ss </span><span class="cov0" title="0">{
+                if o.isFieldVisible(s) </span><span class="cov0" title="0">{
+                        ret = append(ret, s)
+                }</span>
+        }
+        <span class="cov0" title="0">sort.Strings(ret)
+        return ret</span>
+}
+
+// PrintTable prints the data to out in a table format.
+// If data is a slice, it will print each element in a sub-table.
+func PrintTable(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov3" title="2">{
+        w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
+        defer w.Flush()
+        if opts == nil || opts.TextTemplate == "" </span><span class="cov3" title="2">{
+                return printTable(w, data, opts)
+        }</span>
+
+        <span class="cov0" title="0">tmpl, err := template.New("").Funcs(iTemplate.DefaultTemplateFuncs()).Parse(opts.TextTemplate)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">return tmpl.Execute(w, data)</span>
+}
+
+// PrintTableList prints the data to out in a single table format (slice fields may be ignored).
+func PrintTableList(out io.Writer, data any, opts *TableViewOptions) error <span class="cov3" title="2">{
+        w := tabwriter.NewWriter(out, 2, 2, 2, ' ', 0)
+        defer w.Flush()
+        return printTableList(w, data, opts)
+}</span>
+
+func printTable(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov3" title="2">{
+        if data == nil </span><span class="cov0" title="0">{
+                return nil
+        }</span>
+
+        <span class="cov3" title="2">switch tData := data.(type) </span>{
+        case []byte:<span class="cov0" title="0">
+                _, err = out.Write(tData)</span>
+        case string:<span class="cov3" title="2">
+                _, err = fmt.Fprintln(out, tData)</span>
+        case int, int16, int32, int64, int8, uint, uint16, uint32, uint64, uint8, float32, float64, complex64, complex128, bool:<span class="cov0" title="0">
+                _, err = fmt.Fprintln(out, tData)</span>
+        case []string:<span class="cov0" title="0">
+                _, err = fmt.Println(strings.Join(tData, "\n"))</span>
+        case io.Reader:<span class="cov0" title="0">
+                _, err = io.Copy(out, tData)</span>
+        case map[string]any:<span class="cov0" title="0">
+                for _, k := range opts.visibleFieldsFromMap(tData) </span><span class="cov0" title="0">{
+                        fmt.Fprintf(out, "%v: -----------\n", k)
+                        err = printTableList(out, tData[k], opts)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err // TODO: return a multi-error
+                        }</span>
+                }
+                <span class="cov0" title="0">fmt.Fprintln(out, "")</span>
+        case []any:<span class="cov0" title="0">
+                for _, v := range tData </span><span class="cov0" title="0">{
+                        err = printTableList(out, v, opts)
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                }
+        case *any:<span class="cov0" title="0">
+                err = PrintTable(out, *tData, opts)</span>
+        case any:<span class="cov0" title="0">
+                err = printTableAny(out, tData, opts)</span>
+        default:<span class="cov0" title="0">
+                err = fmt.Errorf("unknown type: %T", tData)</span>
+        }
+
+        <span class="cov3" title="2">return err</span>
+}
+
+func printTableAny(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov0" title="0">{
+        handledOnSwitch := true
+        switch tData := data.(type) </span>{
+        case tsuru.App:<span class="cov0" title="0">
+                _, err = fmt.Fprintf(io.Discard, "Handled!!!! %v\n\n", tData.Name) // XXX: fix this
+                handledOnSwitch = false</span>
+        default:<span class="cov0" title="0">
+                handledOnSwitch = false</span>
+        }
+        <span class="cov0" title="0">if handledOnSwitch </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">simpleInfo := map[string]any{}
+        complexInfo := map[string]any{}
+
+        // No custom printer found, try to print as best as we can
+        dt := reflect.TypeOf(data)
+        for _, field := range reflect.VisibleFields(dt) </span><span class="cov0" title="0">{
+                if !opts.isFieldVisible(field.Name) </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+
+                <span class="cov0" title="0">v := reflect.ValueOf(data).FieldByName(field.Name)
+                kind := v.Kind()
+                switch kind </span>{
+                case reflect.Bool:<span class="cov0" title="0">
+                        simpleInfo[field.Name] = v.Bool()</span>
+                case reflect.Int, reflect.Int8, reflect.Int32, reflect.Int64:<span class="cov0" title="0">
+                        simpleInfo[field.Name] = v.Int()</span>
+                case reflect.Uint, reflect.Uint8, reflect.Uint32, reflect.Uint64:<span class="cov0" title="0">
+                        simpleInfo[field.Name] = v.Uint()</span>
+                case reflect.Float32, reflect.Float64:<span class="cov0" title="0">
+                        simpleInfo[field.Name] = v.Float()</span>
+                case reflect.String:<span class="cov0" title="0">
+                        simpleInfo[field.Name] = v.String()</span>
+                case reflect.Slice:<span class="cov0" title="0">
+                        if tData, ok := v.Interface().([]string); ok </span><span class="cov0" title="0">{
+                                simpleInfo[field.Name] = strings.Join(tData, ", ")
+                        }</span> else<span class="cov0" title="0"> {
+                                if v.Len() == 0 </span><span class="cov0" title="0">{
+                                        continue</span>
+                                }
+                                <span class="cov0" title="0">complexInfo[field.Name] = v.Interface()</span>
+                        }
+                case reflect.Map:<span class="cov0" title="0">
+                        if v.Len() == 0 </span><span class="cov0" title="0">{
+                                continue</span>
+                        }
+                        <span class="cov0" title="0">fmt.Printf("map: %v\n", v.Interface())</span> // XXX: implement this
+                case reflect.Chan:<span class="cov0" title="0"></span>
+                default:<span class="cov0" title="0">
+                        complexInfo[field.Name] = v.Interface()</span>
+                }
+        }
+
+        // print simple info
+        <span class="cov0" title="0">for _, k := range sortedKeys(simpleInfo) </span><span class="cov0" title="0">{
+                _, err = fmt.Fprintf(out, "%s:\t%v\n", k, simpleInfo[k])
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+
+        // print complex info
+        <span class="cov0" title="0">for _, k := range sortedKeys(complexInfo) </span><span class="cov0" title="0">{
+                fmt.Fprintf(out, "\n%s (%T):\n", k, complexInfo[k])
+                if err = printTableList(out, complexInfo[k], opts); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+        }
+        <span class="cov0" title="0">return err</span>
+}
+
+func printTableList(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov3" title="2">{
+        switch reflect.TypeOf(data).Kind() </span>{
+        case reflect.Slice:<span class="cov3" title="2">
+                switch reflect.TypeOf(data).Elem().Kind() </span>{
+                case reflect.String:<span class="cov3" title="2">
+                        _, err = fmt.Fprintf(out, "\t%s\n", strings.Join(data.([]string), "\n\t"))
+                        return err</span>
+                case reflect.Map:<span class="cov0" title="0">
+                        return fmt.Errorf("not implemented: printSubTable(%T)", data)</span>
+                case reflect.Struct:<span class="cov0" title="0">
+                        err = printTableListOfStructs(out, data, opts)
+                        fmt.Fprintln(out, "")
+                        return err</span>
+                default:<span class="cov0" title="0">
+                        return fmt.Errorf("slice with unknown type: %T", data)</span>
+                }
+        case reflect.Map:<span class="cov0" title="0">
+                return fmt.Errorf("not implemented: printSubTable(%T)", data)</span>
+        case reflect.Struct:<span class="cov0" title="0">
+                err = printTableOfStructs(out, data, opts)
+                fmt.Fprintln(out, "")
+                return err</span>
+        default:<span class="cov0" title="0">
+                return fmt.Errorf("unknown type: %T", data)</span>
+        }
+}
+
+func UpperCase(ss []string) []string <span class="cov6" title="6">{
+        ret := make([]string, len(ss))
+        for i, s := range ss </span><span class="cov10" title="15">{
+                ret[i] = strings.ToUpper(s)
+        }</span>
+        <span class="cov6" title="6">return ret</span>
+}
+
+func printTableOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov0" title="0">{
+        keys := []string{}
+        for _, vf := range reflect.VisibleFields(reflect.TypeOf(data)) </span><span class="cov0" title="0">{
+                keys = append(keys, vf.Name)
+        }</span>
+        <span class="cov0" title="0">keys = opts.visibleFieldsFromSlice(keys)
+
+        sort.Strings(keys) // XXX: sort with defaults first?
+        _, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
+        for _, k := range keys </span><span class="cov0" title="0">{
+                item := reflect.ValueOf(data).FieldByName(k).Interface()
+                if fn, ok := opts.CustomFieldFunc[k]; ok </span><span class="cov0" title="0">{
+                        fmt.Fprintf(out, "\t%s", fn(item))
+                }</span> else<span class="cov0" title="0"> {
+                        fmt.Fprintf(out, "\t%v", item)
+                }</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+func printTableListOfStructs(out io.Writer, data any, opts *TableViewOptions) (err error) <span class="cov0" title="0">{
+        keys := []string{}
+        for _, vf := range reflect.VisibleFields(reflect.TypeOf(data).Elem()) </span><span class="cov0" title="0">{
+                keys = append(keys, vf.Name)
+        }</span>
+        <span class="cov0" title="0">keys = opts.visibleFieldsFromSlice(keys)
+
+        _, err = fmt.Fprintf(out, "\t%s\n", strings.Join(UpperCase(keys), "\t"))
+        for i := 0; i &lt; reflect.ValueOf(data).Len(); i++ </span><span class="cov0" title="0">{
+                item := reflect.ValueOf(data).Index(i).Interface()
+                for _, k := range keys </span><span class="cov0" title="0">{
+                        if fn, ok := opts.CustomFieldFunc[k]; ok </span><span class="cov0" title="0">{
+                                fmt.Fprintf(out, "\t%s", fn(item))
+                        }</span> else<span class="cov0" title="0"> {
+                                fmt.Fprintf(out, "\t%v", reflect.ValueOf(item).FieldByName(k).Interface())
+                        }</span>
+                }
+                <span class="cov0" title="0">fmt.Fprintln(out, "")</span>
+        }
+        <span class="cov0" title="0">return</span>
+}
+
+func sortedKeys(d map[string]any) []string <span class="cov0" title="0">{
+        // XXX: get some fields first (Name, Description, ID, etc...)
+        sortedKeys := make([]string, 0, len(d))
+        for k := range d </span><span class="cov0" title="0">{
+                sortedKeys = append(sortedKeys, k)
+        }</span>
+        <span class="cov0" title="0">sort.Strings(sortedKeys)
+        return sortedKeys</span>
+}
+
+func sortedKeysExcept(d map[string]any, exceptions []string) []string <span class="cov0" title="0">{
+        // XXX: get some fields first (Name, Description, ID, etc...)
+        sortedKeys := make([]string, 0, len(d))
+        for k := range d </span><span class="cov0" title="0">{
+                if Contains(exceptions, k) </span><span class="cov0" title="0">{
+                        continue</span>
+                }
+                <span class="cov0" title="0">sortedKeys = append(sortedKeys, k)</span>
+        }
+        <span class="cov0" title="0">sort.Strings(sortedKeys)
+        return sortedKeys</span>
+}
+
+func Contains(slice []string, item string) bool <span class="cov0" title="0">{
+        for _, v := range slice </span><span class="cov0" title="0">{
+                if v == item </span><span class="cov0" title="0">{
+                        return true
+                }</span>
+        }
+        <span class="cov0" title="0">return false</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
